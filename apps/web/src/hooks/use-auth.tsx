@@ -149,7 +149,17 @@ export function AuthProvider({
       guestLogin,
       refreshProfile,
     }),
-    [user, profile, guest, isHydrated, signInWithGoogle, signInWithDiscord, signOut, guestLogin, refreshProfile],
+    [
+      user,
+      profile,
+      guest,
+      isHydrated,
+      signInWithGoogle,
+      signInWithDiscord,
+      signOut,
+      guestLogin,
+      refreshProfile,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

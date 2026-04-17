@@ -15,8 +15,13 @@ export function AuthMenu() {
   }
 
   if (user) {
-    const nickname = profile?.nickname ?? user.user_metadata.full_name ?? user.user_metadata.name ?? 'Player';
-    const avatarSrc = profile?.avatarUrl ?? (typeof user.user_metadata.avatar_url === 'string' ? user.user_metadata.avatar_url : undefined);
+    const nickname =
+      profile?.nickname ?? user.user_metadata.full_name ?? user.user_metadata.name ?? 'Player';
+    const avatarSrc =
+      profile?.avatarUrl ??
+      (typeof user.user_metadata.avatar_url === 'string'
+        ? user.user_metadata.avatar_url
+        : undefined);
     return (
       <Link
         href="/profile"

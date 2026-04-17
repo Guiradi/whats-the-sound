@@ -54,7 +54,8 @@ async function fetchProfile(): Promise<ProfileRow | null> {
   const meta = user.user_metadata ?? {};
   const rawName = (meta.name ?? meta.full_name ?? meta.preferred_username ?? '') as string;
   const sanitized = rawName.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20);
-  const nickname = sanitized.length >= 3 ? sanitized : `player_${user.id.replace(/-/g, '').slice(0, 8)}`;
+  const nickname =
+    sanitized.length >= 3 ? sanitized : `player_${user.id.replace(/-/g, '').slice(0, 8)}`;
 
   const { data: created } = await supabase
     .from('users')

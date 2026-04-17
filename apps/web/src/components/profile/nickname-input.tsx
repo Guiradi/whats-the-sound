@@ -3,8 +3,8 @@
 import { checkNicknameAvailability, updateNickname } from '@/app/[locale]/profile/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useRouter } from '@/i18n/navigation';
 import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from '@/i18n/navigation';
 import { isValidNickname } from '@/lib/auth/guest';
 import { isBlockedNickname } from '@/lib/auth/profanity';
 import { cn } from '@/lib/utils';

@@ -1,5 +1,5 @@
-import { LoginForm } from '@/components/auth/login-form';
 import { HashDebugLogger } from '@/components/auth/hash-debug-logger';
+import { LoginForm } from '@/components/auth/login-form';
 import { LocaleSwitcher } from '@/components/shared/locale-switcher';
 import type { Locale } from '@/i18n/config';
 import { Link } from '@/i18n/navigation';
