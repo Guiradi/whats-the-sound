@@ -25,7 +25,7 @@ function HomeContent() {
       <header className="flex justify-end px-6 pt-6">
         <AuthMenu />
       </header>
-      <main className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-16">
+      <main className="flex flex-1 flex-col items-center justify-center gap-8 px-6 py-6">
         <header className="flex flex-col items-center gap-4 text-center">
           <Badge variant="cyan">{t('sprintBadge')}</Badge>
           <h1 className="font-[family-name:var(--font-display)] text-5xl font-bold tracking-tight md:text-6xl">
