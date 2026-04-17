@@ -44,6 +44,7 @@ export interface RoomPlayer {
   avatar: string | null;
   isGuest: boolean;
   totalScore: number;
+  correctCount: number;
   connected: boolean;
   joinedAt: string;
 }
@@ -56,7 +57,7 @@ export interface RoundSnapshot {
   phaseStartAt: number;
   phaseEndAt: number;
   correctPlayerIds: string[];
-  phaseAudioData: unknown;
+  phaseAudioData: PhaseConfig | null;
 }
 
 export interface ChatMessage {
@@ -91,7 +92,12 @@ export interface ServerToClientEvents {
   'room:state': (snapshot: RoomStateSnapshot) => void;
   'room:host_changed': (payload: { previousHostId: string; newHostId: string }) => void;
   'chat:message': (message: ChatMessage) => void;
-  'phase:start': (payload: { phase: 1 | 2 | 3 | 4; endsAt: number; audioData: unknown }) => void;
+  'phase:start': (payload: {
+    phase: 1 | 2 | 3 | 4;
+    endsAt: number;
+    audioData: PhaseConfig;
+    midiFileUrl: string;
+  }) => void;
   'round:reveal': (payload: { title: string; artist: string; correctPlayerIds: string[] }) => void;
   'error:rate_limited': (payload: { scope: string; retryAfterMs: number }) => void;
   'error:generic': (payload: { code: string; message: string }) => void;

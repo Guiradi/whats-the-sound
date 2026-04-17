@@ -44,6 +44,7 @@ function playerToWire(p: ServerPlayer): RoomPlayer {
     avatar: p.avatar,
     isGuest: p.isGuest,
     totalScore: p.totalScore,
+    correctCount: p.correctCount,
     connected: p.connected,
     joinedAt: p.joinedAt,
   };

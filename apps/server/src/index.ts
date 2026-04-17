@@ -5,6 +5,7 @@ import Fastify from 'fastify';
 import { env } from './env.js';
 import { registerErrorHandlers } from './middleware/error-handler.js';
 import { healthRoutes } from './routes/health.js';
+import { roomsRoutes } from './routes/rooms.js';
 import { initSocketServer } from './socket/index.js';
 import type { TypedServer } from './socket/index.js';
 
@@ -36,6 +37,7 @@ async function main() {
   registerErrorHandlers(server);
 
   await server.register(healthRoutes);
+  await server.register(roomsRoutes);
 
   // Initialize Socket.io — must be after routes are registered
   const io: TypedServer = initSocketServer(server);

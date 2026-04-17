@@ -9,7 +9,11 @@
     "loginTitle": "Entrar — What's the Sound?",
     "loginDescription": "Entre com Google, Discord ou jogue como convidado.",
     "profileTitle": "Perfil — What's the Sound?",
-    "profileDescription": "Seu perfil, estatísticas e preferências."
+    "profileDescription": "Seu perfil, estatísticas e preferências.",
+    "roomsTitle": "Salas — What's the Sound?",
+    "roomsDescription": "Encontre ou crie uma sala para jogar com amigos.",
+    "roomTitle": "Sala — What's the Sound?",
+    "roomDescription": "Sala de jogo multiplayer."
   },
   "common": {
     "actions": {
@@ -195,6 +199,63 @@
       "description": "Guests jogam, mas não salvam progresso. Crie uma conta para acumular XP, vitórias e streak.",
       "signIn": "Entrar",
       "backToHome": "Voltar para a home"
+    }
+  },
+  "room": {
+    "title": "Salas",
+    "backToHome": "Voltar para a home",
+    "connecting": "Conectando...",
+    "gameInProgress": "Jogo em andamento",
+    "gameStatus": "Status: {status}",
+    "gameOver": "Fim de jogo!",
+    "join": {
+      "placeholder": "CÓDIGO",
+      "submit": "Entrar",
+      "invalidCode": "Código deve ter 5 caracteres."
+    },
+    "create": {
+      "title": "Criar Sala",
+      "submit": "Criar Sala",
+      "creating": "Criando..."
+    },
+    "config": {
+      "category": "Categoria",
+      "rounds": "Rodadas",
+      "timePerPhase": "Tempo por fase",
+      "maxPlayers": "Máx. jogadores",
+      "isPublic": "Sala pública"
+    },
+    "categories": {
+      "random": "Aleatório",
+      "rock": "Rock",
+      "pop": "Pop",
+      "mpb": "MPB",
+      "sertanejo": "Sertanejo",
+      "games": "Games",
+      "anime": "Anime",
+      "classical": "Clássica",
+      "electronic": "Eletrônica",
+      "hiphop": "Hip-Hop"
+    },
+    "list": {
+      "title": "Salas públicas",
+      "empty": "Nenhuma sala pública disponível. Crie uma!",
+      "players": "{current}/{max} jogadores",
+      "join": "Entrar"
+    },
+    "lobby": {
+      "roomCode": "Código da sala",
+      "copyLink": "Copiar link",
+      "copied": "Link copiado!",
+      "players": "{count, plural, one {# jogador} other {# jogadores}}",
+      "guest": "Guest",
+      "configRounds": "{count} rodadas",
+      "configTime": "{seconds}s por fase",
+      "configPlayers": "Máx. {max}",
+      "start": "Iniciar Jogo",
+      "needMorePlayers": "Aguardando mais jogadores...",
+      "waitingForHost": "Aguardando o host iniciar...",
+      "leave": "Sair da sala"
     }
   },
   "legal": {

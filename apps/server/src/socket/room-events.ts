@@ -65,6 +65,7 @@ function makeServerPlayer(
     avatar: null,
     isGuest: socket.data.isGuest,
     totalScore: 0,
+    correctCount: 0,
     connected: true,
     joinedAt: new Date().toISOString(),
     socketId: socket.id,

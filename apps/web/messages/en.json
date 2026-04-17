@@ -9,7 +9,11 @@
     "loginTitle": "Sign in — What's the Sound?",
     "loginDescription": "Sign in with Google, Discord, or play as a guest.",
     "profileTitle": "Profile — What's the Sound?",
-    "profileDescription": "Your profile, stats, and preferences."
+    "profileDescription": "Your profile, stats, and preferences.",
+    "roomsTitle": "Rooms — What's the Sound?",
+    "roomsDescription": "Find or create a room to play with friends.",
+    "roomTitle": "Room — What's the Sound?",
+    "roomDescription": "Multiplayer game room."
   },
   "common": {
     "actions": {
@@ -195,6 +199,63 @@
       "description": "Guests can play but don't save progress. Create an account to earn XP, wins, and streaks.",
       "signIn": "Sign in",
       "backToHome": "Back to home"
+    }
+  },
+  "room": {
+    "title": "Rooms",
+    "backToHome": "Back to home",
+    "connecting": "Connecting...",
+    "gameInProgress": "Game in progress",
+    "gameStatus": "Status: {status}",
+    "gameOver": "Game over!",
+    "join": {
+      "placeholder": "CODE",
+      "submit": "Join",
+      "invalidCode": "Code must be 5 characters."
+    },
+    "create": {
+      "title": "Create Room",
+      "submit": "Create Room",
+      "creating": "Creating..."
+    },
+    "config": {
+      "category": "Category",
+      "rounds": "Rounds",
+      "timePerPhase": "Time per phase",
+      "maxPlayers": "Max players",
+      "isPublic": "Public room"
+    },
+    "categories": {
+      "random": "Random",
+      "rock": "Rock",
+      "pop": "Pop",
+      "mpb": "MPB",
+      "sertanejo": "Sertanejo",
+      "games": "Games",
+      "anime": "Anime",
+      "classical": "Classical",
+      "electronic": "Electronic",
+      "hiphop": "Hip-Hop"
+    },
+    "list": {
+      "title": "Public rooms",
+      "empty": "No public rooms available. Create one!",
+      "players": "{current}/{max} players",
+      "join": "Join"
+    },
+    "lobby": {
+      "roomCode": "Room code",
+      "copyLink": "Copy link",
+      "copied": "Link copied!",
+      "players": "{count, plural, one {# player} other {# players}}",
+      "guest": "Guest",
+      "configRounds": "{count} rounds",
+      "configTime": "{seconds}s per phase",
+      "configPlayers": "Max {max}",
+      "start": "Start Game",
+      "needMorePlayers": "Waiting for more players...",
+      "waitingForHost": "Waiting for host to start...",
+      "leave": "Leave room"
     }
   },
   "legal": {

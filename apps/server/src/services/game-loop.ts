@@ -77,6 +77,7 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
     // Reset all player scores
     for (const player of room.players.values()) {
       player.totalScore = 0;
+      player.correctCount = 0;
     }
 
     room.currentRoundIndex = 0;
@@ -172,6 +173,7 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
       phase,
       endsAt: round.phaseEndAt,
       audioData: phaseConfig,
+      midiFileUrl: round.midi.midiFileUrl,
     });
 
     broadcastState(io, room);
@@ -310,6 +312,7 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
         };
         round.correctAnswers.push(answer);
         player.totalScore += score;
+        player.correctCount++;
         room.version++;
 
         const msg = makeBotMessage(`${player.nickname} guessed correctly! (+${score} pts)`);
