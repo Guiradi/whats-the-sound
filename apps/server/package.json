@@ -13,9 +13,11 @@
   },
   "dependencies": {
     "@fastify/cors": "^10.0.2",
+    "@fastify/rate-limit": "^10.3.0",
     "@supabase/supabase-js": "^2.47.10",
     "@wts/shared": "workspace:*",
     "fastify": "^5.2.1",
+    "socket.io": "^4.8.3",
     "zod": "^3.24.1"
   },
   "devDependencies": {

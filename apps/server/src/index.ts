@@ -1,9 +1,12 @@
 import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
 import { EnvValidationError } from '@wts/shared/env';
 import Fastify from 'fastify';
 import { env } from './env.js';
 import { registerErrorHandlers } from './middleware/error-handler.js';
 import { healthRoutes } from './routes/health.js';
+import { initSocketServer } from './socket/index.js';
+import type { TypedServer } from './socket/index.js';
 
 async function main() {
   const server = Fastify({
@@ -24,12 +27,24 @@ async function main() {
     credentials: true,
   });
 
+  // REST API rate limiting: 60 req/min per IP (anonymous)
+  await server.register(rateLimit, {
+    max: 60,
+    timeWindow: '1 minute',
+  });
+
   registerErrorHandlers(server);
 
   await server.register(healthRoutes);
 
+  // Initialize Socket.io — must be after routes are registered
+  const io: TypedServer = initSocketServer(server);
+
   const shutdown = async (signal: string) => {
     server.log.info({ signal }, 'shutting down');
+    if (io) {
+      io.close();
+    }
     await server.close();
     process.exit(0);
   };

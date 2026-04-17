@@ -443,6 +443,62 @@
 
 ---
 
+### [✓] TASK-009: Socket.io Server + Room Management — 2026-04-17
+    Concluída em Sprint 3. Spec: `specs/features/04-multiplayer-rooms.md`.
+    → Entregue:
+      • `socket.io@^4` adicionado ao server, `socket.io-client@^4` adicionado ao web
+      • `apps/server/src/socket/index.ts` — Socket.io init, attach to Fastify HTTP server, CORS config, ping/pong settings
+      • `apps/server/src/socket/auth-middleware.ts` — validates Supabase JWT on handshake; guests accepted without token (identified as `guest:<socketId>`)
+      • `apps/server/src/services/room-manager.ts` — in-memory room state store (`Map<string, ServerRoomState>`): createRoom, joinRoom, leaveRoom, getRoom, listPublicRooms, reconnectPlayer, disconnectPlayer, addChatMessage, destroyRoom, toSnapshot
+      • `apps/server/src/socket/room-events.ts` — room:create (Zod-validated config + rate limiting), room:join (with reconnection), room:leave, disconnect (30s grace period)
+      • `apps/server/src/types/room.ts` — ServerPlayer, ServerRoundState, ServerRoomState, CorrectAnswer types
+      • `toSnapshot()` ensures midi answers never leak to client
+      • Host migration on leave (earliest-joined connected player)
+      • Auto-cleanup: 5-min timer for empty rooms, 30s disconnect grace period
+      • Room codes: 5-char from ROOM_CODE_ALPHABET with collision retry
+    → Validação:
+      • pnpm lint / type-check / build: all green
+
+---
+
+### [✓] TASK-010: Game Loop Engine — 2026-04-17
+    Concluída em Sprint 3 (critical path). Spec: `specs/features/04-multiplayer-rooms.md`.
+    → Entregue:
+      • `apps/server/src/services/game-loop.ts` — FSM: LOBBY → ROUND_START → PHASE_1-4 → ROUND_END → GAME_END. Factory pattern `createGameLoop(io, midiProvider)`. Timer orchestration with defensive null-checks. Phase audio data broadcast via `phase:start`. Round reveal via `round:reveal`. 1-second state sync ticks.
+      • `apps/server/src/services/scoring.ts` — `calculateScore(phase, position)` using PHASE_SCORES constants. `resolveGuessPosition` with SIMULTANEOUS_ANSWER_WINDOW_MS (50ms).
+      • `apps/server/src/socket/game-events.ts` — game:start (host-only), game:guess (with rate limiting), chat:send (with rate limiting, routed through guess verifier during phases)
+      • `apps/server/src/services/midi-provider.ts` — MidiProvider interface + StubMidiProvider with 15 hardcoded entries for testing until TASK-018
+      • Early phase advance when all connected players guess correctly
+      • Anti-cheat: answers never sent to client; round:reveal only at ROUND_END; all scoring server-side
+    → Validação:
+      • pnpm lint / type-check / build: all green
+
+---
+
+### [✓] TASK-011: Guess Verification System — 2026-04-17
+    Concluída em Sprint 3. Spec: `specs/features/04-multiplayer-rooms.md`.
+    → Entregue:
+      • `apps/server/src/services/guess-verifier.ts` — normalizeText (toLower, NFD strip diacritics via Unicode Mn category, strip non-alphanumeric, collapse whitespace, strip leading articles), levenshteinDistance (standard DP), scaleThreshold for long candidates, verifyGuess pipeline
+      • Checks accepted titles first (min distance), then accepted artists for artist_match
+      • Thresholds from shared constants: ≤1 correct, 2-3 hot, 4-5 warm (multiplayer mode)
+      • Integrated into game loop: correct → score + broadcast, hot/warm/artist_match → bot feedback, wrong → chat message
+    → Validação:
+      • pnpm lint / type-check / build: all green
+
+---
+
+### [✓] TASK-027: Rate Limiting — 2026-04-17
+    Concluída em Sprint 3. Spec: `specs/features/04-multiplayer-rooms.md`.
+    → Entregue:
+      • `apps/server/src/middleware/rate-limiter.ts` — SocketRateLimiter class: sliding window per scope (guess 1/sec, message 5/10s, room-create 3/10min). Periodic 60s cleanup of stale entries. Cleanup on socket disconnect.
+      • `@fastify/rate-limit` registered in server entry: 60 req/min per IP for REST API
+      • Integrated in room-events (room:create) and game-events (game:guess, chat:send)
+      • Emits `error:rate_limited` with scope and retryAfterMs on rejection
+    → Validação:
+      • pnpm lint / type-check / build: all green
+
+---
+
 ### [✓] TASK-004: PWA Setup com Serwist — 2026-04-17
     Concluída em Sprint 1 (última da sprint). Spec: `specs/features/07-pwa-sharing.md`.
     → Entregue:

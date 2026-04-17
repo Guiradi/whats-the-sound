@@ -16,7 +16,7 @@
 
 ## Sprint 3 — Multiplayer Core
 
-### [ ] TASK-009: Socket.io Server + Room Management (4h) — specs/features/04-multiplayer-rooms.md
+### [✓] TASK-009: Socket.io Server + Room Management (4h) — specs/features/04-multiplayer-rooms.md
     → Socket.io Setup:
       • Integrar Socket.io ao Fastify server
       • Configurar CORS para frontend
@@ -47,7 +47,7 @@
       • Estado sincronizado entre clients
       • Room auto-destrói quando vazia
 
-### [ ] TASK-010: Game Loop Engine (6h) — specs/features/04-multiplayer-rooms.md
+### [✓] TASK-010: Game Loop Engine (6h) — specs/features/04-multiplayer-rooms.md
     → State Machine:
       • Implementar FSM: LOBBY → ROUND_START → PHASE_1 → PHASE_2 → PHASE_3 → PHASE_4 → ROUND_END → GAME_END
       • Transições automáticas por timer
@@ -75,7 +75,7 @@
       • Timer avança fases automaticamente
       • GAME_END mostra ranking correto
 
-### [ ] TASK-011: Guess Verification System (3h) — specs/features/04-multiplayer-rooms.md
+### [✓] TASK-011: Guess Verification System (3h) — specs/features/04-multiplayer-rooms.md
     → Serviço GuessVerifier:
       • normalize(text) → lowercase, remove acentos, remove artigos
       • levenshteinDistance(a, b) → distância de edição
@@ -382,7 +382,7 @@
 
 ## Sprint 3 (adicionais pós-auditoria)
 
-### [ ] TASK-027: Rate Limiting (2h) — specs/features/04-multiplayer-rooms.md
+### [✓] TASK-027: Rate Limiting (2h) — specs/features/04-multiplayer-rooms.md
     → Chat & Guess (Socket.io):
       • 1 palpite / segundo por jogador (já mencionado em TASK-011, consolidar aqui)
       • 5 mensagens de chat / 10 segundos por jogador (burst tolerável)
