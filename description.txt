@@ -1,0 +1,54 @@
+A ideia é fantástica! É o tipo de jogo que tem um potencial de viralização enorme, especialmente para quem joga em call no Discord ou para criadores de conteúdo interagirem com o chat. O loop de gameplay do Gartic funciona muito bem, e levar isso para o áudio é uma sacada excelente. 
+
+Aqui estão algumas ideias de como estruturar, nomear e visualizar esse projeto:
+
+### 1. Como eu chamaria esse programa?
+O nome precisa ser curto, fácil de pronunciar em call ("Vamos jogar [Nome]?") e remeter à música e adivinhação. Algumas opções:
+
+* **Sintonia.io** (Traz a ideia de estar na mesma frequência da música).
+* **Melodix** (Soa moderno e tem um toque "gamer").
+* **QualÉoSom** (Direto e nostálgico).
+* **BeatGuessr** (Na mesma pegada do GeoGuessr, muito popular entre jogadores).
+* **Acorde** (Brinca com o conceito de acordar/despertar e o acorde musical).
+
+### 2. Como você descreveria esse projeto? (Elevator Pitch)
+"Um jogo multiplayer em tempo real que une a nostalgia dos programas de auditório de adivinhação musical com a dinâmica social e viciante do Gartic. Jogadores entram em salas virtuais guiadas por um 'Host Robô', que reproduz trechos curtos de músicas. Através de um chat interativo que fornece feedback de 'quente ou frio', os participantes tentam adivinhar a banda, a música ou o artista. Quem acerta primeiro ganha mais pontos, em partidas rápidas de 10 rodadas que garantem muita competição e risadas entre amigos."
+
+### 3. Como você organizaria um plano para criar ele?
+Pensando em uma arquitetura robusta para suportar o tempo real e os componentes interativos, o plano seria dividido da seguinte forma:
+
+* **Fase 1: Prova de Conceito (PoC) do Áudio e Lógica Base**
+    * **Fonte de Áudio:** Definir de onde virão as músicas. A API do Spotify (reprodução de previews de 30 segundos) ou integração com o YouTube são os caminhos mais comuns.
+    * **Algoritmo de Similaridade:** Criar a função que verifica o "quente ou frio". O ideal é usar o algoritmo de **Distância de Levenshtein** para comparar a string que o usuário digitou com a resposta certa, tolerando erros de digitação e enviando dicas como "Você está muito perto!" no chat.
+* **Fase 2: Backend em Tempo Real (NestJS + WebSockets)**
+    * **Gerenciamento de Salas (Lobbies):** Criar a lógica para criar salas (com código de 4 a 6 letras), entrar nelas e gerenciar o estado dos jogadores.
+    * **Game Loop:** Programar a Máquina de Estados do jogo (Aguardando Jogadores -> Iniciando Rodada -> Tocando Música -> Fim da Rodada/Mostrando Resposta -> Ranking Final).
+    * **WebSockets:** Garantir que o chat, o timer e os eventos de "acertou" sejam disparados via WebSocket para todos os clientes instantaneamente.
+* **Fase 3: Frontend Dinâmico (React/Next.js)**
+    * Construir a interface do lobby, a tela de jogo e a sala de chat.
+    * Integrar o player de áudio invisível que é controlado pelos eventos do WebSocket vindos do backend.
+* **Fase 4: Containerização e Deploy**
+    * Subir o ambiente com Docker para facilitar os testes locais da comunicação entre o Front e o Back.
+    * Preparar o deploy (por exemplo, Vercel para o Next.js e AWS ou Railway para o NestJS com suporte a WebSockets).
+
+### 4. Como você descreveria o layout dele? 
+O layout precisa ser muito focado na interação e visualmente amigável para transmissões ao vivo. Eu imagino um tema **Dark Mode** por padrão (neon ou synthwave), para dar aquele clima de "game show noturno". 
+
+Aqui está a disposição ideal da tela:
+
+* **Cabeçalho (Topo):** * Ao centro: A rodada atual (ex: 3/10) e uma barra de progresso horizontal que vai esvaziando conforme o tempo da música acaba.
+    * Nos cantos: Código da sala em destaque e controles de volume local.
+* **Lateral Esquerda (O Placar/Jogadores):**
+    * Uma lista vertical com os avatares dos jogadores e seus pontos atuais.
+    * Quando alguém acerta, o card do jogador brilha em verde e o avatar ganha um ícone de "Acertou!".
+* **Centro da Tela (O Palco):**
+    * É aqui que fica o "Host Robô". Ele pode ser um mascote animado (mesmo que seja um GIF 2D simples). 
+    * Abaixo dele, um **Visualizador de Áudio** (aquelas barrinhas que pulam conforme a batida da música). Isso dá o feedback visual de que o som está realmente tocando.
+    * Quando a rodada acaba, essa área central revela a capa do álbum, o nome da música e da banda com uma animação de confete.
+* **Lateral Direita (O Chat):**
+    * A mecânica principal. Um chat tradicional rolando de baixo para cima.
+    * As tentativas erradas dos jogadores aparecem normalmente. 
+    * Se a pessoa digitar algo parecido com a resposta, o "Robô" responde no chat em amarelo: *"@João está muito perto!"*
+    * Se a pessoa acertar, a mensagem dela não aparece para os outros. O Robô manda em verde: *"@Guilherme acertou!"*. Isso mantém o mistério para quem ainda não descobriu.
+
+E então, qual seria o gênero musical da sua primeira sala de testes? Games clássicos, Pop, ou aberturas de anime?
