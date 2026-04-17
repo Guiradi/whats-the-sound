@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(cd /tmp)",
+      "Bash(npx -y degit t3-oss/t3-env t3-env-source)",
+      "Bash(npm pack:*)",
+      "Bash(tar -xzf t3-oss-env-nextjs-*.tgz)",
+      "WebSearch",
+      "Bash(pnpm --filter @wts/web add @t3-oss/env-nextjs)",
+      "Bash(pnpm lint:*)"
+    ]
+  }
+}
