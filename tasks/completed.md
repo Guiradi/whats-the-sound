@@ -526,3 +526,70 @@
       • Atualizar `/admin/docs/arch/...` com a estratégia de cache Serwist quando TASK-029 estiver pronta
 
 ---
+
+### [✓] TASK-012: Tela de Salas + Lobby — 2026-04-17
+    Concluída em Sprint 4. Spec: `specs/features/04-multiplayer-rooms.md`.
+    → Entregue:
+      • `apps/web/src/hooks/use-room.ts` — hook Socket.io: join, leave, state sync (versioned), reconnect, chat, phase:start/round:reveal events. Auth via Supabase token (logado) ou guest (sem token)
+      • `apps/web/src/app/[locale]/(game)/layout.tsx` — route group layout com AudioContextProvider
+      • `apps/web/src/app/[locale]/(game)/rooms/page.tsx` — client page: join by code, create room dialog, public room list
+      • `apps/web/src/app/[locale]/(game)/room/[code]/page.tsx` — client page: state-driven rendering (LOBBY → GameBoard → GameResults)
+      • `apps/web/src/components/room/room-list.tsx` — polls GET /rooms every 5s, skeleton loading, empty state
+      • `apps/web/src/components/room/room-lobby.tsx` — room code display, copy link, config summary badges, player list, start/leave buttons
+      • `apps/web/src/components/room/room-config.tsx` — form: category select, rounds/time button groups, max players slider, public checkbox
+      • `apps/web/src/components/room/player-list-lobby.tsx` — player list with avatar, crown (host), guest badge, connected indicator
+      • `apps/web/src/components/room/create-room-dialog.tsx` — Radix Dialog wrapping RoomConfigForm + create action
+      • `apps/server/src/routes/rooms.ts` — `GET /rooms` REST endpoint returning `roomManager.listPublicRooms()`
+      • i18n: `room.*` namespace added to pt-BR + en (title, join, create, config, categories, list, lobby)
+    → Validação:
+      • pnpm lint / type-check / build: all green
+
+---
+
+### [✓] TASK-013: Tela de Jogo — Game Board — 2026-04-17
+    Concluída em Sprint 4 (critical path). Spec: `specs/features/04-multiplayer-rooms.md`.
+    → Entregue:
+      • `apps/web/src/hooks/use-game-state.ts` — pure derivation hook: status, phase, timeRemaining (100ms interval), timerProgress, timerColor (cyan/yellow/red), sortedPlayers, myCorrect, correctPlayerIds
+      • `apps/web/src/components/game/game-board.tsx` — main container: 3-column desktop (players | board | chat), mobile single-column with drawer triggers; wires useMidiPlayer to phase:start events, loads MIDI on first phase of each round
+      • `apps/web/src/components/game/player-list.tsx` — ranked sidebar: avatar, nickname, score (accent-yellow), correct checkmark, offline indicator
+      • `apps/web/src/components/game/game-chat.tsx` — auto-scroll chat, player vs bot styling (cyan for bot), aria-live="polite"
+      • `apps/web/src/components/game/chat-input.tsx` — text input + send button, disabled when already correct, placeholder switches between guess/chat mode
+      • `apps/web/src/components/game/game-timer.tsx` — progress bar cyan→yellow→red with pulse animation when urgent (<20%)
+      • `apps/web/src/components/game/phase-indicator.tsx` — 4 dots: completed (muted), active (cyan glow), upcoming (outlined)
+      • `apps/web/src/components/game/round-transition.tsx` — fullscreen overlay: "Round X of Y" + animated 3-2-1 countdown + "Go!"
+      • `apps/web/src/components/game/round-reveal.tsx` — fullscreen overlay: title, artist, correct players in green badges, confetti via canvas-confetti
+      • `apps/web/src/components/game/mobile-drawer.tsx` — Radix Dialog styled as bottom sheet for players/chat on mobile
+      • `apps/web/src/hooks/use-room.ts` — extended with phase:start and round:reveal event handling
+      • Deps: `canvas-confetti`, `@radix-ui/react-visually-hidden`
+      • i18n: `game.*` namespace added to pt-BR + en
+    → Decisões:
+      • Audio integration: phase:start includes midiFileUrl; client loads MIDI once per round, plays per phase
+      • Chat during phases: client always sends chat:send; server routes through guess verifier automatically
+      • Mobile: below lg breakpoint → single column, players/chat in bottom sheet drawers
+    → Fixes aplicados:
+      • webpack `extensionAlias` em next.config.ts para resolver .js→.ts no barrel do @wts/shared
+      • Removido re-export de env do barrel shared (Node.js deps quebravam client bundle)
+    → Validação:
+      • pnpm lint / type-check / build: all green
+      • Build: `/[locale]/room/[code]` 13.5 kB (330 kB first load com Tone.js)
+
+---
+
+### [✓] TASK-014: Tela de Resultado + Compartilhamento — 2026-04-17
+    Concluída em Sprint 4. Spec: `specs/features/04-multiplayer-rooms.md`.
+    → Entregue:
+      • `apps/web/src/components/game/podium.tsx` — animated top-3: display order 2nd|1st|3rd, gold/silver/bronze styling, slide-up animation with stagger delay
+      • `apps/web/src/components/game/final-ranking.tsx` — full sorted player list: rank, avatar, nickname, score, correctCount
+      • `apps/web/src/components/game/match-stats.tsx` — 3-card grid: rounds, players, total correct (with lucide icons + accent colors)
+      • `apps/web/src/components/game/share-result-button.tsx` — Web Share API on mobile, clipboard fallback on desktop, toast "Copied!"
+      • `apps/web/src/components/game/game-results.tsx` — container: podium + match stats + final ranking + share + play again button
+      • "Play Again" for host emits game:start (server accepts from GAME_END); non-host sees "Waiting for host..."
+    → Pre-work (shared types):
+      • `PhaseConfig` typing on phase:start audioData, `midiFileUrl` added to phase:start payload
+      • `correctCount: number` added to RoomPlayer, tracked server-side in game-loop
+      • `phaseAudioData: PhaseConfig | null` in RoundSnapshot (was `unknown`)
+    → Validação:
+      • pnpm lint / type-check / build: all green
+      • Build: 13.5 kB room page (includes results components)
+
+---

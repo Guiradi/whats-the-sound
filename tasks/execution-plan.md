@@ -172,6 +172,9 @@ Sprint 4 (Frontend Multi)    Sprint 5 (Daily+Polish)     Sprint 6 (Admin+Deploy)
 - [ ] Pódio e ranking final funcionam
 - [ ] Compartilhar resultado funciona
 
+**Pendente de smoke manual — ver `tasks/sprint-4-smoke-test.md` (~50 checks, 30-40 min).**
+**Nota: áudio não toca com StubMidiProvider (URLs fake). Validação e2e de áudio depende de TASK-018.**
+
 ---
 
 ## Sprint 5 — Daily Sound + XP + Polish (Estimativa: 24h)
