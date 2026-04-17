@@ -2,7 +2,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { type Locale, locales } from '@/i18n/config';
 import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -77,6 +77,7 @@ export default async function LocaleLayout({
     notFound();
   }
   setRequestLocale(locale);
+  const messages = await getMessages();
 
   return (
     <html
@@ -84,7 +85,9 @@ export default async function LocaleLayout({
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          {children}
+        </NextIntlClientProvider>
         <Toaster />
       </body>
     </html>
