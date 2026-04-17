@@ -3,6 +3,7 @@
 import { UserAvatar } from '@/components/auth/user-avatar';
 import { cn } from '@/lib/utils';
 import type { RoomPlayer } from '@wts/shared';
+import { useTranslations } from 'next-intl';
 
 interface PodiumProps {
   players: RoomPlayer[];
@@ -13,21 +14,21 @@ const PODIUM_CONFIG = [
     position: 1,
     height: 'h-32',
     color: 'border-accent-yellow shadow-[var(--shadow-glow-yellow)]',
-    label: '1st',
+    labelKey: 'ordinal.1',
     delay: 'animate-delay-500',
   },
   {
     position: 2,
     height: 'h-24',
     color: 'border-text-muted',
-    label: '2nd',
+    labelKey: 'ordinal.2',
     delay: 'animate-delay-200',
   },
   {
     position: 3,
     height: 'h-20',
     color: 'border-accent-orange',
-    label: '3rd',
+    labelKey: 'ordinal.3',
     delay: 'animate-delay-300',
   },
 ] as const;
@@ -36,6 +37,7 @@ const PODIUM_CONFIG = [
 const DISPLAY_ORDER = [1, 0, 2] as const;
 
 export function Podium({ players }: PodiumProps) {
+  const t = useTranslations('game.results');
   const top3 = players.slice(0, 3);
 
   return (
@@ -68,7 +70,7 @@ export function Podium({ players }: PodiumProps) {
               )}
             >
               <span className="font-[family-name:var(--font-space-grotesk)] text-2xl font-bold text-text-muted">
-                {config.label}
+                {t(config.labelKey)}
               </span>
             </div>
           </div>

@@ -62,7 +62,7 @@ function makeServerPlayer(
   return {
     id: socket.data.userId,
     nickname: nickname ?? socket.data.nickname ?? `Player_${socket.id.slice(0, 6)}`,
-    avatar: null,
+    avatar: socket.data.avatar ?? null,
     isGuest: socket.data.isGuest,
     totalScore: 0,
     correctCount: 0,
@@ -118,24 +118,32 @@ export function registerRoomEvents(
     try {
       const { code, nickname } = joinPayloadSchema.parse(payload);
 
-      // Leave current room if in one
-      if (socket.data.roomCode) {
-        handleLeave(socket, io);
-      }
-
-      // Check for reconnection
+      // Check for reconnection or already-joined (e.g., after room:create)
       const existingRoom = roomManager.getRoom(code);
       if (existingRoom) {
         const existingPlayer = existingRoom.players.get(socket.data.userId);
-        if (existingPlayer && !existingPlayer.connected) {
-          const room = roomManager.reconnectPlayer(code, socket.data.userId, socket.id);
-          if (room) {
+        if (existingPlayer) {
+          if (!existingPlayer.connected) {
+            const room = roomManager.reconnectPlayer(code, socket.data.userId, socket.id);
+            if (room) {
+              socket.data.roomCode = code;
+              socket.join(`room:${code}`);
+              io.to(`room:${code}`).emit('room:state', roomManager.toSnapshot(room));
+              return;
+            }
+          } else {
+            // Player already in room and connected (e.g., creator navigated to room page)
             socket.data.roomCode = code;
             socket.join(`room:${code}`);
-            io.to(`room:${code}`).emit('room:state', roomManager.toSnapshot(room));
+            socket.emit('room:state', roomManager.toSnapshot(existingRoom));
             return;
           }
         }
+      }
+
+      // Leave current room if in a different one
+      if (socket.data.roomCode && socket.data.roomCode !== code) {
+        handleLeave(socket, io);
       }
 
       if (nickname) {

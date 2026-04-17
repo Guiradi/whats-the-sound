@@ -54,6 +54,12 @@ export function useRoom(code: string | null): UseRoomReturn {
   const socketRef = useRef<TypedSocket | null>(null);
   const versionRef = useRef(0);
 
+  // Refs for user/guest so the effect doesn't re-run on reference changes
+  const userRef = useRef(user);
+  userRef.current = user;
+  const guestRef = useRef(guest);
+  guestRef.current = guest;
+
   // Stable identity
   const myId = user?.id ?? (guest ? `guest:${guest.id}` : null);
 
@@ -68,13 +74,15 @@ export function useRoom(code: string | null): UseRoomReturn {
       const socket = getSocket();
       socketRef.current = socket;
 
-      // Set auth token if logged in
-      if (user) {
+      // Set auth: JWT for logged-in users, stable guest ID for guests
+      const currentUser = userRef.current;
+      const currentGuest = guestRef.current;
+      if (currentUser) {
         const supabase = createSupabaseBrowserClient();
         const { data } = await supabase.auth.getSession();
         setSocketAuth(data.session?.access_token ?? null);
       } else {
-        setSocketAuth(null);
+        setSocketAuth(null, currentGuest?.id);
       }
 
       if (cancelled) return;
@@ -122,7 +130,7 @@ export function useRoom(code: string | null): UseRoomReturn {
       socket.on('connect', () => {
         setIsConnecting(false);
         // Join room on connect/reconnect
-        const nickname = user ? undefined : guest?.nickname;
+        const nickname = userRef.current ? undefined : guestRef.current?.nickname;
         socket.emit('room:join', { code: code!, nickname });
       });
 
@@ -133,10 +141,9 @@ export function useRoom(code: string | null): UseRoomReturn {
       if (!socket.connected) {
         socket.connect();
       } else {
-        // Already connected (e.g., reconnecting to a new room)
-        setIsConnecting(false);
-        const nickname = user ? undefined : guest?.nickname;
-        socket.emit('room:join', { code: code!, nickname });
+        // Force reconnect so auth middleware runs with the current token
+        socket.disconnect();
+        socket.connect();
       }
     }
 
@@ -162,7 +169,7 @@ export function useRoom(code: string | null): UseRoomReturn {
       setRoundReveal(null);
       versionRef.current = 0;
     };
-  }, [code, myId, user, guest]);
+  }, [code, myId]);
 
   const sendChat = useCallback((text: string) => {
     socketRef.current?.emit('chat:send', text);
@@ -176,39 +183,35 @@ export function useRoom(code: string | null): UseRoomReturn {
     socketRef.current?.emit('room:leave');
   }, []);
 
-  const createRoom = useCallback(
-    (config: RoomConfig, onCreated: (code: string) => void) => {
-      const socket = getSocket();
-      socketRef.current = socket;
+  const createRoom = useCallback((config: RoomConfig, onCreated: (code: string) => void) => {
+    const socket = getSocket();
+    socketRef.current = socket;
 
-      async function doCreate() {
-        if (user) {
-          const supabase = createSupabaseBrowserClient();
-          const { data } = await supabase.auth.getSession();
-          setSocketAuth(data.session?.access_token ?? null);
-        } else {
-          setSocketAuth(null);
-        }
-
-        if (!socket.connected) {
-          socket.connect();
-          // Wait for connect before emitting
-          socket.once('connect', () => {
-            socket.emit('room:create', config, (payload) => {
-              onCreated(payload.code);
-            });
-          });
-        } else {
-          socket.emit('room:create', config, (payload) => {
-            onCreated(payload.code);
-          });
-        }
+    async function doCreate() {
+      const currentUser = userRef.current;
+      const currentGuest = guestRef.current;
+      if (currentUser) {
+        const supabase = createSupabaseBrowserClient();
+        const { data } = await supabase.auth.getSession();
+        setSocketAuth(data.session?.access_token ?? null);
+      } else {
+        setSocketAuth(null, currentGuest?.id);
       }
 
-      doCreate();
-    },
-    [user],
-  );
+      // Always (re)connect to ensure auth middleware runs with current token
+      if (socket.connected) {
+        socket.disconnect();
+      }
+      socket.connect();
+      socket.once('connect', () => {
+        socket.emit('room:create', config, (payload) => {
+          onCreated(payload.code);
+        });
+      });
+    }
+
+    doCreate();
+  }, []);
 
   const isHost = snapshot !== null && snapshot.room.hostId === myId;
   const myPlayer = useMemo(() => {

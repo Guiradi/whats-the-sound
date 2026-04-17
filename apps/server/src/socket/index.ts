@@ -2,6 +2,7 @@ import type { ClientToServerEvents, ServerToClientEvents } from '@wts/shared';
 import type { FastifyInstance } from 'fastify';
 import { Server } from 'socket.io';
 import { env } from '../env.js';
+import { getSupabaseAdmin } from '../lib/supabase.js';
 import { SocketRateLimiter } from '../middleware/rate-limiter.js';
 import { createGameLoop } from '../services/game-loop.js';
 import { StubMidiProvider } from '../services/midi-provider.js';
@@ -14,9 +15,6 @@ export type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 function getSupabase(): import('@supabase/supabase-js').SupabaseClient | null {
   if (!env.SUPABASE_URL || !env.SUPABASE_SECRET_KEY) return null;
   try {
-    const { getSupabaseAdmin } = require('../lib/supabase.js') as {
-      getSupabaseAdmin: () => import('@supabase/supabase-js').SupabaseClient;
-    };
     return getSupabaseAdmin();
   } catch {
     return null;

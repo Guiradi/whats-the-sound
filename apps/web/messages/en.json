@@ -205,6 +205,9 @@
     "title": "Rooms",
     "backToHome": "Back to home",
     "connecting": "Connecting...",
+    "loginRequired": "You need to sign in or play as a guest to access rooms.",
+    "loginAction": "Sign in or play as guest",
+    "backToRooms": "Back to rooms",
     "gameInProgress": "Game in progress",
     "gameStatus": "Status: {status}",
     "gameOver": "Game over!",
@@ -273,7 +276,17 @@
       "title": "Chat",
       "placeholder": "Type a message...",
       "guessPlaceholder": "Type your guess...",
-      "locked": "You already guessed correctly!"
+      "locked": "You already guessed correctly!",
+      "you": "You",
+      "bot": {
+        "gameStarting": "Game starting! {rounds} rounds.",
+        "roundStart": "Round {current} of {total}",
+        "gameOver": "Game over! Final results are in.",
+        "guessedCorrectly": "{nickname} guessed correctly! (+{score} pts)",
+        "hot": "{nickname} is getting hot! 🔥",
+        "warm": "{nickname} is warm...",
+        "artistMatch": "{nickname} got the artist right! But what's the song?"
+      }
     },
     "status": {
       "youGuessedCorrectly": "You guessed correctly! Waiting for next phase..."
@@ -292,6 +305,11 @@
         "rounds": "Rounds",
         "players": "Players",
         "totalCorrect": "Total correct"
+      },
+      "ordinal": {
+        "1": "1st",
+        "2": "2nd",
+        "3": "3rd"
       },
       "share": "Share result",
       "copied": "Copied!",

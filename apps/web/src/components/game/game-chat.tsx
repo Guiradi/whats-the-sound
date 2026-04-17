@@ -2,14 +2,38 @@
 
 import { cn } from '@/lib/utils';
 import type { ChatMessage } from '@wts/shared';
-import { useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface GameChatProps {
   messages: ChatMessage[];
   myId: string | null;
+  playerNames?: Map<string, string>;
 }
 
-export function GameChat({ messages, myId }: GameChatProps) {
+/**
+ * Parse bot message keys. Format: "bot.<key>" or "bot.<key>:{json params}"
+ * Returns null if not a bot key (legacy plain text).
+ */
+function parseBotKey(
+  text: string,
+): { key: string; params: Record<string, string | number> } | null {
+  if (!text.startsWith('bot.')) return null;
+  const colonIdx = text.indexOf(':');
+  if (colonIdx === -1) {
+    return { key: text.slice(4), params: {} };
+  }
+  try {
+    const key = text.slice(4, colonIdx);
+    const params = JSON.parse(text.slice(colonIdx + 1)) as Record<string, string | number>;
+    return { key, params };
+  } catch {
+    return null;
+  }
+}
+
+export function GameChat({ messages, myId, playerNames }: GameChatProps) {
+  const t = useTranslations('game.chat');
   const bottomRef = useRef<HTMLDivElement>(null);
   const countRef = useRef(0);
 
@@ -20,6 +44,15 @@ export function GameChat({ messages, myId }: GameChatProps) {
     }
     countRef.current = messages.length;
   });
+
+  const renderBotText = useCallback(
+    (text: string) => {
+      const parsed = parseBotKey(text);
+      if (!parsed) return text;
+      return t(`bot.${parsed.key}`, parsed.params);
+    },
+    [t],
+  );
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto px-2 py-1" aria-live="polite">
@@ -34,10 +67,14 @@ export function GameChat({ messages, myId }: GameChatProps) {
           )}
         >
           {msg.kind === 'bot' ? (
-            <span>{msg.text}</span>
+            <span>{renderBotText(msg.text)}</span>
           ) : (
             <span>
-              <span className="font-semibold">{msg.authorId === myId ? 'You' : msg.authorId}</span>
+              <span className="font-semibold">
+                {msg.authorId === myId
+                  ? t('you')
+                  : (playerNames?.get(msg.authorId) ?? msg.authorId)}
+              </span>
               {': '}
               {msg.text}
             </span>

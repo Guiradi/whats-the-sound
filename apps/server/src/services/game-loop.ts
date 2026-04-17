@@ -92,7 +92,7 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
 
         room.playlist = midis;
 
-        const msg = makeBotMessage(`Game starting! ${midis.length} rounds.`);
+        const msg = makeBotMessage(`bot.gameStarting:${JSON.stringify({ rounds: midis.length })}`);
         roomManager.addChatMessage(roomCode, msg);
         io.to(`room:${roomCode}`).emit('chat:message', msg);
 
@@ -135,7 +135,9 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
     };
     room.version++;
 
-    const msg = makeBotMessage(`Round ${room.round.current} of ${room.round.total}`);
+    const msg = makeBotMessage(
+      `bot.roundStart:${JSON.stringify({ current: room.round.current, total: room.round.total })}`,
+    );
     roomManager.addChatMessage(roomCode, msg);
     io.to(`room:${roomCode}`).emit('chat:message', msg);
 
@@ -262,7 +264,7 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
     room.round = null;
     room.version++;
 
-    const msg = makeBotMessage('Game over! Final results are in.');
+    const msg = makeBotMessage('bot.gameOver');
     roomManager.addChatMessage(roomCode, msg);
     io.to(`room:${roomCode}`).emit('chat:message', msg);
 
@@ -315,7 +317,9 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
         player.correctCount++;
         room.version++;
 
-        const msg = makeBotMessage(`${player.nickname} guessed correctly! (+${score} pts)`);
+        const msg = makeBotMessage(
+          `bot.guessedCorrectly:${JSON.stringify({ nickname: player.nickname, score })}`,
+        );
         roomManager.addChatMessage(roomCode, msg);
         io.to(`room:${roomCode}`).emit('chat:message', msg);
         broadcastState(io, room);
@@ -323,25 +327,28 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
         // Check if all connected players have answered
         const connected = connectedPlayerCount(room);
         if (round.correctAnswers.length >= connected) {
-          // Everyone got it — advance early
-          endPhase(roomCode);
+          // Everyone got it — skip remaining phases, go straight to reveal
+          clearRoundTimers(round);
+          endRound(roomCode);
         }
         break;
       }
       case GuessResult.HOT: {
-        const msg = makeBotMessage(`${player.nickname} is getting hot! 🔥`);
+        const msg = makeBotMessage(`bot.hot:${JSON.stringify({ nickname: player.nickname })}`);
         roomManager.addChatMessage(roomCode, msg);
         io.to(`room:${roomCode}`).emit('chat:message', msg);
         break;
       }
       case GuessResult.WARM: {
-        const msg = makeBotMessage(`${player.nickname} is warm...`);
+        const msg = makeBotMessage(`bot.warm:${JSON.stringify({ nickname: player.nickname })}`);
         roomManager.addChatMessage(roomCode, msg);
         io.to(`room:${roomCode}`).emit('chat:message', msg);
         break;
       }
       case GuessResult.ARTIST_MATCH: {
-        const msg = makeBotMessage(`${player.nickname} got the artist right! But what's the song?`);
+        const msg = makeBotMessage(
+          `bot.artistMatch:${JSON.stringify({ nickname: player.nickname })}`,
+        );
         roomManager.addChatMessage(roomCode, msg);
         io.to(`room:${roomCode}`).emit('chat:message', msg);
         break;

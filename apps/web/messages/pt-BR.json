@@ -205,6 +205,9 @@
     "title": "Salas",
     "backToHome": "Voltar para a home",
     "connecting": "Conectando...",
+    "loginRequired": "Você precisa entrar ou jogar como convidado para acessar as salas.",
+    "loginAction": "Entrar ou jogar como convidado",
+    "backToRooms": "Voltar para as salas",
     "gameInProgress": "Jogo em andamento",
     "gameStatus": "Status: {status}",
     "gameOver": "Fim de jogo!",
@@ -273,7 +276,17 @@
       "title": "Chat",
       "placeholder": "Digite uma mensagem...",
       "guessPlaceholder": "Digite seu palpite...",
-      "locked": "Você já acertou!"
+      "locked": "Você já acertou!",
+      "you": "Você",
+      "bot": {
+        "gameStarting": "Jogo começando! {rounds} rodadas.",
+        "roundStart": "Rodada {current} de {total}",
+        "gameOver": "Fim de jogo! Resultados finais.",
+        "guessedCorrectly": "{nickname} acertou! (+{score} pts)",
+        "hot": "{nickname} está quente! 🔥",
+        "warm": "{nickname} está morno...",
+        "artistMatch": "{nickname} acertou o artista! Mas qual é a música?"
+      }
     },
     "status": {
       "youGuessedCorrectly": "Você acertou! Aguardando próxima fase..."
@@ -292,6 +305,11 @@
         "rounds": "Rodadas",
         "players": "Jogadores",
         "totalCorrect": "Total de acertos"
+      },
+      "ordinal": {
+        "1": "1º",
+        "2": "2º",
+        "3": "3º"
       },
       "share": "Compartilhar resultado",
       "copied": "Copiado!",

@@ -97,7 +97,7 @@ export function GameBoard({
   );
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col lg:flex-row">
+    <div className="flex h-dvh flex-col lg:flex-row">
       <StartAudioOverlay />
 
       {/* Left sidebar — Players (desktop) */}
@@ -159,7 +159,7 @@ export function GameBoard({
               title={t('chat.title')}
             >
               <div className="flex h-[50vh] flex-col">
-                <GameChat messages={chat} myId={myId} />
+                <GameChat messages={chat} myId={myId} playerNames={playerNames} />
                 <ChatInput
                   onSend={handleSend}
                   disabled={gameState.myCorrect}
@@ -200,7 +200,7 @@ export function GameBoard({
         <h3 className="border-b border-bg-border px-3 py-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
           {t('chat.title')}
         </h3>
-        <GameChat messages={chat} myId={myId} />
+        <GameChat messages={chat} myId={myId} playerNames={playerNames} />
         <ChatInput
           onSend={handleSend}
           disabled={gameState.myCorrect}

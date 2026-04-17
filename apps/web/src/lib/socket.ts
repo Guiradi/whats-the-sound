@@ -25,12 +25,19 @@ export function getSocket(): TypedSocket {
 }
 
 /**
- * Update the auth token on the socket (e.g., after login).
- * Must be called before connecting if the user is authenticated.
+ * Update the auth on the socket.
+ * For authenticated users: sends the JWT token.
+ * For guests: sends the stable guest ID so the server identity matches the client.
  */
-export function setSocketAuth(token: string | null): void {
+export function setSocketAuth(token: string | null, guestId?: string | null): void {
   const s = getSocket();
-  s.auth = token ? { token } : {};
+  if (token) {
+    s.auth = { token };
+  } else if (guestId) {
+    s.auth = { guestId };
+  } else {
+    s.auth = {};
+  }
 }
 
 /** Disconnect and reset the singleton. */
