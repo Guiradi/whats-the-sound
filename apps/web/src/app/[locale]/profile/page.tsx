@@ -1,0 +1,96 @@
+import { AuthMenu } from '@/components/auth/auth-menu';
+import { GuestEmptyState } from '@/components/profile/guest-empty-state';
+import { LogoutButton } from '@/components/profile/logout-button';
+import { ProfileCard } from '@/components/profile/profile-card';
+import { type ProfileStats, StatGrid } from '@/components/profile/stat-grid';
+import { env } from '@/env';
+import type { Locale } from '@/i18n/config';
+import { Link } from '@/i18n/navigation';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { ArrowLeft } from 'lucide-react';
+import type { Metadata } from 'next';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+
+// This page depends on the authenticated user (session cookie) — do not prerender.
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: Locale }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'metadata' });
+  return {
+    title: t('profileTitle'),
+    description: t('profileDescription'),
+  };
+}
+
+interface ProfileRow extends ProfileStats {
+  nickname: string;
+  avatar_url: string | null;
+  created_at: string;
+}
+
+async function fetchProfile(): Promise<ProfileRow | null> {
+  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    return null;
+  }
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from('users')
+    .select(
+      'nickname, avatar_url, created_at, total_games, total_wins, total_correct, daily_streak, max_daily_streak, points_total, level, xp',
+    )
+    .eq('id', user.id)
+    .maybeSingle();
+  return data as ProfileRow | null;
+}
+
+export default async function ProfilePage({ params }: { params: Promise<{ locale: Locale }> }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: 'profile' });
+  const profile = await fetchProfile();
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <header className="flex items-center justify-between px-6 py-4">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm text-text-muted transition-colors hover:text-accent-cyan"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t('guestEmpty.backToHome')}
+        </Link>
+        <AuthMenu />
+      </header>
+      <main className="mx-auto w-full max-w-3xl flex-1 px-6 pb-16">
+        {profile ? (
+          <div className="flex flex-col gap-8">
+            <div className="flex items-center justify-between">
+              <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-text-primary">
+                {t('heading')}
+              </h1>
+              <LogoutButton />
+            </div>
+            <ProfileCard
+              nickname={profile.nickname}
+              avatarUrl={profile.avatar_url}
+              createdAt={profile.created_at}
+            />
+            <StatGrid stats={profile} locale={locale} />
+          </div>
+        ) : (
+          <GuestEmptyState />
+        )}
+      </main>
+    </div>
+  );
+}

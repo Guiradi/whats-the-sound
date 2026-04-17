@@ -188,6 +188,261 @@
 
 ---
 
+### [✓] TASK-029: Dev Docs Portal + Admin Middleware — 2026-04-17
+    Concluída em Sprint 2 (última). Spec: `specs/features/09-dev-docs.md`.
+    → Deps adicionadas no `apps/web`: `next-mdx-remote@^6`, `gray-matter@^4`, `remark-gfm@^4`, `rehype-slug@^6`, `rehype-autolink-headings@^7`, `shiki@^4`, `fuse.js@^7` (shiki instalado mas não cabeado ainda — follow-up)
+    → Entregue (admin middleware):
+      • `apps/web/src/middleware/require-admin.ts` — lê sessão via `createServerClient` (@supabase/ssr), consulta `users.role`, retorna `NextResponse` 404 (não 403, não revela a rota) pra non-admins ou sessão ausente. Dev escape hatch `ALLOW_ADMIN_WITHOUT_ROLE=true` — respeitado SÓ quando `env.NODE_ENV !== 'production'`
+      • `apps/web/src/middleware.ts` — chain order: Supabase refresh → `requireAdmin` (quando pathname bate em `/^\/(?:pt-BR|en)\/admin(\/|$)/`) → next-intl. Falha do admin gate short-circuita antes do intl
+      • `apps/web/src/env.ts` — adicionado `NODE_ENV` enum + `ALLOW_ADMIN_WITHOUT_ROLE` enum→boolean (Zod transform)
+      • `apps/web/.env.example` — documenta a flag + warning sobre prod
+    → Entregue (MDX infra):
+      • `apps/web/src/lib/docs/fs.ts` — `listAllDocs()` (walks `src/content/dev-docs/**/*.mdx`) + `readDoc(slug[])` + `parseFrontmatter` via gray-matter. Normaliza `lastUpdated` (aceita Date ou string YAML → string YYYY-MM-DD)
+      • `apps/web/src/components/docs/mdx-components.tsx` — mapping de elementos MDX → componentes com Tailwind (h1-h3, p, ul/ol/li, code, pre, a, blockquote, table/th/td, hr, strong, em). Links externos ganham `target="_blank" rel="noopener noreferrer"` automaticamente
+      • Route: `apps/web/src/app/[locale]/admin/docs/[[...slug]]/page.tsx` — catch-all `force-dynamic` que resolve slug via `readDoc`, renderiza MDX via `next-mdx-remote/rsc` `<MDXRemote>` com `remarkGfm` ativado, header + footer "Última atualização: TASK-XXX — YYYY-MM-DD" quando frontmatter inclui
+      • Layout `apps/web/src/app/[locale]/admin/docs/layout.tsx` — sidebar + search + main content, link de volta pra /, heading "Dev Docs"
+    → Entregue (componentes):
+      • `DocsSidebar` (client) — hierarquia hardcoded (Home, Setup, Arch {overview/monorepo/database/audio}, Conventions, i18n, Troubleshooting, Progress, Runbooks {supabase-admin}), active state via `usePathname`, estilos dark com accent-cyan no ativo
+      • `DocsSearch` (client) — fuse.js client-side com `{ keys: [title, description, slugString], threshold: 0.4 }`, recebe entries do layout (server walk do fs), mostra top 8 resultados com preview de descrição
+    → Entregue (conteúdo MDX):
+      • `content/dev-docs/` — 11 arquivos cobrindo retroativamente Sprints 1+2:
+        - `index.mdx` (home / overview)
+        - `setup.mdx` (pré-reqs, clone, install, env, db, dev, gates)
+        - `arch/overview.mdx` (stack, apps, fluxo de request, decisões)
+        - `arch/monorepo.mdx` (pnpm workspaces, turbo, Biome)
+        - `arch/database.mdx` (migrations, RLS, triggers, clients)
+        - `arch/audio.mdx` (Tone.js, parser, phase-player, Safari autoplay)
+        - `conventions.mdx` (naming, commits, workflow, PR)
+        - `conventions/i18n.mdx` (next-intl, keys, namespaces atuais)
+        - `troubleshooting.mdx` (env, pnpm approval, Safari, admin gate, build dynamic, i18n, audio silent, type errors)
+        - `progress.mdx` (índice narrativo por TASK × Sprint 1/2)
+        - `runbooks/supabase-admin.mdx` (SQL pra criar primeiro admin)
+      • Todo frontmatter inclui `title`, `description`, `lastTask`, `lastUpdated`
+    → Entregue (CI):
+      • `apps/web/scripts/check-docs.ts` — valida frontmatter + content não-vazio de cada .mdx
+      • `apps/web/package.json` — script `docs:check` rodando via `node --experimental-strip-types`
+      • `.github/workflows/ci.yml` — novo job `docs-check` em paralelo com lint/type-check/build
+    → Entregue (i18n):
+      • Namespace `docs.*` em pt-BR + en: heading, searchPlaceholder, searchEmpty, tocHeading, lastUpdated (ICU com {taskId, date}), homeLink, sidebar.* (11 labels), notFound
+    → Decisões / desvios:
+      • **Admin routes ficam sob `/[locale]/admin/...`** conforme decisão do planejamento (honor locale). Sidebar chrome é traduzida; conteúdo MDX fica em EN/PT misto (source of truth, não traduzimos docs internas)
+      • **Rotas admin são `force-dynamic`** (não prerender) — o middleware precisa rodar em cada request pra checar role
+      • **Shiki syntax highlighting NÃO foi cabeado** como rehype plugin ainda. `<code>` e `<pre>` mostram monospace cru. Follow-up: plugar `rehype-pretty-code` quando tivermos exemplos de código que precisem highlight mais rico
+      • **TOC auto-gerada e breadcrumb NÃO implementados** — a sidebar + header com "WTS / Dev Docs" são suficientes pro MVP com 11 pages
+      • **Custom MDX components (`<Callout>`, `<TaskRef>`) NÃO implementados** — HTML nativo + tables markdown são o suficiente. Adicionar quando surgir uma necessidade concreta
+      • **Sidebar hierarquia é hardcoded** em `DocsSidebar` em vez de gerada do fs walk — mais previsível e ordenável; fs walk alimenta apenas o search index
+    → Validação:
+      • pnpm lint: 4/4 verdes (64 arquivos no @wts/web)
+      • pnpm type-check: 4/4 verdes
+      • pnpm build: 3/3 verdes; rota `/[locale]/admin/docs/[[...slug]]` aparece como `ƒ` (Dynamic)
+      • pnpm docs:check: **11/11 docs OK**
+    → Pendente de smoke manual:
+      • Anon: `/pt-BR/admin/docs` → 404 (sem session cookie)
+      • Logado não-admin: também 404 (profile.role != admin)
+      • Admin (via SQL UPDATE ou `ALLOW_ADMIN_WITHOUT_ROLE=true` local): home renderiza, sidebar navega, search filtra
+      • Sidebar link → navegação, active state marcado no item correto
+      • Search → digitar "midi" ou "auth" retorna entries relevantes, click navega + limpa query
+      • Flip locale (`/en/admin/docs`) → sidebar labels traduzem, conteúdo MDX fica como escrito (bilíngue na prática)
+    → Fora de escopo / follow-ups:
+      • Shiki highlighting (rehype-pretty-code) — quando houver MDX com code intensivo
+      • TOC auto-gen, breadcrumb, MDX `<Callout>` / `<TaskRef>` — conforme surgir necessidade
+      • Remover rota `/[locale]/dev/audio` antes do pré-prod → TASK-022 QA
+      • **Instalar primeiro admin via SQL** (ver [runbook](/admin/docs/runbooks/supabase-admin)) — user action, não bloqueia merge
+
+---
+
+### [✓] TASK-025: Error Handling + Boundaries — 2026-04-17
+    Concluída em Sprint 2. Spec: `specs/technical/architecture.md`.
+    → Entregue (frontend):
+      • `apps/web/src/app/[locale]/error.tsx` — route-level error boundary (Client Component obrigatório em Next 15). Recebe `{ error: Error & { digest? }, reset: () => void }`; renderiza fallback full-screen com ícone AlertTriangle + título + description + digest ref (se houver) + 2 botões: "Tentar novamente" (chama reset) e "Voltar pra home". Loga `console.error` no mount
+      • `apps/web/src/app/[locale]/not-found.tsx` — custom 404 com ícone FileQuestion + "404" + título + CTA pra home
+      • `apps/web/src/components/shared/error-boundary.tsx` — class component manual `<ErrorBoundary>` reutilizável. API: `{ children, fallback?: ReactNode | (error, reset) => ReactNode, onError?(error, info) }`. `DefaultFallback` mostra banner vermelho inline com mensagem + botão reset, usando namespace `errors.localBoundary`
+      • Integrado no `app/[locale]/dev/audio/page.tsx` em volta do `<AudioVisualizer>` — se canvas/analyser falhar, não derruba a tela inteira
+    → Entregue (backend Fastify):
+      • `apps/server/src/middleware/error-handler.ts` — `registerErrorHandlers(server)` wire de 2 handlers:
+        - `setErrorHandler`: distingue 5xx (loga `err.error` full com stack) vs 4xx (loga `err.warn` só code); mapeia `FastifyError.code` OU statusCode → code canônico (`BAD_REQUEST`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `UNPROCESSABLE_ENTITY`, `RATE_LIMITED`, `INTERNAL_ERROR`); 5xx manda mensagem genérica "Internal server error" pro client (não vaza stack)
+        - `setNotFoundHandler`: retorna `{ error: { code: 'NOT_FOUND', message } }` com 404
+      • Shape wire estável: `{ error: { code, message } }` — prod-ready
+      • Wired em `apps/server/src/index.ts` após registro do CORS
+    → Entregue (i18n):
+      • namespace `errors.boundary` (title, description, tryAgain, goHome, ref), `errors.notFound` (title, description, goHome), `errors.localBoundary` (fallback, reset) — ambos idiomas
+    → Toast:
+      • Sonner `Toaster` já montado no layout desde TASK-003; reused nos fluxos existentes (LoginForm, NicknameInput, LogoutButton, DevAudio). Não precisa de abstração adicional
+    → Decisões / desvios:
+      • **Socket.io disconnect/reconnect UI** não implementado. Spec menciona "handler de disconnect + connect_error + fallback Reconectando...". Como não existe socket ainda (TASK-009 na Sprint 3), isso seria infra sem consumidor. Documentado como follow-up em TASK-009.
+      • `error.tsx` vive em `[locale]/error.tsx`, não em `app/error.tsx` (root). Razão: precisa de `useTranslations` via NextIntlClientProvider (que está no `[locale]/layout.tsx`). Erros fora do locale (ex: `/auth/callback`) caem no Next default error page.
+      • `not-found.tsx` está em `[locale]/` pelo mesmo motivo (i18n). Rotas fora do locale (que são poucas) usam default 404 do Next.
+      • Server errorHandler retorna objeto (Fastify faz serialization automática) em vez de `reply.send()` — idiomático, evita double-send.
+    → Validação:
+      • pnpm lint: 4/4 verdes (server agora com 5 arquivos)
+      • pnpm type-check: 4/4 verdes
+      • pnpm build: 3/3 verdes
+    → Pendente de smoke manual:
+      • Frontend: forçar throw num componente qualquer → /pt-BR exibe fallback "Algo deu errado" com botão de retry (não white screen)
+      • 404: acessar /pt-BR/naoexiste → custom 404 page com CTA home
+      • Backend: rota inexistente `curl http://localhost:3001/naoexiste` → `{ error: { code: 'NOT_FOUND', message: '...' } }` com 404
+      • Backend: forçar throw em handler → 500 com mensagem genérica + stack completo nos logs do server
+    → Fora de escopo:
+      • Socket.io disconnect/reconnect handling → TASK-009
+      • Sentry / error reporting externo → polish futuro
+      • Entry em `/admin/docs/troubleshooting` → TASK-029
+
+---
+
+### [✓] TASK-006: Componente AudioVisualizer — 2026-04-17
+    Concluída em Sprint 2. Spec: `specs/features/02-midi-engine.md`.
+    → Entregue:
+      • `apps/web/src/components/audio/audio-visualizer.tsx` — Client Component stateless; props: `{ analyser: Tone.Analyser | null, isPlaying: boolean, className?, barCount=48 }`. Canvas-based FFT renderer:
+        - rAF loop throttled para **30fps** (`TARGET_FPS`)
+        - HiDPI-aware resize (`devicePixelRatio`)
+        - Gradiente horizontal **cyan → magenta** lido de `--color-accent-cyan` / `--color-accent-magenta` via `getComputedStyle` (fallback hex `#00f0ff` / `#ff00aa`)
+        - **Idle state**: cor `--color-bg-border` (muted), barras a 12% do height (fixo, não animadas)
+        - **Playing state**: lê `analyser.getValue()` (Float32Array de dB), normaliza de `[-85, 0]` dB → `[0, 1]`, barras centered vertically
+        - Height responsivo: **120px mobile**, **160px md+**
+        - **Page Visibility**: `visibilitychange` listener pausa rAF quando tab hidden; retoma automaticamente quando visible
+      • Integrado no `app/[locale]/dev/audio/page.tsx` — renderiza acima do bloco de progress, consumindo `player.analyser` e `player.isPlaying` do `useMidiPlayer`
+    → Decisões:
+      • **Phase transition wave animation NÃO implementada** (spec menciona "animação de wave passando pelas barras" em troca de fase). Adicionaria um prop `phaseVersion?: number` que triggeria uma animação, mas como polish. Fica pra TASK-022 QA pass.
+      • Sem role/aria no `<canvas>` — é puramente decorativo, silente para screen readers (canvas sem texto/fallback). Biome rejeita `aria-hidden` em canvas (considera interactive por default) e `role="presentation"` em interactive element. Trade correto: omitir ambos.
+      • `barCount=48` default — bom equilíbrio entre densidade visual e legibilidade em 120-160px de altura. Prop overridable caso uma tela queira diferente.
+    → Validação:
+      • pnpm lint: 4/4 verdes
+      • pnpm type-check: 4/4 verdes
+      • pnpm build: 3/3 verdes; `/[locale]/dev/audio` size estável
+    → Pendente de smoke manual:
+      • Carregar dev/audio, tap overlay, load test melody, clicar Play Fase 1 → visualizer reage em tempo real
+      • Trocar de tab → animação pausa (verificar via DevTools Performance)
+      • Mobile (Chrome Android + Safari iOS): barras suaves, sem jank
+    → Fora de escopo:
+      • Phase transition wave animation (polish — TASK-022)
+      • Entry em `/admin/docs/arch/audio` → TASK-029
+
+---
+
+### [✓] TASK-005: MIDI Audio Engine com Tone.js — 2026-04-17
+    Concluída em Sprint 2 (critical path). Spec: `specs/features/02-midi-engine.md`.
+    → Deps adicionadas no `apps/web`: `tone@^15.1.22`, `@tonejs/midi@^2.0.28`
+    → Entregue:
+      • `apps/web/src/lib/midi/types.ts` — types internos client-side: `MidiNote`, `MidiTrack`, `MidiData`. `PhaseConfig` consumido de `@wts/shared` (já existia desde TASK-001)
+      • `apps/web/src/lib/midi/parser.ts` — `parseMidiFromUrl(url)` (fetch + parse) e `parseMidiFromBuffer(buffer)` (sync); normaliza output de `@tonejs/midi` pro shape interno (tracks com notes[], isDrum detectado via `track.instrument.percussion`)
+      • `apps/web/src/lib/midi/audio-context.tsx` — `AudioContextProvider` + `useAudioContext` hook. Expõe `{ isReady, isStarting, error, start }`. Detecta se o Tone.context já está 'running' no mount (reconexão). `start()` é idempotente.
+      • `apps/web/src/lib/midi/soundfont-loader.ts` — `createInstrumentRegistry(output)` com interface `InstrumentRegistry.get(track): Tone.PolySynth`. MVP cacheia 2 synths: um melódico (todos instrumentos não-drum) e um de drum. Cascade fallback documentada na spec (real soundfont → piano → PolySynth) termina aqui até TASK-018 trazer samples reais
+      • `apps/web/src/lib/midi/phase-player.ts` — classe `PhasePlayer` encapsula: Gain master → Analyser + connect a `Tone.Destination`; `play(midi, phase)` filtra tracks por `phase.tracks` e notas por `[startBeat, endBeat) * 60/bpm`, agenda com `Tone.getTransport().schedule` retornando eventIds, dispara timeout de fim baseado na última nota + 400ms de tail; `stop()` cancela schedule + para transport + zera position; `onEnded(cb)` subscribe API; `getAnalyser()` expõe Analyser. `dispose()` limpa tudo.
+      • `apps/web/src/hooks/use-midi-player.ts` — API pública: `loadMidi(url)`, `loadMidiFromBuffer(buffer)`, `play(phase)`, `stop()`, `replay()`, estados `isPlaying`, `isLoading`, `currentPhase`, `progress (0-1 via rAF loop)`, `analyser`, `midi`, `error`. Cria PhasePlayer uma vez quando `audioContext.isReady` flipa pra true; dispose no unmount; subscribe a `onEnded` pra flipar state; analyser exposto como state (reactive, não ref) pra consumer de viz detectar mudança null→ready
+      • `apps/web/src/components/audio/start-audio-overlay.tsx` — fullscreen `fixed inset-0 z-50` com botão centralizado "Toque para começar". Chama `useAudioContext().start()` no click; renderiza `null` quando `isReady`. Acessível via botão grande com foco visível (cyan ring)
+      • `apps/web/src/lib/midi/test-melody.ts` — `generateTestMelodyBuffer()` usa `@tonejs/midi`'s `Midi` pra construir in-memory: 2 tracks (Melody GM 0 + Bass GM 32), 8 beats a 120 BPM, C major scale na melodia + walking bass. Retorna ArrayBuffer novo (aloca + copia, não `bytes.buffer` direto pra evitar `SharedArrayBuffer` ambiguity)
+      • `apps/web/src/app/[locale]/dev/audio/page.tsx` — page de smoke test (`'use client'`). Wrap em `AudioContextProvider` + `StartAudioOverlay`. UI: input de URL + botão "Carregar URL" OU botão "Carregar melodia de teste"; após carregar mostra info do MIDI + lista de tracks + 4 botões de fase (1: track 0 beats 0-4, 2: track 0 beats 0-8, 3: all tracks beats 0-8, 4: full song) + stop/replay + barra de progresso
+      • `apps/web/messages/pt-BR.json` + `en.json` — adicionado namespace `audio.overlay` (title/subtitle/starting/error) + namespace `dev.audio` (title/description/urlLabel/loadUrl/loadTestMelody/tracksHeading/phaseHeading/phase/phaseDescription/stop/replay/progress/playing/idle/loading/error)
+    → Decisões / desvios da spec (documentado pra plug-in futuro):
+      • **Soundfont loading é PolySynth-only por ora.** A spec descreve cascade: (1) soundfont correto → (2) piano precached → (3) Tone.PolySynth. MVP fica no nível 3 porque não temos assets de soundfont hospedados ainda. Quando TASK-018 seedar MIDIs reais, a `InstrumentRegistry` interface aceita drop-in de `Tone.Sampler` mantendo o consumer (`PhasePlayer`) inalterado. 20MB cache budget + versionamento de hash do spec ainda não foram implementados porque não há assets que precisem de SW caching.
+      • **Family-specific synth tuning foi revertida** após Tone.js 15 rejeitar `PolySynth.set({ oscillator: { type } })` via strict types (`RecursivePartial` não está exportado e o `OmniOscillatorSynthOptions` exige shape completo). Todos melódicos tocam com Tone.Synth default (triangle + envelope padrão). Trade aceito pra MVP — real sampler vai vir com real timbre.
+      • **Page Visibility pausar** não implementado. Spec menciona "Pausar reprodução quando tab perde foco" — fica pra polish (TASK-022 QA pass) porque impacta UX mas não correctness. rAF loop já é naturalmente throttled pelo browser quando tab hidden, então progress não desperdiça CPU — só o áudio continua tocando.
+      • **REST endpoints (`/api/midis`, `/api/midis/daily`, `/api/midis/:id/phase/:phase`)** não implementados nesta task. Spec lista esses como parte do "MIDI Catalog Service" mas eles são integração com dados reais → TASK-015 (daily backend) e TASK-018 (catalog seed). O engine desta task é intencionalmente desacoplado da fonte: aceita URL OU ArrayBuffer, parseia, toca.
+      • **`play(phase)` recebe `PhaseConfig` inteiro em vez de só o número 1-4** (como a spec literal sugere). Anti-cheat: o client nunca tem os 4 configs em memória de uma vez; o caller (socket handler de TASK-010 ou daily controller de TASK-016) entrega um config por vez. Deviação semântica zero.
+      • **Autoplay overlay já ativado** (M6 da spec): rAF pause NOT done, Safari iOS `Tone.start()` gate presente via `StartAudioOverlay`. Overlay renderiza até `Tone.context.state === 'running'`.
+    → Validação:
+      • pnpm lint: 4/4 verdes (53 arquivos checked no @wts/web)
+      • pnpm type-check: 4/4 verdes
+      • pnpm build: 3/3 verdes; nova rota `/[locale]/dev/audio` (73.3 kB, 209 kB First Load — carrega Tone.js client-side só neste route)
+      • Route count: 19 pages (+2 vs TASK-008: dev/audio × 2 locales)
+    → Pendente de smoke manual (não bloqueia — a sprint só vira crítica no QA da TASK-022):
+      • `pnpm dev` → `/pt-BR/dev/audio` → ver overlay "Toque para começar" → clicar → overlay some
+      • Clicar "Carregar melodia de teste" → info do MIDI aparece (120 BPM, 2 tracks, ~8s)
+      • Clicar Fase 1 → toca scale C-D-E-F (primeiros 4 beats só melodia)
+      • Clicar Fase 4 → toca scale completo + bass (8 beats, 2 tracks)
+      • Botão stop interrompe imediatamente; replay repete fase atual
+      • Barra de progresso chega a 100% no fim
+      • Cross-browser: Chrome Desktop, Firefox Desktop, Safari Desktop, Chrome Android, Safari iOS ≥15. PolySynth é universalmente suportado — risco é no Tone.start() no iOS (mitigado pelo overlay)
+    → Fora de escopo / próximas tasks:
+      • AudioVisualizer que consome `analyser` → TASK-006 (próxima)
+      • Real soundfont loading (Salamander piano ou FatBoy) → TASK-018 (seed catalog) ou follow-up dedicado
+      • Service worker cache de soundfonts com 20MB budget + versionamento → quando assets reais existirem
+      • REST endpoints de MIDI catalog → TASK-015 / TASK-018 / TASK-021
+      • Page Visibility pause → TASK-022 QA pass
+      • Entry em `/admin/docs/arch/audio` → TASK-029
+
+---
+
+### [✓] TASK-008: Página de Perfil — 2026-04-17
+    Concluída em Sprint 2. Spec: `specs/features/03-auth.md`.
+    → Entregue:
+      • `apps/web/src/app/[locale]/profile/page.tsx` — Server Component com `export const dynamic = 'force-dynamic'` (depende da session cookie); `generateMetadata` via namespace `metadata.profile*`; fetch de `public.users` pelas colunas necessárias (nickname, avatar_url, created_at, total_games/wins/correct, daily_streak, max_daily_streak, points_total, level, xp); renderiza `<GuestEmptyState />` se não houver user ou perfil, senão `<ProfileCard /> + <StatGrid /> + <LogoutButton />`
+      • `apps/web/src/app/[locale]/profile/actions.ts` — Server Actions (`'use server'`):
+        - `checkNicknameAvailability(input)` — valida regex + profanity, compara com nickname atual (retorna `unchanged` se igual), consulta `users` por nickname pra detectar colisão; retorna `{status: 'available'|'taken'|'invalid'|'profanity'|'unchanged'}`
+        - `updateNickname(input)` — valida, chama Supabase `update` com RLS protegendo (só atualiza própria row via `auth.uid() = id`), mapeia erro Postgres `23505` (unique violation) pra `taken`; `revalidatePath('/[locale]/profile', 'page')` no sucesso; retorna `{ok, nickname}` ou `{ok: false, reason}`
+      • `apps/web/src/lib/auth/profanity.ts` — Set com ~24 entradas: nomes reservados (admin, moderator, system, bot, root, null, undefined, anonymous, etc) + profanity básica EN+PT-BR; `isBlockedNickname(s)` lowercase match
+      • `apps/web/src/components/profile/profile-card.tsx` — Server Component: UserAvatar large + memberSince (formatado via `useFormatter().dateTime` em pt-BR/en) + NicknameInput embedded
+      • `apps/web/src/components/profile/nickname-input.tsx` — Client Component com máquina de estados `Status`: `idle|unchanged|invalid|profanity|checking|available|taken|saving`. Valida local primeiro (regex + profanity), se passa chama `checkNicknameAvailability` com debounce de 500ms e tracking de requestId pra discard de responses stale. Botão Save habilitado só em `available`; Cancel aparece só quando `isDirty`; toast sucesso/erro via sonner; `router.refresh()` pós-save; helper text traduzido com cor por tom (red em erro, green em available, muted em neutros)
+      • `apps/web/src/components/profile/stat-grid.tsx` — Server Component responsive grid `grid-cols-2 sm:grid-cols-4`; 8 stat cards com ícones lucide (Sparkles, Award, Gamepad2, Trophy, CheckCircle2, Flame×2, Coins) com accents por cor (cyan/magenta/yellow/green/orange); números formatados via `Intl.NumberFormat(locale)` (tabular-nums)
+      • `apps/web/src/components/profile/logout-button.tsx` — Client Component: useAuth().signOut + toast + `router.push('/') + router.refresh()` dentro de useTransition
+      • `apps/web/src/components/profile/guest-empty-state.tsx` — Server Component com título, descrição e 2 CTAs (Entrar → /login, Voltar → /)
+      • `apps/web/messages/pt-BR.json` + `en.json` — adicionado `metadata.profileTitle/profileDescription` + namespace `profile.*` completo: heading, memberSince (ICU `{date}`), nickname (label/edit/save/cancel/saving/helper/invalid/taken/profanity/checking/available/unchanged/saved/saveError), stats (heading + 8 stat labels), signOut/signOutSuccess, guestEmpty (title/description/signIn/backToHome)
+    → Decisões / desvios da spec:
+      • A spec original dizia `PATCH /api/profile` no Fastify. Implementei como **Next.js Server Action** em vez disso — razões: (1) mutação simples de uma coluna na própria row do user, RLS já garante autorização; (2) reaproveita o Supabase server client que já lê cookies da sessão; (3) evitou setup de middleware de Bearer token no Fastify que é escopo de TASK-009 (Socket.io + endpoints de jogo). O server Fastify continua reservado pra ações que precisam de service role ou de bidirecional real-time.
+      • `revalidatePath('/[locale]/profile', 'page')` no updateNickname dispara refetch do profile server-side; combinado com `router.refresh()` no client garante que o novo nickname aparece em PlayerList/GameChat quando essas telas existirem.
+    → Validação:
+      • pnpm lint: 4/4 verdes (44 arquivos no @wts/web)
+      • pnpm type-check: 4/4 verdes
+      • pnpm build: 3/3 verdes; `/[locale]/profile` marcado `●` no output mas sem HTML pré-renderizado em `.next/server/app/[locale]/profile/` (apenas `page.js` → dynamic per-request). `force-dynamic` adicionado como documentação explícita da dependência de session.
+      • Route count no build: 17 pages totais (home×2 + login×2 + terms×2 + privacy×2 + profile×2 + auth/callback + offline + _not-found)
+      • Validações do spec cobertas:
+        - Nickname únicco enforced em 3 camadas: regex client-side, profanity client+server, unique constraint do DB
+        - 3-20 chars + `[a-zA-Z0-9_]` enforced em regex (isValidNickname) + DB check constraint
+        - Profanity em server action (não depende de client pra enforcement)
+        - Guest renderiza empty state em vez de perfil
+    → Pendente de smoke manual (não bloqueia, depende de browser):
+      • Login OAuth → `/pt-BR/profile` exibe avatar do Google/Discord + nickname auto-gerado pelo trigger `handle_new_user`
+      • Editar nickname: digitar → debounce 500ms → "Disponível" → Save → toast "Nickname atualizado" → recarregar confirma persistência
+      • Nickname duplicado: tentar um que já exista → mostra "já está em uso"
+      • Nickname bloqueado: tentar "admin" ou "moderator" → "não é permitido"
+      • Logout → redireciona pra home, cookie limpo, next visit a /profile vê GuestEmptyState
+      • Guest visita /profile → GuestEmptyState com CTA pra /login
+    → Fora de escopo / próximas tasks:
+      • Avatar upload customizado (só OAuth avatar por ora) — pode virar feature futura
+      • Sync Supabase avatar com providers cuja imagem mudou (raro, usuário edita em Google etc)
+      • Entry em `/admin/docs/setup` + `/admin/docs/progress` → TASK-029
+
+---
+
+### [✓] TASK-007: Auth com Supabase (Google + Discord) — 2026-04-17
+    Concluída em Sprint 2 (primeira da sprint). Spec: `specs/features/03-auth.md`.
+    → Entregue:
+      • `apps/web/src/lib/auth/guest.ts` — `getGuestSession` / `setGuestSession` / `clearGuestSession` / `isValidNickname` com regex `^[a-zA-Z0-9_]{3,20}$`; guestId gerado via `crypto.randomUUID()`; keys `wts_guest_id` + `wts_guest_nickname` no localStorage
+      • `apps/web/src/hooks/use-auth.tsx` — `AuthProvider` (client) + `useAuth()` hook. API: `{ user, guest, isGuest, isLoading, signInWithGoogle(next?), signInWithDiscord(next?), signOut(), guestLogin(nickname) }`. Recebe `initialUser` do Server Component pra evitar flicker; subscribe em `supabase.auth.onAuthStateChange` pra updates live; ao logar, limpa guest state local + localStorage
+      • `apps/web/src/components/auth/user-avatar.tsx` — wraps Radix Avatar, fallback de iniciais (split por whitespace/underscore, primeiras 2 letras), cor de fundo determinística por hash do nickname (5 paletas: cyan/magenta/yellow/green/orange), sizes sm/md/lg
+      • `apps/web/src/components/auth/login-form.tsx` — conteúdo reutilizável: botões Google + Discord (SVG brand marks inline) com estado loading, divider "or", input de nickname com validação client-side (empty + regex), submit chama `guestLogin` e navega via `router.push(next ?? '/')`, toast de erro em falha de OAuth
+      • `apps/web/src/components/auth/login-modal.tsx` — wrap do LoginForm em `Dialog` (Radix) pronto pra uso contextual ("sign in to save progress"); fecha modal no guest submit ou OAuth start
+      • `apps/web/src/components/auth/auth-menu.tsx` — renderiza 3 estados: logado (avatar+nickname como `<Link href="/profile">`), guest (badge "Guest · nickname" + "Sign in" ghost button), anônimo ("Sign in" secondary button). Loading mostra skeleton 40px. Evita precisar de DropdownMenu — logout fica pra TASK-008 na página de perfil
+      • `apps/web/src/components/auth/guest-banner.tsx` — banner fino `useAuth` + render condicional quando `isGuest`; CTA linkando pra /login
+      • `apps/web/src/app/auth/callback/route.ts` — GET handler: valida `code`, chama `exchangeCodeForSession`, redireciona pra `next` sanitizado (rejeita `//` e não-/ pra evitar open-redirect), fallbacks pra `/login?error=...` em erro ou code ausente. Fora do `[locale]` group porque callback URL do Supabase não tem prefixo de locale
+      • `apps/web/src/app/[locale]/login/page.tsx` — Server Component com `generateMetadata` (title/description do namespace `metadata.login*`), lê `searchParams` (next, error), renderiza card com título + subtitle + banner de erro inline se `?error=...` + LoginForm. Footer só com LocaleSwitcher
+      • `apps/web/src/app/[locale]/layout.tsx` — fetch de `initialUser` via `createSupabaseServerClient().auth.getUser()` (com guard se Supabase env ausente); wrap de children em `<AuthProvider initialUser={...}>` dentro do NextIntlClientProvider
+      • `apps/web/src/app/[locale]/page.tsx` — adicionado `<GuestBanner />` acima de tudo + `<header>` com `<AuthMenu />` justify-end
+      • `apps/web/src/middleware.ts` — matcher atualizado pra excluir `/auth/*` (callback route é locale-agnostic; intl não deve redirecionar). Ordem do chain mantida: supabase refresh → intl
+      • `apps/web/messages/pt-BR.json` + `en.json` — namespace `metadata.loginTitle/loginDescription` + namespace `auth.*` completo: login (title, subtitle, providers.google/discord, divider, guest.label/placeholder/submit/helper/invalid/empty, error, backToHome), menu (profile, signIn, signOut, guestLabel, viewProfile com ICU `{nickname}`), banner (guestCta, signIn)
+    → Decisões:
+      • UI de perfil/logout fica no escopo da TASK-008 (avatar no AuthMenu hoje só linka pra /profile); evitou adicionar DropdownMenu como dep nova
+      • LoginModal existe mas ainda sem call sites — pronto pra ser montado em TASK-013/016 quando guests tentam salvar progresso
+      • `next` param é sanitizado no callback: apenas paths começando com `/` e não `//` são aceitos; resto vira `/`
+    → Validação:
+      • pnpm lint: 4/4 verdes (0 warnings, 36 arquivos checked no @wts/web)
+      • pnpm type-check: 4/4 verdes
+      • pnpm build: 3/3 verdes; next gera `/[locale]/login` como SSG em pt-BR + en (6.19 kB / 223 kB first load), `/auth/callback` como Dynamic (ƒ, 126 B), middleware 118 kB estável
+      • Supabase session refresh continua rodando em todas as rotas exceto `/auth/*` (intencional — callback handler cria o próprio server client)
+    → Pendente de smoke manual (não bloqueia, depende de browser):
+      • Login Google end-to-end: `/pt-BR/login` → botão Google → consent screen → `/auth/callback?code=...` → `/pt-BR` logado; `SELECT * FROM public.users WHERE email='...'` deve retornar 1 row (trigger `handle_new_user`)
+      • Login Discord end-to-end (mesmo fluxo)
+      • Guest mode: digita nickname → "Jogar como convidado" → localStorage tem `wts_guest_id` + `wts_guest_nickname` → badge "Guest · X" aparece no header → banner "Crie uma conta..." aparece no topo
+      • Reload: sessão OAuth persiste (cookie httpOnly Supabase); guest state também (localStorage)
+      • Logout: clear de session cookies + localStorage (signOut implementado, UI chega em TASK-008)
+    → Fora de escopo / próximas tasks:
+      • `/profile` page + logout button → TASK-008
+      • Profanity filter no nickname → TASK-008 (server-side via Zod + lista básica)
+      • Debounce + check de unicidade do nickname → TASK-008
+      • Documentar fluxo OAuth + criar primeiro admin (SQL UPDATE) no Dev Docs Portal → TASK-029
+
+---
+
 ### [✓] TASK-004: PWA Setup com Serwist — 2026-04-17
     Concluída em Sprint 1 (última da sprint). Spec: `specs/features/07-pwa-sharing.md`.
     → Entregue:

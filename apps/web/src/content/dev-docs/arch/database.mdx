@@ -1,0 +1,51 @@
+---
+title: Arquitetura — Database
+description: Supabase schema, RLS, triggers.
+lastTask: TASK-029
+lastUpdated: 2026-04-17
+---
+
+## Migrations
+
+8 arquivos em `supabase/migrations/` (aplicados em TASK-002):
+
+| # | Arquivo | Conteúdo |
+|---|---------|----------|
+| 1 | `20260417120000_init.sql` | enums (midi_category, midi_difficulty, game_status, user_role, xp_source) + `update_updated_at()` |
+| 2 | `20260417120001_users.sql` | users + XP/level + triggers + RLS |
+| 3 | `20260417120002_midi_catalog.sql` | catalog + RLS (public read de ativos, admin write) |
+| 4 | `20260417120003_game_tables.sql` | game_sessions, game_players, round_scores |
+| 5 | `20260417120004_daily_tables.sql` | daily_results, daily_schedule |
+| 6 | `20260417120005_xp_events.sql` | audit log com UNIQUE(source, source_ref) |
+| 7 | `20260417120006_cross_table_triggers.sql` | stats, daily streak, midi stats |
+| 8 | `20260417120007_storage.sql` | bucket `midis` + policies |
+
+## RLS (resumo)
+
+**Todas as tabelas têm RLS ativado.**
+
+- `users`: read all, update own, insert via trigger (SECURITY DEFINER) no OAuth
+- `midi_catalog`: public read de `is_active=true`, admin write
+- `game_sessions` / `game_players` / `round_scores`: read public (rankings), write via service role
+- `daily_results`: read own + public leaderboard, write via service role
+- `xp_events`: read own, write via service role
+- Storage `midis` bucket: public read, admin write
+
+## Triggers importantes
+
+- `handle_new_user` (on `auth.users` insert): cria row em `public.users` com nickname do provider metadata ou fallback `player_<id8>`
+- `sync_user_level` (on `users.xp` update): `level = floor(sqrt(xp/100)) + 1`
+- `update_user_stats_after_game` (on `round_scores` insert): incrementa counters do jogador
+- `update_daily_streak` (on `daily_results` insert): detecta streak contínua (ontem + hoje)
+
+## Colunas sensíveis
+
+- **`midi_catalog.accepted_titles` / `accepted_artists`**: NUNCA enviar ao client antes de `round:reveal`. Verificação server-side só.
+- **`users.role`**: enum `(player, admin)`. Admin se concede via SQL manual (ver [Runbook](/admin/docs/runbooks/supabase-admin)).
+
+## Clients
+
+- **Web**: `createBrowserClient` (`apps/web/src/lib/supabase/browser.ts`) + `createServerClient` (server.ts) + middleware (middleware.ts)
+- **Server (Fastify)**: admin client com service role (`apps/server/src/lib/supabase.ts`), singleton cacheado, `persistSession: false`
+
+Versão longa: `specs/technical/database.md`.

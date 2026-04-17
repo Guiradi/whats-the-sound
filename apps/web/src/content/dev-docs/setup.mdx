@@ -1,0 +1,79 @@
+---
+title: Setup local
+description: Como rodar o projeto do zero.
+lastTask: TASK-029
+lastUpdated: 2026-04-17
+---
+
+## Pré-requisitos
+
+- **Node.js 20+** (recomendado: gerenciar via `nvm-windows` ou `fnm`)
+- **pnpm 10+** (via `npm i -g pnpm` ou corepack)
+- **Git**
+- Conta no [Supabase](https://supabase.com) (tier free serve pro dev)
+
+## Clone + install
+
+```bash
+git clone <repo-url>
+cd whats-the-sound
+pnpm install
+```
+
+`pnpm install` baixa o CLI do Supabase via postinstall (binário nativo).
+
+## Variáveis de ambiente
+
+Dois apps, cada um com seu `.env.local`:
+
+**`apps/web/.env.local`**:
+
+```bash
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SERVER_URL=http://localhost:3001
+NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+# Dev-only: pula a checagem de role admin nas rotas /admin/*
+ALLOW_ADMIN_WITHOUT_ROLE=true
+```
+
+**`apps/server/.env.local`**:
+
+```bash
+NODE_ENV=development
+PORT=3001
+HOST=0.0.0.0
+LOG_LEVEL=debug
+CORS_ORIGINS=http://localhost:3000
+SUPABASE_URL=https://<your-project>.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_...
+DATABASE_URL=postgresql://...
+```
+
+Os schemas Zod rodam em build/boot e falham com mensagem clara se algo faltar.
+
+## Banco de dados
+
+```bash
+pnpm db:push        # aplica migrations na sua instância Supabase
+pnpm --filter @wts/server smoke:db   # verifica conectividade end-to-end
+```
+
+## Dev
+
+```bash
+pnpm dev    # sobe web (3000) + server (3001) via turbo
+```
+
+Acesso: `http://localhost:3000/pt-BR/`
+
+## Gates de qualidade
+
+```bash
+pnpm lint        # Biome
+pnpm type-check  # tsc --noEmit
+pnpm build       # Next build + Fastify tsc
+pnpm docs:check  # valida MDX das docs internas
+```
+
+Rodar os 4 antes de abrir PR. Mesmos gates rodam no CI (TASK-024).

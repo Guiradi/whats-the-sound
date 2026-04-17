@@ -1,5 +1,8 @@
 import { Toaster } from '@/components/ui/toaster';
+import { env } from '@/env';
+import { AuthProvider } from '@/hooks/use-auth';
 import { type Locale, locales } from '@/i18n/config';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
@@ -79,6 +82,15 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
 
+  // Supabase may be unconfigured during early Sprint 1 windows; resolve to null
+  // in that case so the layout still renders.
+  let initialUser = null;
+  if (env.NEXT_PUBLIC_SUPABASE_URL && env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    const supabase = await createSupabaseServerClient();
+    const { data } = await supabase.auth.getUser();
+    initialUser = data.user;
+  }
+
   return (
     <html
       lang={locale}
@@ -86,7 +98,7 @@ export default async function LocaleLayout({
     >
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
+          <AuthProvider initialUser={initialUser}>{children}</AuthProvider>
         </NextIntlClientProvider>
         <Toaster />
       </body>

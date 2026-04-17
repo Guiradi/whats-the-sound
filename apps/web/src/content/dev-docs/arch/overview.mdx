@@ -1,0 +1,52 @@
+---
+title: Arquitetura — Overview
+description: Stack, apps, fluxo de request, decisões-chave.
+lastTask: TASK-029
+lastUpdated: 2026-04-17
+---
+
+## Stack (resumo)
+
+| Camada | Escolha |
+|--------|---------|
+| Frontend | Next.js 15 (App Router) + Tailwind v4 + Shadcn/UI |
+| Backend | Fastify 5 + TypeScript (Node 20) |
+| DB / Auth / Storage | Supabase (Postgres + RLS + Auth + Storage) |
+| Real-time | Socket.io 4 (Sprint 3) |
+| Áudio | Tone.js 15 + @tonejs/midi |
+| Monorepo | Turborepo + pnpm workspaces |
+| Deploy | Vercel (web) + Railway (server) |
+
+## Apps
+
+- **`apps/web`** — Next.js. SSR + SSG onde possível; rotas autenticadas são dinâmicas. PWA via Serwist.
+- **`apps/server`** — Fastify. Socket.io (Sprint 3) + REST endpoints para ações que exigem service role ou bidirecional real-time.
+- **`packages/shared`** — types + constants + env helper compartilhados (consumidos como source via `transpilePackages`).
+
+## Fluxo de request (typical)
+
+```
+Browser  ─▶  Next.js middleware (Supabase refresh → admin gate → i18n routing)
+             │
+             ├─▶ Server Component ─▶ Supabase SSR client (RLS)
+             │   └─▶ HTML streamed back
+             │
+             └─▶ Server Action ─▶ Supabase SSR client ─▶ revalidatePath
+
+Browser  ─▶  Fastify /api/* (service-role endpoints, Sprint 3+)
+Browser  ◀─▶ Socket.io (game rooms, Sprint 3+)
+```
+
+## Decisões arquiteturais (resumo)
+
+1. **PWA, não app nativo.** Alcance máximo, zero app store, instalável via browser.
+2. **MIDI em vez de áudio real.** Zero copyright. Timbre retrô é identidade.
+3. **Revelação em camadas (tracks)** em vez de "+ segundos". Experiência progressiva única.
+4. **Scoring server-side.** Anti-cheat. Timestamp do server define ordem de acerto.
+5. **Guest mode sem conta.** Zero fricção para novos jogadores.
+6. **Fastify em vez de NestJS.** Leve e rápido pro escopo do MVP.
+7. **Monorepo.** Type-safety end-to-end com types compartilhados.
+8. **Supabase.** Auth + DB + Storage unificado, tier gratuito, região Brasil.
+9. **Mutações de perfil via Server Action** (não Fastify). RLS cobre autorização; Fastify reservado pra game/real-time.
+
+Ver `specs/technical/architecture.md` pra a versão longa.

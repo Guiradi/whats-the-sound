@@ -1,0 +1,72 @@
+---
+title: Convenções
+description: Naming, commits, PR workflow, Biome rules.
+lastTask: TASK-029
+lastUpdated: 2026-04-17
+---
+
+## Código
+
+- **Tudo em inglês**: funções, variáveis, tipos, arquivos, comentários, DB schema
+- **UI text via next-intl**: toda string visível ao player é key i18n. Ver [i18n](/admin/docs/conventions/i18n)
+- **Sem `any`**: use `unknown` + narrowing
+- **Zod** pra validação em endpoints e forms
+
+## Naming
+
+| Categoria | Convenção | Exemplo |
+|-----------|-----------|---------|
+| Arquivos / pastas | kebab-case | `audio-visualizer.tsx`, `use-midi-player.ts` |
+| Componentes React | PascalCase | `AudioVisualizer`, `GameBoard` |
+| Hooks | camelCase com prefix `use` | `useMidiPlayer`, `useRoom` |
+| Types / Interfaces | PascalCase | `MidiEntry`, `RoomState` |
+| Enums (TS) | PascalCase + valores UPPER_SNAKE_CASE | `GameStatus.ROUND_END` |
+| Constants | UPPER_SNAKE_CASE | `MAX_PLAYERS`, `PHASE_SCORES` |
+| DB columns | snake_case | `midi_file_url`, `created_at` |
+
+## Imports
+
+Absolute paths com aliases:
+
+```ts
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/use-auth';
+import { cn } from '@/lib/utils';
+import type { PhaseConfig } from '@wts/shared';
+```
+
+Biome `organizeImports` ordena automaticamente.
+
+## Server vs Client Components
+
+Padrão é **Server Component**. `'use client'` só quando precisa: hooks, eventos, browser APIs. Manter client boundary o menor possível.
+
+## Commits
+
+Convencionais:
+
+- `feat:` — nova feature
+- `fix:` — bug fix
+- `chore:` — housekeeping, configs
+- `docs:` — documentação
+- `refactor:` — sem mudança de comportamento
+- `test:` — testes
+
+Exemplo: `feat: add audio visualizer with FFT rendering (TASK-006)`
+
+## Tasks workflow
+
+1. Ler task em `tasks/backlog.md`
+2. Ler spec de referência (`specs/features/XX-*.md`)
+3. Status `[ ]` → `[→]` ao iniciar
+4. Implementar conforme spec
+5. Rodar gates: `pnpm lint && pnpm type-check && pnpm build`
+6. **Atualizar dev docs** relevantes + entry em `/admin/docs/progress`
+7. Status `[→]` → `[✓]`
+8. Migrar entry de `backlog.md` pra `completed.md`
+
+## PR
+
+- Descrição cita `TASK-XXX` e explica o "why"
+- CI verde (lint + type-check + build) antes de merge
+- Mobile-first: testar mobile width antes de requestar review

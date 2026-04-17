@@ -2,14 +2,23 @@ import createIntlMiddleware from 'next-intl/middleware';
 import type { NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
 import { updateSupabaseSession } from './lib/supabase/middleware';
+import { requireAdmin } from './middleware/require-admin';
 
 const intlMiddleware = createIntlMiddleware(routing);
+
+const ADMIN_PATH_PATTERN = /^\/(?:pt-BR|en)\/admin(\/|$)/;
 
 export default async function middleware(request: NextRequest) {
   // 1. Refresh the Supabase session first (sets auth cookies on its response).
   const supabaseResponse = await updateSupabaseSession(request);
 
-  // 2. Run next-intl routing. This may issue a redirect (root → /<locale>/).
+  // 2. Gate /[locale]/admin/* before any routing — returns 404 for non-admins.
+  if (ADMIN_PATH_PATTERN.test(request.nextUrl.pathname)) {
+    const adminBlock = await requireAdmin(request);
+    if (adminBlock) return adminBlock;
+  }
+
+  // 3. Run next-intl routing. This may issue a redirect (root → /<locale>/).
   const intlResponse = intlMiddleware(request);
 
   // If next-intl is redirecting, preserve Supabase cookies on the redirect response.
@@ -40,6 +49,7 @@ export default async function middleware(request: NextRequest) {
 export const config = {
   // Match all routes EXCEPT: api, _next, _vercel, files with extensions (covers
   // favicon.png, icon-*.png, manifest.webmanifest, sw.js, swe-worker-*.js, etc.),
-  // and the offline fallback page which must render without any i18n routing.
-  matcher: ['/((?!api|_next|_vercel|offline|.*\\..*).*)'],
+  // the offline fallback page which must render without any i18n routing, and
+  // /auth/* route handlers (OAuth callback) which are locale-agnostic.
+  matcher: ['/((?!api|_next|_vercel|offline|auth|.*\\..*).*)'],
 };

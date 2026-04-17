@@ -1,0 +1,61 @@
+---
+title: Runbook — Primeiro admin no Supabase
+description: Como conceder role admin a um user pela primeira vez.
+lastTask: TASK-029
+lastUpdated: 2026-04-17
+---
+
+## Contexto
+
+`/admin/*` routes são gated por `users.role = 'admin'`. Na primeira vez que você seta up o ambiente, **ninguém é admin** — precisa executar um SQL manual.
+
+## Passo a passo
+
+### 1. Faça login OAuth
+
+Abra `/pt-BR/login` → clica Google ou Discord → completa o fluxo. Isso cria uma row em `auth.users` e, via trigger `handle_new_user`, uma row correspondente em `public.users`.
+
+### 2. Anote seu nickname
+
+Volte pra `/pt-BR/profile` e veja qual nickname foi atribuído (vem do provider metadata, ou fallback `player_<id8>`).
+
+### 3. Abra o SQL Editor no Supabase Dashboard
+
+Project → SQL Editor → New query.
+
+### 4. Execute
+
+```sql
+UPDATE public.users
+SET role = 'admin'
+WHERE nickname = 'seu-nickname-aqui'
+RETURNING id, nickname, role;
+```
+
+Confirme que retornou `role = 'admin'` na resposta.
+
+### 5. Teste
+
+Recarregue `/pt-BR/admin/docs` — deve renderizar o portal. Antes do UPDATE você via 404.
+
+## Dev local sem passar por isto
+
+Em `.env.local` do `apps/web`:
+
+```
+ALLOW_ADMIN_WITHOUT_ROLE=true
+```
+
+A flag só é respeitada quando `NODE_ENV !== 'production'`. Em prod o middleware ignora ela completamente.
+
+## Revogar admin
+
+```sql
+UPDATE public.users SET role = 'player' WHERE nickname = 'foo';
+```
+
+## Listar todos os admins
+
+```sql
+SELECT id, nickname, created_at FROM public.users WHERE role = 'admin' ORDER BY created_at;
+```

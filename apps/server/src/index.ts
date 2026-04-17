@@ -2,6 +2,7 @@ import cors from '@fastify/cors';
 import { EnvValidationError } from '@wts/shared/env';
 import Fastify from 'fastify';
 import { env } from './env.js';
+import { registerErrorHandlers } from './middleware/error-handler.js';
 import { healthRoutes } from './routes/health.js';
 
 async function main() {
@@ -22,6 +23,8 @@ async function main() {
     origin: env.CORS_ORIGINS,
     credentials: true,
   });
+
+  registerErrorHandlers(server);
 
   await server.register(healthRoutes);
 

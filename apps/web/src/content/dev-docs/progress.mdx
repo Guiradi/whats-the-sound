@@ -1,0 +1,30 @@
+---
+title: Progresso (por TASK)
+description: Índice narrativo das tasks concluídas. Complementa tasks/completed.md.
+lastTask: TASK-029
+lastUpdated: 2026-04-17
+---
+
+## Sprint 1 — Fundação (8 tasks, ~18h)
+
+- **TASK-001** Setup do Monorepo — pnpm + Turborepo + apps/web (Next 15) + apps/server (Fastify 5) + packages/shared
+- **TASK-024** GitHub Actions CI — lint, type-check, build em PRs e push em main
+- **TASK-026** Env Validation + Logger — `defineEnv` helper com Zod, Pino structured logging
+- **TASK-028** Páginas Legais — /terms e /privacy (Server Components, LGPD-compliant, pré-requisito OAuth)
+- **TASK-003** Design System — Tailwind v4 + Shadcn primitives (Button, Input, Card, Dialog, Avatar, Badge, Toaster) + paleta synthwave
+- **TASK-032** i18n Infrastructure — next-intl 3.26, pt-BR + en, locale prefix always, LocaleSwitcher
+- **TASK-002** Supabase Setup — 8 migrations aplicadas, RLS, OAuth providers (Google + Discord), storage bucket `midis`
+- **TASK-004** PWA — Serwist 9 com service worker + manifest + ícones + /offline fallback
+
+## Sprint 2 — MIDI Engine + Auth + Internal Infra (6 tasks, ~27h)
+
+- **TASK-007** Auth — Supabase SSR + Google/Discord/Guest, `useAuth()`, LoginForm/LoginModal/AuthMenu/GuestBanner, callback route `/auth/callback` com sanitização de `next`
+- **TASK-008** Página de Perfil — `/[locale]/profile` (dynamic, session-gated), ProfileCard + StatGrid + NicknameInput (debounced + uniqueness check + profanity via Server Actions) + LogoutButton
+- **TASK-005** MIDI Engine — Tone.js 15 + @tonejs/midi 2, parser/soundfont-loader/phase-player/use-midi-player, StartAudioOverlay, dev smoke route `/[locale]/dev/audio`
+- **TASK-006** AudioVisualizer — canvas FFT, 30 fps rAF, Page Visibility pause, gradient cyan→magenta
+- **TASK-025** Error Handling + Boundaries — route `error.tsx` + `not-found.tsx`, `<ErrorBoundary>` class component, Fastify `setErrorHandler` + `setNotFoundHandler` com wire shape `{ error: { code, message } }`
+- **TASK-029** Dev Docs Portal + Admin Middleware — `/admin/docs` com MDX via `next-mdx-remote/rsc`, sidebar + search (fuse.js), `requireAdmin` middleware com dev escape hatch, initial content covering Sprints 1+2
+
+## Pendente
+
+Ver `tasks/backlog.md` pra Sprint 3+ (Socket.io, game loop, multiplayer UI, daily sound, admin catalog, QA, deploy).

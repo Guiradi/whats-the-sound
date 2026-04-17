@@ -1,0 +1,26 @@
+---
+title: What's the Sound? — Dev Docs
+description: Internal documentation for developers. Living document, updated with every task.
+lastTask: TASK-029
+lastUpdated: 2026-04-17
+---
+
+Bem-vindo. Este portal é o **source-of-truth interno** para quem está desenvolvendo no projeto. Objetivo: onboarding rápido sem precisar ler 10 specs + 2 READMEs.
+
+## Acesso
+
+Protegido por `users.role = 'admin'`. Para virar admin pela primeira vez, ver [Runbook Supabase Admin](/admin/docs/runbooks/supabase-admin).
+
+Em dev local, você pode pular a checagem com `ALLOW_ADMIN_WITHOUT_ROLE=true` no `.env.local`. Flag **bloqueada em produção**.
+
+## Por onde começar
+
+- **Primeiro dia no projeto**: [Setup local](/admin/docs/setup)
+- **Entender a arquitetura**: [Arquitetura Overview](/admin/docs/arch/overview)
+- **Convenções de código**: [Convenções](/admin/docs/conventions)
+- **Problemas comuns**: [Troubleshooting](/admin/docs/troubleshooting)
+- **O que já foi entregue**: [Progresso](/admin/docs/progress)
+
+## Convenção: docs como living document
+
+Toda TASK concluída **atualiza pelo menos uma page desta árvore** — a seção arquitetural tocada + entrada em `/progress`. O rodapé de cada page mostra "Última atualização: TASK-XXX — YYYY-MM-DD" (via frontmatter).

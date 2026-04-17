@@ -1,0 +1,61 @@
+---
+title: Arquitetura — Monorepo
+description: pnpm workspaces, turbo pipelines, shared package.
+lastTask: TASK-029
+lastUpdated: 2026-04-17
+---
+
+## Layout
+
+```
+whats-the-sound/
+├── apps/
+│   ├── web/          # Next.js 15 frontend
+│   └── server/       # Fastify backend
+├── packages/
+│   └── shared/       # types, enums, constants, env helper
+├── supabase/
+│   └── migrations/   # SQL migrations
+├── tasks/            # backlog.md, completed.md, execution-plan.md
+└── specs/            # features e technical specs
+```
+
+## pnpm workspaces
+
+`pnpm-workspace.yaml` define os 3 workspaces: `apps/*` e `packages/*`. Links internos via protocolo `workspace:*`:
+
+```json
+"dependencies": {
+  "@wts/shared": "workspace:*"
+}
+```
+
+`@wts/shared` é **consumido como source** (não built). Os apps têm `transpilePackages: ['@wts/shared']` no `next.config.ts` e `outDir/rootDir` apropriados no `tsconfig`. Vantagem: zero build step intermediário, TS refatora tudo de uma vez.
+
+## Turborepo
+
+Pipelines em `turbo.json`:
+
+- `dev` — roda web + server em paralelo
+- `build` — web depende do build de shared (no-op), server roda tsc
+- `lint`, `type-check`, `format` — por package
+- Cache por task, invalidado por hashes dos inputs
+
+## Scripts úteis
+
+```bash
+pnpm dev                        # tudo em paralelo
+pnpm --filter @wts/web dev      # só web
+pnpm --filter @wts/server dev   # só server
+pnpm --filter @wts/web add <pkg> # adiciona dep num workspace específico
+```
+
+## Biome
+
+Config unificada em `biome.json`. Regras:
+
+- `noExplicitAny: error` — tipa ou usa `unknown`
+- `useImportType` — imports de tipos com `import type`
+- `organizeImports` — auto-ordena
+
+Roda `biome check src` por workspace via turbo.

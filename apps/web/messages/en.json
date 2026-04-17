@@ -5,7 +5,11 @@
     "termsTitle": "Terms of Use — What's the Sound?",
     "termsDescription": "Terms of use for the What's the Sound? game.",
     "privacyTitle": "Privacy Policy — What's the Sound?",
-    "privacyDescription": "How What's the Sound? collects, uses and protects your data."
+    "privacyDescription": "How What's the Sound? collects, uses and protects your data.",
+    "loginTitle": "Sign in — What's the Sound?",
+    "loginDescription": "Sign in with Google, Discord, or play as a guest.",
+    "profileTitle": "Profile — What's the Sound?",
+    "profileDescription": "Your profile, stats, and preferences."
   },
   "common": {
     "actions": {
@@ -44,6 +48,154 @@
       }
     },
     "placeholderNote": "Setup placeholder · Sprint 1 · TASK-032"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in to play",
+      "subtitle": "Create your account or play as a guest.",
+      "providers": {
+        "google": "Sign in with Google",
+        "discord": "Sign in with Discord"
+      },
+      "divider": "or",
+      "guest": {
+        "label": "Nickname",
+        "placeholder": "Your nickname",
+        "submit": "Play as guest",
+        "helper": "3-20 characters. Letters, numbers and _ only.",
+        "invalid": "Invalid nickname. Use 3-20 characters: letters, numbers and _.",
+        "empty": "Enter a nickname to continue."
+      },
+      "error": "Could not start sign-in. Please try again.",
+      "backToHome": "Back to home"
+    },
+    "menu": {
+      "profile": "Profile",
+      "signIn": "Sign in",
+      "signOut": "Sign out",
+      "guestLabel": "Guest",
+      "viewProfile": "View {nickname}'s profile"
+    },
+    "banner": {
+      "guestCta": "Create an account to save your progress.",
+      "signIn": "Sign in"
+    }
+  },
+  "docs": {
+    "heading": "Dev Docs",
+    "searchPlaceholder": "Search...",
+    "searchEmpty": "No results.",
+    "tocHeading": "On this page",
+    "lastUpdated": "Last updated: {taskId} — {date}",
+    "homeLink": "Overview",
+    "sidebar": {
+      "setup": "Local setup",
+      "architecture": "Architecture",
+      "architectureOverview": "Overview",
+      "monorepo": "Monorepo",
+      "database": "Database",
+      "audio": "Audio Engine",
+      "conventions": "Conventions",
+      "i18n": "i18n",
+      "troubleshooting": "Troubleshooting",
+      "progress": "Progress (by TASK)",
+      "runbooks": "Runbooks",
+      "supabaseAdmin": "Supabase — First admin"
+    },
+    "notFound": "Docs page not found."
+  },
+  "errors": {
+    "boundary": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Try again or go back home.",
+      "tryAgain": "Try again",
+      "goHome": "Go home",
+      "ref": "Ref: {digest}"
+    },
+    "notFound": {
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or has moved.",
+      "goHome": "Go home"
+    },
+    "localBoundary": {
+      "fallback": "This component failed. Try reloading the page.",
+      "reset": "Try again"
+    }
+  },
+  "audio": {
+    "overlay": {
+      "title": "Tap to start",
+      "subtitle": "Browsers require a tap to unlock audio. Tap here to enable sound.",
+      "starting": "Starting audio...",
+      "error": "Could not start audio. Try again."
+    }
+  },
+  "dev": {
+    "audio": {
+      "title": "Dev · Audio Engine",
+      "description": "MIDI engine smoke test. Load a .mid URL or generate a test melody.",
+      "urlLabel": "MIDI URL",
+      "urlPlaceholder": "/sample.mid",
+      "loadUrl": "Load URL",
+      "loadTestMelody": "Load test melody (C major)",
+      "noMidi": "No MIDI loaded.",
+      "midiInfo": "BPM {bpm} · {duration}s · {tracks} tracks",
+      "tracksHeading": "Tracks",
+      "phaseHeading": "Phases",
+      "phase": "Phase {n}",
+      "phaseDescription": {
+        "1": "First 4 beats, track 0 only",
+        "2": "8 beats, track 0 only",
+        "3": "All tracks, beats 0-8",
+        "4": "Full song"
+      },
+      "stop": "Stop",
+      "replay": "Replay",
+      "progress": "Progress",
+      "playing": "Playing",
+      "idle": "Idle",
+      "loading": "Loading MIDI...",
+      "error": "Error: {message}"
+    }
+  },
+  "profile": {
+    "heading": "Profile",
+    "memberSince": "Member since {date}",
+    "nickname": {
+      "label": "Nickname",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "helper": "3-20 characters. Letters, numbers and _ only.",
+      "invalid": "Use 3-20 characters: letters, numbers and _.",
+      "taken": "This nickname is already taken.",
+      "profanity": "This nickname is not allowed.",
+      "checking": "Checking...",
+      "available": "Available",
+      "unchanged": "This is your current nickname.",
+      "saved": "Nickname updated.",
+      "saveError": "Could not save. Please try again."
+    },
+    "stats": {
+      "heading": "Stats",
+      "totalGames": "Games",
+      "totalWins": "Wins",
+      "totalCorrect": "Correct",
+      "dailyStreak": "Daily streak",
+      "maxDailyStreak": "Best streak",
+      "pointsTotal": "Points",
+      "level": "Level",
+      "xp": "XP"
+    },
+    "signOut": "Sign out",
+    "signOutSuccess": "Signed out.",
+    "guestEmpty": {
+      "title": "Sign in to access your profile",
+      "description": "Guests can play but don't save progress. Create an account to earn XP, wins, and streaks.",
+      "signIn": "Sign in",
+      "backToHome": "Back to home"
+    }
   },
   "legal": {
     "lastUpdated": "Last updated: {date}",

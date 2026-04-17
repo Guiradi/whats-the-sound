@@ -5,7 +5,11 @@
     "termsTitle": "Termos de Uso — What's the Sound?",
     "termsDescription": "Termos de uso do jogo What's the Sound?.",
     "privacyTitle": "Política de Privacidade — What's the Sound?",
-    "privacyDescription": "Como o What's the Sound? coleta, usa e protege seus dados."
+    "privacyDescription": "Como o What's the Sound? coleta, usa e protege seus dados.",
+    "loginTitle": "Entrar — What's the Sound?",
+    "loginDescription": "Entre com Google, Discord ou jogue como convidado.",
+    "profileTitle": "Perfil — What's the Sound?",
+    "profileDescription": "Seu perfil, estatísticas e preferências."
   },
   "common": {
     "actions": {
@@ -44,6 +48,154 @@
       }
     },
     "placeholderNote": "Setup placeholder · Sprint 1 · TASK-032"
+  },
+  "auth": {
+    "login": {
+      "title": "Entre para jogar",
+      "subtitle": "Crie sua conta ou jogue como convidado.",
+      "providers": {
+        "google": "Entrar com Google",
+        "discord": "Entrar com Discord"
+      },
+      "divider": "ou",
+      "guest": {
+        "label": "Nickname",
+        "placeholder": "Seu nickname",
+        "submit": "Jogar como convidado",
+        "helper": "3-20 caracteres. Letras, números e _ apenas.",
+        "invalid": "Nickname inválido. Use 3-20 caracteres: letras, números e _.",
+        "empty": "Digite um nickname para continuar."
+      },
+      "error": "Não foi possível iniciar o login. Tente novamente.",
+      "backToHome": "Voltar para a home"
+    },
+    "menu": {
+      "profile": "Perfil",
+      "signIn": "Entrar",
+      "signOut": "Sair",
+      "guestLabel": "Convidado",
+      "viewProfile": "Ver perfil de {nickname}"
+    },
+    "banner": {
+      "guestCta": "Crie uma conta para salvar seu progresso.",
+      "signIn": "Entrar"
+    }
+  },
+  "docs": {
+    "heading": "Dev Docs",
+    "searchPlaceholder": "Buscar...",
+    "searchEmpty": "Nenhum resultado.",
+    "tocHeading": "Nesta página",
+    "lastUpdated": "Última atualização: {taskId} — {date}",
+    "homeLink": "Visão geral",
+    "sidebar": {
+      "setup": "Setup local",
+      "architecture": "Arquitetura",
+      "architectureOverview": "Overview",
+      "monorepo": "Monorepo",
+      "database": "Database",
+      "audio": "Audio Engine",
+      "conventions": "Convenções",
+      "i18n": "i18n",
+      "troubleshooting": "Troubleshooting",
+      "progress": "Progresso (por TASK)",
+      "runbooks": "Runbooks",
+      "supabaseAdmin": "Supabase — Primeiro admin"
+    },
+    "notFound": "Página de docs não encontrada."
+  },
+  "errors": {
+    "boundary": {
+      "title": "Algo deu errado",
+      "description": "Ocorreu um erro inesperado. Tente novamente ou volte para a home.",
+      "tryAgain": "Tentar novamente",
+      "goHome": "Ir para a home",
+      "ref": "Ref: {digest}"
+    },
+    "notFound": {
+      "title": "Página não encontrada",
+      "description": "A página que você procura não existe ou foi movida.",
+      "goHome": "Ir para a home"
+    },
+    "localBoundary": {
+      "fallback": "Este componente falhou. Tente recarregar a página.",
+      "reset": "Tentar de novo"
+    }
+  },
+  "audio": {
+    "overlay": {
+      "title": "Toque para começar",
+      "subtitle": "Os navegadores precisam de um toque para liberar áudio. Toque aqui para habilitar o som.",
+      "starting": "Iniciando áudio...",
+      "error": "Não foi possível iniciar o áudio. Tente novamente."
+    }
+  },
+  "dev": {
+    "audio": {
+      "title": "Dev · Audio Engine",
+      "description": "Teste do MIDI engine. Carregue uma URL de .mid ou gere uma melodia de teste.",
+      "urlLabel": "URL do MIDI",
+      "urlPlaceholder": "/sample.mid",
+      "loadUrl": "Carregar URL",
+      "loadTestMelody": "Carregar melodia de teste (C major)",
+      "noMidi": "Nenhum MIDI carregado.",
+      "midiInfo": "BPM {bpm} · {duration}s · {tracks} tracks",
+      "tracksHeading": "Tracks",
+      "phaseHeading": "Fases",
+      "phase": "Fase {n}",
+      "phaseDescription": {
+        "1": "Primeiras 4 batidas, só track 0",
+        "2": "8 batidas, só track 0",
+        "3": "Todas as tracks, batidas 0-8",
+        "4": "Música completa"
+      },
+      "stop": "Parar",
+      "replay": "Repetir",
+      "progress": "Progresso",
+      "playing": "Tocando",
+      "idle": "Parado",
+      "loading": "Carregando MIDI...",
+      "error": "Erro: {message}"
+    }
+  },
+  "profile": {
+    "heading": "Perfil",
+    "memberSince": "Membro desde {date}",
+    "nickname": {
+      "label": "Nickname",
+      "edit": "Editar",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "saving": "Salvando...",
+      "helper": "3-20 caracteres. Letras, números e _ apenas.",
+      "invalid": "Use 3-20 caracteres: letras, números e _.",
+      "taken": "Esse nickname já está em uso.",
+      "profanity": "Esse nickname não é permitido.",
+      "checking": "Verificando...",
+      "available": "Disponível",
+      "unchanged": "Esse é seu nickname atual.",
+      "saved": "Nickname atualizado.",
+      "saveError": "Não foi possível salvar. Tente novamente."
+    },
+    "stats": {
+      "heading": "Estatísticas",
+      "totalGames": "Partidas",
+      "totalWins": "Vitórias",
+      "totalCorrect": "Acertos",
+      "dailyStreak": "Daily streak",
+      "maxDailyStreak": "Maior streak",
+      "pointsTotal": "Pontos",
+      "level": "Level",
+      "xp": "XP"
+    },
+    "signOut": "Sair",
+    "signOutSuccess": "Sessão encerrada.",
+    "guestEmpty": {
+      "title": "Entre para acessar seu perfil",
+      "description": "Guests jogam, mas não salvam progresso. Crie uma conta para acumular XP, vitórias e streak.",
+      "signIn": "Entrar",
+      "backToHome": "Voltar para a home"
+    }
   },
   "legal": {
     "lastUpdated": "Última atualização: {date}",

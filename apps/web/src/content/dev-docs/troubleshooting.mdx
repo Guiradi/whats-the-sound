@@ -1,0 +1,52 @@
+---
+title: Troubleshooting
+description: Problemas comuns e soluções.
+lastTask: TASK-029
+lastUpdated: 2026-04-17
+---
+
+## Supabase: "missing env vars"
+
+Mensagem de erro no boot do server ou no build do web. Checar se `.env.local` existe em **ambos** `apps/web` e `apps/server` e se as chaves estão preenchidas. Schemas estão em `apps/web/src/env.ts` e `apps/server/src/env.ts` — erro do Zod lista exatamente o que falta.
+
+## `pnpm install` pede aprovação de scripts
+
+pnpm 10 pede aprovação explícita pra scripts de postinstall. Os necessários (supabase CLI, sharp) já estão em `pnpm.onlyBuiltDependencies` no root `package.json`. Se pedir por algo novo, avaliar se é necessário e adicionar à allowlist.
+
+## Audio não toca no Safari / iOS
+
+**Esperado.** Safari requer user gesture pra iniciar o AudioContext. O `<StartAudioOverlay />` mostra um botão de tap que chama `Tone.start()`. Se você vê o overlay, o sistema tá funcionando — só tem que tocar nele.
+
+## `/admin/docs` retorna 404
+
+Você precisa de `users.role = 'admin'`. Opções:
+
+1. **Produção / staging**: rodar o SQL do [runbook](/admin/docs/runbooks/supabase-admin)
+2. **Dev local**: setar `ALLOW_ADMIN_WITHOUT_ROLE=true` no `apps/web/.env.local`. A flag é ignorada em production (hard-block via `NODE_ENV`)
+
+## Build falha em `/[locale]/profile`
+
+A page é `force-dynamic` (depende de session cookie). Se o build diz "attempted to use cookies() during static render", algum componente intermediário adicionou algo que está sendo prerenderado. Verificar se todas as pages sensíveis a auth têm `export const dynamic = 'force-dynamic'`.
+
+## `next-intl` — string não traduzida mostra a key
+
+Provável: a key não existe no locale ativo. Verificar se adicionou **em ambos** `pt-BR.json` e `en.json`. Em dev, next-intl warna no console.
+
+## MIDI engine — sem som e sem erros
+
+Checklist:
+
+1. Overlay "Toque para começar" foi dismissado? (audioContext.isReady)
+2. Carregou um MIDI? (loadMidi ou loadMidiFromBuffer)
+3. Volume do sistema / aba não está mutado?
+4. Browser tab tem permissão de autoplay? (Chrome: bloqueia em alguns casos)
+
+Rota de smoke: `/[locale]/dev/audio`.
+
+## Type error após upgrade de dep
+
+```bash
+rm -rf node_modules && pnpm install
+```
+
+Se persistir, checar se o dep mudou API (changelog) ou se há type drift entre workspaces.

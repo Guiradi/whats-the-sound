@@ -1,3 +1,5 @@
+import { AuthMenu } from '@/components/auth/auth-menu';
+import { GuestBanner } from '@/components/auth/guest-banner';
 import { LocaleSwitcher } from '@/components/shared/locale-switcher';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +21,10 @@ function HomeContent() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <GuestBanner />
+      <header className="flex justify-end px-6 pt-6">
+        <AuthMenu />
+      </header>
       <main className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-16">
         <header className="flex flex-col items-center gap-4 text-center">
           <Badge variant="cyan">{t('sprintBadge')}</Badge>

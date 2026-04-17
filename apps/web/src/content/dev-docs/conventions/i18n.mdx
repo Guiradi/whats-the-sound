@@ -1,0 +1,77 @@
+---
+title: Convenções — i18n
+description: next-intl, estrutura de keys, como adicionar string nova.
+lastTask: TASK-029
+lastUpdated: 2026-04-17
+---
+
+## Stack
+
+- **`next-intl`** 3.26 com `localePrefix: 'always'`
+- Locales no MVP: `pt-BR` (default) + `en`
+- Mensagens em `apps/web/messages/{pt-BR,en}.json`
+
+## Estrutura
+
+Keys são **sempre em inglês** — só o valor muda por locale:
+
+```json
+// pt-BR.json
+{
+  "auth": {
+    "login": {
+      "title": "Entre para jogar"
+    }
+  }
+}
+```
+
+```json
+// en.json
+{
+  "auth": {
+    "login": {
+      "title": "Sign in to play"
+    }
+  }
+}
+```
+
+## Namespaces atuais
+
+| Namespace | Uso |
+|-----------|-----|
+| `metadata` | `generateMetadata` (title, description por page) |
+| `common` | actions, footer, localeSwitcher |
+| `home` | Landing / home |
+| `legal` | Terms + Privacy (nested sections) |
+| `auth` | Login, menu, guest banner |
+| `profile` | Perfil + editor de nickname + stats |
+| `audio` | Overlay de start + mensagens do engine |
+| `dev` | Páginas de dev (ex: `/dev/audio`) |
+| `errors` | Error boundaries (route-level + local) + 404 |
+| `docs` | Chrome do dev docs portal (sidebar, search) |
+
+## Como adicionar string nova
+
+1. Adiciona em **ambas** as `messages/*.json` ao mesmo tempo. Nunca commit só um.
+2. Use ICU syntax pra valores dinâmicos: `"Welcome, {name}"`
+3. Server Component: `const t = await getTranslations({ locale, namespace: 'auth.login' })`
+4. Client Component: `const t = useTranslations('auth.login')`
+5. Specs de feature usam keys como exemplos, não strings hardcoded
+
+## Detecção
+
+1. Cookie `NEXT_LOCALE` (se setado via LocaleSwitcher)
+2. Accept-Language header
+3. Fallback: `defaultLocale = 'pt-BR'`
+
+Middleware matcher exclui `api`, `_next`, `_vercel`, `offline`, `auth`, arquivos com extensão.
+
+## Switcher
+
+`apps/web/src/components/shared/locale-switcher.tsx` — botões compactos PT/EN. Seta cookie + `router.replace(pathname, { locale })`.
+
+## Spec
+
+Spec completa: `specs/features/10-i18n.md`.
