@@ -9,7 +9,7 @@
     "lint": "biome check src",
     "type-check": "tsc --noEmit",
     "generate-icons": "node --experimental-strip-types scripts/generate-icons.ts",
-    "docs:check": "node --experimental-strip-types scripts/check-docs.ts"
+    "docs:check": "node scripts/check-docs.mjs"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.2",
