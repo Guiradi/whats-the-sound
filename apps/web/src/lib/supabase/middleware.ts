@@ -12,11 +12,6 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
 export async function updateSupabaseSession(request: NextRequest): Promise<NextResponse> {
   let response = NextResponse.next({ request });
 
-  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-    // Supabase not configured yet (TASK-002 window) — skip session refresh silently.
-    return response;
-  }
-
   const supabase = createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,

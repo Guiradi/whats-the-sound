@@ -9,9 +9,6 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
  * Reads and writes session cookies through Next's `cookies()` helper.
  */
 export async function createSupabaseServerClient() {
-  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-    throw new Error('Missing Supabase env vars: NEXT_PUBLIC_SUPABASE_URL and _PUBLISHABLE_KEY');
-  }
   const cookieStore = await cookies();
 
   return createServerClient(

@@ -3,7 +3,6 @@ import { GuestEmptyState } from '@/components/profile/guest-empty-state';
 import { LogoutButton } from '@/components/profile/logout-button';
 import { ProfileCard } from '@/components/profile/profile-card';
 import { type ProfileStats, StatGrid } from '@/components/profile/stat-grid';
-import { env } from '@/env';
 import type { Locale } from '@/i18n/config';
 import { Link } from '@/i18n/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -34,9 +33,6 @@ interface ProfileRow extends ProfileStats {
 }
 
 async function fetchProfile(): Promise<ProfileRow | null> {
-  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-    return null;
-  }
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },

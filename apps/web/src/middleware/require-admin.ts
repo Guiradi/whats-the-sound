@@ -18,11 +18,6 @@ export async function requireAdmin(request: NextRequest): Promise<NextResponse |
     return null;
   }
 
-  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-    // Supabase not configured — admin routes are unreachable.
-    return notFoundResponse();
-  }
-
   const supabase = createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
