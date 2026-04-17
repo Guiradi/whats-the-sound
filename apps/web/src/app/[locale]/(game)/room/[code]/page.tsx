@@ -1,5 +1,7 @@
 'use client';
 
+import { GameBoard } from '@/components/game/game-board';
+import { GameResults } from '@/components/game/game-results';
 import { RoomLobby } from '@/components/room/room-lobby';
 import { useRoom } from '@/hooks/use-room';
 import { useRouter } from '@/i18n/navigation';
@@ -16,7 +18,19 @@ export default function RoomPage({
   const { code } = use(params);
   const t = useTranslations('room');
   const router = useRouter();
-  const { snapshot, isConnecting, error, isHost, startGame, leaveRoom } = useRoom(code);
+  const {
+    snapshot,
+    chat,
+    isConnecting,
+    error,
+    isHost,
+    myId,
+    phaseStart,
+    roundReveal,
+    startGame,
+    leaveRoom,
+    sendChat,
+  } = useRoom(code);
 
   const handleLeave = useCallback(() => {
     leaveRoom();
@@ -56,7 +70,7 @@ export default function RoomPage({
     );
   }
 
-  // Game phases — placeholder for TASK-013
+  // Active game phases + round transitions
   if (
     status === GameStatus.ROUND_START ||
     status === GameStatus.PHASE_1 ||
@@ -66,20 +80,20 @@ export default function RoomPage({
     status === GameStatus.ROUND_END
   ) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
-        <p className="text-lg font-bold text-accent-cyan">{t('gameInProgress')}</p>
-        <p className="text-sm text-text-muted">{t('gameStatus', { status })}</p>
-      </div>
+      <GameBoard
+        snapshot={snapshot}
+        chat={chat}
+        myId={myId}
+        phaseStart={phaseStart}
+        roundReveal={roundReveal}
+        onSendChat={sendChat}
+      />
     );
   }
 
-  // Game end — placeholder for TASK-014
+  // Game end — results screen
   if (status === GameStatus.GAME_END) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
-        <p className="text-lg font-bold text-accent-yellow">{t('gameOver')}</p>
-      </div>
-    );
+    return <GameResults snapshot={snapshot} isHost={isHost} onPlayAgain={startGame} />;
   }
 
   return null;

@@ -24,7 +24,7 @@ interface GameState {
   correctPlayerIds: string[];
 }
 
-const ACTIVE_PHASES = new Set([
+const ACTIVE_PHASES: ReadonlySet<string> = new Set([
   GameStatus.PHASE_1,
   GameStatus.PHASE_2,
   GameStatus.PHASE_3,
@@ -37,15 +37,12 @@ function getTimerColor(progress: number): TimerColor {
   return 'red';
 }
 
-export function useGameState(
-  snapshot: RoomStateSnapshot | null,
-  myId: string | null,
-): GameState {
+export function useGameState(snapshot: RoomStateSnapshot | null, myId: string | null): GameState {
   const [timeRemaining, setTimeRemaining] = useState(0);
 
   const round = snapshot?.round ?? null;
   const status = snapshot?.room.status ?? GameStatus.LOBBY;
-  const isPlaying = ACTIVE_PHASES.has(status as GameStatus);
+  const isPlaying = ACTIVE_PHASES.has(status);
   const phaseEndAt = round?.phaseEndAt ?? 0;
   const phaseStartAt = round?.phaseStartAt ?? 0;
   const timeTotal = phaseEndAt > phaseStartAt ? (phaseEndAt - phaseStartAt) / 1000 : 0;

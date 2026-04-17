@@ -3,8 +3,27 @@
 import { useAuth } from '@/hooks/use-auth';
 import { type TypedSocket, getSocket, setSocketAuth } from '@/lib/socket';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
-import type { ChatMessage, RoomConfig, RoomPlayer, RoomStateSnapshot } from '@wts/shared';
+import type {
+  ChatMessage,
+  PhaseConfig,
+  RoomConfig,
+  RoomPlayer,
+  RoomStateSnapshot,
+} from '@wts/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+interface PhaseStartPayload {
+  phase: 1 | 2 | 3 | 4;
+  endsAt: number;
+  audioData: PhaseConfig;
+  midiFileUrl: string;
+}
+
+interface RoundRevealPayload {
+  title: string;
+  artist: string;
+  correctPlayerIds: string[];
+}
 
 interface UseRoomReturn {
   snapshot: RoomStateSnapshot | null;
@@ -14,6 +33,8 @@ interface UseRoomReturn {
   isHost: boolean;
   myPlayer: RoomPlayer | null;
   myId: string | null;
+  phaseStart: PhaseStartPayload | null;
+  roundReveal: RoundRevealPayload | null;
   sendChat: (text: string) => void;
   startGame: () => void;
   leaveRoom: () => void;
@@ -28,6 +49,8 @@ export function useRoom(code: string | null): UseRoomReturn {
   const [chat, setChat] = useState<ChatMessage[]>([]);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [phaseStart, setPhaseStart] = useState<PhaseStartPayload | null>(null);
+  const [roundReveal, setRoundReveal] = useState<RoundRevealPayload | null>(null);
   const socketRef = useRef<TypedSocket | null>(null);
   const versionRef = useRef(0);
 
@@ -75,6 +98,16 @@ export function useRoom(code: string | null): UseRoomReturn {
         });
       });
 
+      socket.on('phase:start', (payload) => {
+        setPhaseStart(payload);
+        setRoundReveal(null);
+      });
+
+      socket.on('round:reveal', (payload) => {
+        setRoundReveal(payload);
+        setPhaseStart(null);
+      });
+
       socket.on('error:generic', (payload) => {
         setError(payload.message);
         setIsConnecting(false);
@@ -116,6 +149,8 @@ export function useRoom(code: string | null): UseRoomReturn {
         socket.emit('room:leave');
         socket.off('room:state');
         socket.off('chat:message');
+        socket.off('phase:start');
+        socket.off('round:reveal');
         socket.off('error:generic');
         socket.off('error:rate_limited');
         socket.off('connect');
@@ -123,6 +158,8 @@ export function useRoom(code: string | null): UseRoomReturn {
       }
       setSnapshot(null);
       setChat([]);
+      setPhaseStart(null);
+      setRoundReveal(null);
       versionRef.current = 0;
     };
   }, [code, myId, user, guest]);
@@ -187,6 +224,8 @@ export function useRoom(code: string | null): UseRoomReturn {
     isHost,
     myPlayer,
     myId,
+    phaseStart,
+    roundReveal,
     sendChat,
     startGame,
     leaveRoom,

@@ -258,6 +258,47 @@
       "leave": "Sair da sala"
     }
   },
+  "game": {
+    "phase": {
+      "label": "Fase {current} de {total}"
+    },
+    "round": {
+      "label": "Rodada {current} de {total}",
+      "go": "Vai!"
+    },
+    "players": {
+      "title": "Jogadores"
+    },
+    "chat": {
+      "title": "Chat",
+      "placeholder": "Digite uma mensagem...",
+      "guessPlaceholder": "Digite seu palpite...",
+      "locked": "Você já acertou!"
+    },
+    "status": {
+      "youGuessedCorrectly": "Você acertou! Aguardando próxima fase..."
+    },
+    "reveal": {
+      "correctPlayers": "Acertaram:",
+      "noOneGuessed": "Ninguém acertou dessa vez."
+    },
+    "results": {
+      "title": "Resultado",
+      "podium": "Pódio",
+      "rank": "Posição",
+      "score": "Pontos",
+      "correct": "Acertos",
+      "stats": {
+        "rounds": "Rodadas",
+        "players": "Jogadores",
+        "totalCorrect": "Total de acertos"
+      },
+      "share": "Compartilhar resultado",
+      "copied": "Copiado!",
+      "playAgain": "Jogar novamente",
+      "waitingForHost": "Aguardando o host..."
+    }
+  },
   "legal": {
     "lastUpdated": "Última atualização: {date}",
     "brandLabel": "What's the Sound?",

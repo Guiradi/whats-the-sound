@@ -258,6 +258,47 @@
       "leave": "Leave room"
     }
   },
+  "game": {
+    "phase": {
+      "label": "Phase {current} of {total}"
+    },
+    "round": {
+      "label": "Round {current} of {total}",
+      "go": "Go!"
+    },
+    "players": {
+      "title": "Players"
+    },
+    "chat": {
+      "title": "Chat",
+      "placeholder": "Type a message...",
+      "guessPlaceholder": "Type your guess...",
+      "locked": "You already guessed correctly!"
+    },
+    "status": {
+      "youGuessedCorrectly": "You guessed correctly! Waiting for next phase..."
+    },
+    "reveal": {
+      "correctPlayers": "Guessed correctly:",
+      "noOneGuessed": "No one guessed this time."
+    },
+    "results": {
+      "title": "Results",
+      "podium": "Podium",
+      "rank": "Rank",
+      "score": "Score",
+      "correct": "Correct",
+      "stats": {
+        "rounds": "Rounds",
+        "players": "Players",
+        "totalCorrect": "Total correct"
+      },
+      "share": "Share result",
+      "copied": "Copied!",
+      "playAgain": "Play again",
+      "waitingForHost": "Waiting for host..."
+    }
+  },
   "legal": {
     "lastUpdated": "Last updated: {date}",
     "brandLabel": "What's the Sound?",

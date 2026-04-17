@@ -103,7 +103,7 @@
 
 ## Sprint 4 — Frontend do Multiplayer
 
-### [ ] TASK-012: Tela de Salas + Lobby (4h) — specs/features/04-multiplayer-rooms.md
+### [✓] TASK-012: Tela de Salas + Lobby (4h) — specs/features/04-multiplayer-rooms.md
     → Página /rooms:
       • Input de código + botão "Entrar"
       • Botão "Criar Sala"
@@ -130,7 +130,7 @@
       • Lista de salas públicas atualiza em tempo real
       • Chat do lobby funciona entre jogadores
 
-### [ ] TASK-013: Tela de Jogo — Game Board (8h) — specs/features/04-multiplayer-rooms.md
+### [✓] TASK-013: Tela de Jogo — Game Board (8h) — specs/features/04-multiplayer-rooms.md
     → Nota: Reestimado de 6h para 8h. 7 componentes + layout desktop 3 colunas + mobile responsivo com drawers + integração useMidiPlayer/useRoom + animações. Bloqueada também por TASK-018 (seed real de MIDIs) para validação end-to-end, não só por TASK-010/005/006.
     → Layout Desktop (3 colunas):
       • Esquerda: PlayerList com scores e status
@@ -161,7 +161,7 @@
       • Chat mostra mensagens de jogadores e bot com estilos diferentes
       • Timer visual sincronizado com server
 
-### [ ] TASK-014: Tela de Resultado + Compartilhamento (3h) — specs/features/04-multiplayer-rooms.md
+### [✓] TASK-014: Tela de Resultado + Compartilhamento (3h) — specs/features/04-multiplayer-rooms.md
     → Tela de Resultado (GAME_END):
       • Pódio animado (1º com efeito dourado, 2º prata, 3º bronze)
       • Ranking completo com score, acertos, fase média

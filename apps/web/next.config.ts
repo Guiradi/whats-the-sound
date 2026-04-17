@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@wts/shared'],
   typedRoutes: true,
+  webpack: (config) => {
+    // Resolve .ts files when @wts/shared uses .js extensions (ESM convention)
+    config.resolve.extensionAlias = {
+      '.js': ['.ts', '.js'],
+      '.jsx': ['.tsx', '.jsx'],
+    };
+    return config;
+  },
 };
 
 export default withNextIntl(withSerwist(nextConfig));
