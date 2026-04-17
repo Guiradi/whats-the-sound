@@ -1,5 +1,4 @@
 import { Toaster } from '@/components/ui/toaster';
-import { env } from '@/env';
 import { AuthProvider } from '@/hooks/use-auth';
 import { type Locale, locales } from '@/i18n/config';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -82,14 +81,9 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
 
-  // Supabase may be unconfigured during early Sprint 1 windows; resolve to null
-  // in that case so the layout still renders.
-  let initialUser = null;
-  if (env.NEXT_PUBLIC_SUPABASE_URL && env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-    const supabase = await createSupabaseServerClient();
-    const { data } = await supabase.auth.getUser();
-    initialUser = data.user;
-  }
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase.auth.getUser();
+  const initialUser = data.user ?? null;
 
   return (
     <html

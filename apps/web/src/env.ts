@@ -9,11 +9,10 @@ const schema = z.object({
 
   // Required from TASK-002 onwards. New Supabase API key format: publishable key
   // (sb_publishable_*) is safe to expose to the browser.
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
     .string()
-    .startsWith('sb_publishable_', 'must be a Supabase publishable key (sb_publishable_*)')
-    .optional(),
+    .startsWith('sb_publishable_', 'must be a Supabase publishable key (sb_publishable_*)'),
 
   // Dev escape hatch for /admin/* routes. Only respected when NODE_ENV !== 'production'.
   // Lets a dev navigate admin pages before seeding a real admin user.

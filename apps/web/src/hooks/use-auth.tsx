@@ -57,7 +57,6 @@ export function AuthProvider({
   }, [initialUser]);
 
   useEffect(() => {
-    if (!supabase) return;
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -75,7 +74,6 @@ export function AuthProvider({
 
   const signInWithGoogle = useCallback(
     async (next?: string) => {
-      if (!supabase) return;
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: buildRedirectTo(next) },
@@ -86,7 +84,6 @@ export function AuthProvider({
 
   const signInWithDiscord = useCallback(
     async (next?: string) => {
-      if (!supabase) return;
       await supabase.auth.signInWithOAuth({
         provider: 'discord',
         options: { redirectTo: buildRedirectTo(next) },
@@ -96,7 +93,6 @@ export function AuthProvider({
   );
 
   const signOut = useCallback(async () => {
-    if (!supabase) return;
     await supabase.auth.signOut();
     clearGuestSession();
     setUser(null);
