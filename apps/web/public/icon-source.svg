@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="100%" stop-color="#12122a"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bgGrad)" rx="96"/>
+  <!-- Audio visualizer bars, centered, with synthwave palette -->
+  <rect x="96"  y="192" width="48" height="128" fill="#00f0ff" rx="12"/>
+  <rect x="160" y="128" width="48" height="256" fill="#ff00aa" rx="12"/>
+  <rect x="224" y="96"  width="48" height="320" fill="#ffd700" rx="12"/>
+  <rect x="288" y="160" width="48" height="192" fill="#00ff88" rx="12"/>
+  <rect x="352" y="208" width="48" height="96"  fill="#ff00aa" rx="12"/>
+</svg>

@@ -25,6 +25,28 @@ O coração do jogo. Engine que carrega arquivos MIDI, interpreta-os via Tone.js
 - Fallback para oscillator básico se soundfont não carregar
 - Suporte a pelo menos: Piano, Guitar, Bass, Strings, Drums
 
+**Estratégia de soundfonts (pós-auditoria):**
+
+- **Orçamento total em cache:** máximo de **20 MB** somando todos os soundfonts. Acima disso, service worker pode ser evictado silenciosamente em aparelhos com pouca memória.
+- **Set default (sempre precached):** Piano acústico (~2 MB). É o instrumento que mais aparece e o fallback visual "sempre funciona".
+- **Sets lazy (baixados no primeiro uso):** Guitar, Bass, Strings, Drums. Quando `MidiPlayer.loadMidi()` detecta um program change / track que requer um instrumento não-carregado, faz fetch sob demanda e armazena em cache.
+- **Fallback em cascata:** (1) soundfont do instrumento correto → (2) piano já carregado → (3) `Tone.PolySynth` como último recurso. Logar qual caminho foi usado.
+- **Versionamento de cache:** chave do cache entry inclui hash da versão do arquivo (ex: `sf-piano-<hash8>.sf2`). Nova release faz bust sem invalidar cache inteiro. Service worker remove soundfonts com chaves antigas no activate.
+- **Fonte:** usar biblioteca leve (ex: `sgossner/VCSL` compactado ou FatBoy) ao invés de soundfonts GM completos de 50+ MB.
+
+### Autoplay Mobile (Safari/iOS) e `Tone.start()`
+
+Safari e Chrome mobile bloqueiam qualquer áudio até o primeiro gesto do usuário na página. `Tone.js` expõe `Tone.start()` que resolve a promise do `AudioContext.resume()` mas precisa ser chamado dentro de um handler de gesto.
+
+**Fluxo obrigatório:**
+
+1. Na entrada de `/room/[code]` ou `/daily`, renderizar overlay cheio "🎵 Toque para começar" enquanto `Tone.context.state !== 'running'`.
+2. No click/tap do overlay, chamar `await Tone.start()` e `setAudioReady(true)`. Só depois remover o overlay.
+3. Se o host inicia o round antes do usuário resolver o overlay, bufferizar eventos `phase_start` e disparar `Tone.Transport.start()` só após `audioReady === true`. Informar o usuário via toast "Iniciando áudio..." se ficar mais de 2s em buffer.
+4. Em reconexão Socket.io, o estado `audioReady` já está resolvido (não precisa overlay de novo).
+
+**Teste obrigatório em Sprint 2:** validar em Chrome Android, Safari iOS ≥15, Firefox Android, Chrome/Firefox/Safari desktop. Incluir screenshot/gif de cada no PR.
+
 ### Sistema de Revelação Progressiva (4 Fases)
 
 Cada música MIDI tem metadata definindo como as fases são divididas:

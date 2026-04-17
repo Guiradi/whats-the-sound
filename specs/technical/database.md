@@ -64,6 +64,14 @@ CREATE TYPE game_status AS ENUM (
 );
 
 CREATE TYPE user_role AS ENUM ('player', 'admin');
+
+CREATE TYPE xp_source AS ENUM (
+  'multiplayer_correct',
+  'multiplayer_finish',
+  'daily_correct',
+  'daily_participation',
+  'daily_streak_bonus'
+);
 ```
 
 ### Tabela: users
@@ -83,6 +91,8 @@ CREATE TABLE users (
   daily_streak INTEGER NOT NULL DEFAULT 0,
   max_daily_streak INTEGER NOT NULL DEFAULT 0,
   points_total BIGINT NOT NULL DEFAULT 0,
+  xp BIGINT NOT NULL DEFAULT 0 CHECK (xp >= 0),
+  level INTEGER NOT NULL DEFAULT 1 CHECK (level >= 1),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -91,6 +101,8 @@ CREATE TABLE users (
 CREATE INDEX idx_users_nickname ON users (nickname);
 CREATE INDEX idx_users_points_total ON users (points_total DESC);
 CREATE INDEX idx_users_daily_streak ON users (daily_streak DESC);
+CREATE INDEX idx_users_xp ON users (xp DESC);
+CREATE INDEX idx_users_level ON users (level DESC, xp DESC);
 
 -- Trigger para updated_at
 CREATE OR REPLACE FUNCTION update_updated_at()
@@ -231,6 +243,8 @@ CREATE POLICY "Host can update own session"
   ON game_sessions FOR UPDATE USING (host_id = auth.uid());
 ```
 
+> **Decisão explícita sobre guest mode (clarificada pós-auditoria):** Guests **NÃO criam salas** — criar exige conta (Google/Discord OAuth; o "zero fricção" do overview se refere a entrar em salas, não a criá-las). Guests podem entrar em salas existentes via código/link — isso é permitido pela policy de `game_players` que faz INSERT livre. Se no futuro decidirmos permitir guests criarem salas, será necessário: (a) afrouxar a policy acima com rate-limit baseado em IP/socketId, (b) adicionar coluna `anonymous_host_token` para identificar o host guest, e (c) lidar com re-ingresso via cookie.
+
 ### Tabela: game_players
 
 ```sql
@@ -251,6 +265,8 @@ CREATE TABLE game_players (
 -- Índices
 CREATE INDEX idx_game_players_session ON game_players (session_id);
 CREATE INDEX idx_game_players_user ON game_players (user_id) WHERE user_id IS NOT NULL;
+-- Usado pela lógica de host migration: ordenar players conectados por ordem de entrada
+CREATE INDEX idx_game_players_session_joined ON game_players (session_id, joined_at);
 
 -- RLS
 ALTER TABLE game_players ENABLE ROW LEVEL SECURITY;
@@ -320,6 +336,8 @@ CREATE TABLE daily_results (
 -- Índices
 CREATE INDEX idx_daily_user_date ON daily_results (user_id, date DESC);
 CREATE INDEX idx_daily_date ON daily_results (date);
+-- Partial index para queries de histórico que só querem dias completos (calendário da /daily/history)
+CREATE INDEX idx_daily_user_completed ON daily_results (user_id, date DESC) WHERE completed = true;
 
 -- RLS
 ALTER TABLE daily_results ENABLE ROW LEVEL SECURITY;
@@ -360,6 +378,36 @@ CREATE POLICY "Only admins can manage schedule"
     EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'admin')
   );
 ```
+
+### Tabela: xp_events
+
+```sql
+CREATE TABLE xp_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  source xp_source NOT NULL,
+  source_ref TEXT NOT NULL,         -- ex: round_score_id, daily_result_id, streak_<user>_<date>
+  amount INTEGER NOT NULL,           -- XP creditado (0 se capped)
+  capped BOOLEAN NOT NULL DEFAULT false,
+  context JSONB,                     -- { phase, position, streak, ... }
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  UNIQUE(source, source_ref)         -- idempotência: reemitir o mesmo evento é no-op
+);
+
+-- Índices
+CREATE INDEX idx_xp_events_user_date ON xp_events (user_id, created_at DESC);
+CREATE INDEX idx_xp_events_source ON xp_events (source);
+
+-- RLS
+ALTER TABLE xp_events ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users read own xp events"
+  ON xp_events FOR SELECT USING (auth.uid() = user_id);
+-- Service role bypassa RLS no backend para inserts via xp-service
+```
+
+Ver `specs/features/08-xp-system.md` para o cap diário (2000 XP/dia), fontes, curva de level e decisões.
 
 ## Functions & Triggers
 
@@ -427,6 +475,29 @@ CREATE TRIGGER after_daily_result_insert
   AFTER INSERT ON daily_results
   FOR EACH ROW EXECUTE FUNCTION update_daily_streak();
 ```
+
+### Sync de users.level com users.xp (feature 08)
+
+```sql
+CREATE OR REPLACE FUNCTION sync_user_level()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.level = floor(sqrt(NEW.xp::numeric / 100))::int + 1;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER users_level_on_xp_change
+  BEFORE UPDATE OF xp ON users
+  FOR EACH ROW WHEN (OLD.xp IS DISTINCT FROM NEW.xp)
+  EXECUTE FUNCTION sync_user_level();
+
+CREATE TRIGGER users_level_on_insert
+  BEFORE INSERT ON users
+  FOR EACH ROW EXECUTE FUNCTION sync_user_level();
+```
+
+Fórmula mantida em sincronia com `XP_LEVEL_FORMULA` em `@wts/shared/constants` — se mudar, ajustar os dois juntos.
 
 ### Atualizar play_count e correct_rate do midi
 

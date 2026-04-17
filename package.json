@@ -1,0 +1,31 @@
+{
+  "name": "whats-the-sound",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PWA multiplayer MIDI music guessing game",
+  "packageManager": "pnpm@10.26.2",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "db:push": "supabase db push",
+    "db:diff": "supabase db diff",
+    "db:reset": "supabase db reset --linked"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "supabase": "^2.2.1",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@biomejs/biome", "esbuild", "sharp", "supabase"]
+  }
+}

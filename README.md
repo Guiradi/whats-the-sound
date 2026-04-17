@@ -29,18 +29,20 @@ Dentro de cada fase, a pontuação decai para cada acerto subsequente (estilo Ga
 
 - **Multiplayer** — Crie salas, convide amigos, jogue em tempo real com chat interativo e feedback inteligente
 - **Daily Sound** — Uma música por dia, igual pra todo mundo. Compartilhe seu resultado nas redes sociais
+- **XP + Level** — Jogue logado para acumular XP e subir de nível (badge `[Lv.X]` no chat/pódio). Guests podem jogar tudo, só não acumulam progresso
 
 ## Stack
 
 | Camada | Tecnologia |
 |--------|-----------|
-| Frontend | Next.js 15 (App Router) · Tailwind CSS v4 · Shadcn/UI |
+| Frontend | Next.js 15 (App Router) · React 19 · Tailwind CSS v4 · Radix UI + Shadcn-style components |
 | Audio | Tone.js · @tonejs/midi |
 | Real-Time | Socket.io |
-| Backend | Fastify · TypeScript |
+| Backend | Fastify 5 · TypeScript |
 | Database | PostgreSQL (Supabase) |
 | Auth | Supabase Auth (Google + Discord) |
-| PWA | Serwist |
+| i18n | next-intl (pt-BR default + en) |
+| PWA | Serwist 9 |
 | Monorepo | Turborepo · pnpm |
 | Lint/Format | Biome |
 
@@ -52,10 +54,12 @@ whats-the-sound/
 │   ├── web/            ← Frontend (Next.js 15)
 │   └── server/         ← Backend (Fastify + Socket.io)
 ├── packages/
-│   └── shared/         ← Types e constants compartilhados
-├── specs/              ← Especificações do produto e features
+│   └── shared/         ← Types, enums, constants, env helpers compartilhados
+├── supabase/           ← Config + migrations SQL versionadas
+├── specs/              ← Especificações do produto e features (10 specs)
 ├── docs/               ← Design system e UX principles
-├── tasks/              ← Backlog e plano de execução por sprints
+├── tasks/              ← Backlog, plano de execução, completed por sprints
+├── .claude/            ← Memory, rules e agentes do Claude Code
 └── CLAUDE.md           ← Configuração do agente de desenvolvimento
 ```
 
@@ -65,46 +69,89 @@ Cada serviço é isolado em sua própria pasta com `package.json` e `tsconfig.js
 
 ### Pré-requisitos
 
-- Node.js 20+
-- pnpm 9+
-- Conta no [Supabase](https://supabase.com) (tier gratuito)
+- **Node.js 20+** (usamos `--env-file` nativo que apareceu na 20.6)
+- **pnpm 9+**
+- **Conta no [Supabase](https://supabase.com)** (tier gratuito, região São Paulo)
+- Opcional para OAuth completo: contas no [Google Cloud Console](https://console.cloud.google.com) e [Discord Developer Portal](https://discord.com/developers/applications)
 
-### Setup
+### Setup inicial (uma vez)
+
+**1. Clonar e instalar**
 
 ```bash
-# Clonar o repositório
 git clone https://github.com/guiponsoni/whats-the-sound.git
 cd whats-the-sound
-
-# Instalar dependências
 pnpm install
+```
 
-# Configurar variáveis de ambiente
+**2. Configurar variáveis de ambiente**
+
+Copiar os templates:
+
+```bash
 cp apps/web/.env.example apps/web/.env.local
-cp apps/server/.env.example apps/server/.env
+cp apps/server/.env.example apps/server/.env.local
+```
 
-# Push das migrations para o Supabase
+Preencher ambos os arquivos com as credenciais do seu projeto Supabase:
+
+- `apps/web/.env.local` → `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `apps/server/.env.local` → `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `DATABASE_URL`, `DAILY_SEED`
+
+> As chaves usam o formato novo do Supabase: `sb_publishable_*` (público) e `sb_secret_*` (server-only).
+
+**3. Aplicar migrations no Supabase**
+
+```bash
+# Login e link (uma vez)
+pnpm exec supabase login
+pnpm exec supabase link --project-ref <SEU_PROJECT_REF>
+
+# Aplicar as 8 migrations
 pnpm db:push
+```
 
-# Seed do catálogo de 100 MIDIs
-pnpm seed:midis
+**4. Smoke test**
 
-# Rodar em desenvolvimento (frontend + backend)
+```bash
+pnpm --filter @wts/server run smoke:db
+```
+
+Deve imprimir 6 checks verdes (tabelas + storage bucket + auth admin reachable).
+
+### Rodar em desenvolvimento
+
+Da **raiz** do projeto, um único comando sobe tudo:
+
+```bash
 pnpm dev
 ```
+
+O Turborepo dispara em paralelo:
+
+| App | URL | O que é |
+|---|---|---|
+| `@wts/web` | http://localhost:3000 | Next.js (redireciona / → /pt-BR/) |
+| `@wts/server` | http://localhost:3001 | Fastify (GET /health = `{ status: "ok" }`) |
+
+Ambos recarregam ao salvar. O server usa `tsx watch --env-file=.env.local`; o web usa `next dev` (Next auto-carrega `.env.local`).
+
+Para matar, `Ctrl+C` uma vez — Turborepo encerra os dois.
 
 ### Scripts disponíveis
 
 | Comando | Descrição |
 |---------|-----------|
-| `pnpm dev` | Roda frontend + backend em modo dev |
+| `pnpm dev` | Roda frontend + backend em modo dev (watch mode) |
 | `pnpm build` | Build de produção de ambos apps |
 | `pnpm lint` | Biome check em todo o monorepo |
-| `pnpm type-check` | TypeScript check sem emitir |
-| `pnpm format` | Biome format |
-| `pnpm seed:midis` | Popula o catálogo de 100 MIDIs |
-| `pnpm db:push` | Push de migrations para o Supabase |
-| `pnpm db:reset` | Reset do banco + re-seed |
+| `pnpm type-check` | `tsc --noEmit` em todo workspace |
+| `pnpm format` | Biome format --write |
+| `pnpm db:push` | Supabase CLI aplica migrations pendentes |
+| `pnpm db:diff` | Supabase CLI exibe diff entre local e remoto |
+| `pnpm db:reset` | Reset do banco linked (destrutivo) |
+| `pnpm --filter @wts/server smoke:db` | Smoke test do schema + auth |
+| `pnpm --filter @wts/web generate-icons` | Regerar ícones PWA a partir de `icon-source.svg` |
 
 ## Desenvolvimento
 
@@ -113,13 +160,30 @@ O projeto segue o modelo **Spec-Driven Development** — toda feature tem uma es
 | Documento | Conteúdo |
 |-----------|----------|
 | `specs/overview.md` | Visão do produto, personas, roadmap |
-| `specs/features/*.md` | Spec detalhada de cada feature (7 specs) |
+| `specs/features/01-07.md` | Specs core: setup, MIDI engine, auth, multiplayer, daily, catálogo, PWA |
+| `specs/features/08-xp-system.md` | XP + Level (fontes, curva quadrática, badge) |
+| `specs/features/09-dev-docs.md` | Portal interno /admin/docs (MDX gated) |
+| `specs/features/10-i18n.md` | Internacionalização pt-BR + en via next-intl |
 | `specs/technical/architecture.md` | Stack, diagrama, decisões arquiteturais |
 | `specs/technical/database.md` | Schema DDL completo, RLS, triggers |
 | `docs/design-system.md` | Paleta synthwave, tipografia, componentes |
 | `docs/ux-principles.md` | Princípios de UX, tom de voz, acessibilidade |
-| `tasks/backlog.md` | 23 tasks atômicas com spec inline |
+| `tasks/backlog.md` | Tasks atômicas pendentes (spec inline) |
 | `tasks/execution-plan.md` | 6 sprints com dependências e checklists |
+| `tasks/completed.md` | Tasks concluídas, com resumo do que foi entregue |
+
+### Progresso
+
+| Sprint | Status | Tasks |
+|---|---|---|
+| 1 — Fundação | ✅ Completa | 001, 002, 003, 004, 024, 026, 028, 032 |
+| 2 — MIDI Engine + Auth + Infra Interna | ⬜ | 005, 006, 007, 008, 025, 029 |
+| 3 — Multiplayer Core | ⬜ | 009, 010, 011, 027 |
+| 4 — Frontend Multiplayer | ⬜ | 012, 013, 014 |
+| 5 — Daily Sound + XP + Polish | ⬜ | 015, 016, 017, 018, 019, 020, 030, 031 |
+| 6 — Admin + QA + Deploy | ⬜ | 021, 022, 023 |
+
+Total: **32 tasks / ~110h / critical path ~38h**.
 
 ## Deploy
 

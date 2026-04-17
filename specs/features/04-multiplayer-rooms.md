@@ -3,7 +3,9 @@
 ## Fase: 1 — MVP
 ## Prioridade: P0
 ## Estimativa: 12 horas
-## Depende de: 01-project-setup, 02-midi-engine, 03-auth
+## Depende de: 01-project-setup, 02-midi-engine, 03-auth, 10-i18n
+
+> **Nota i18n (feature 10):** todas as mensagens do Sound Bot e labels da UI viram keys `bot.*`, `chat.*`, `room.*`. Exemplos nesta spec — quando aparecem strings como `"🎵 Rodada 3 de 10 — Categoria: Rock"` — representam o **valor resolvido em pt-BR**. A implementação usa key com placeholders ICU (ex: `bot.round_announcement = "🎵 Rodada {round} de {total} — Categoria: {category}"`) e espelho em `messages/en.json`. Adicionar uma nova bot message = adicionar nas DUAS files em paralelo.
 
 ## Overview
 O modo principal do jogo. Jogadores criam ou entram em salas com código, configuram a partida e competem em rodadas de adivinhação musical com revelação progressiva. O sistema de pontuação segue o modelo Gartic: o primeiro a acertar em cada fase ganha a pontuação máxima, e o valor decai para os acertos subsequentes. Toda comunicação é via WebSocket (Socket.io).
@@ -124,19 +126,41 @@ Fase 4 (máx 250 pts):
 - Palpites aparecem no chat com o nome do jogador
 - Rate limit: máximo 1 palpite por segundo por jogador
 
-#### Verificação (Server-Side)
-- Normalização: lowercase, remover acentos, remover artigos ("the", "o", "a", "os", "as")
-- Distância de Levenshtein entre palpite e respostas aceitas
-- Thresholds:
-  - **Exato ou Levenshtein ≤ 1:** ACERTOU ✓
-  - **Levenshtein 2-3:** "Muito quente! 🔥" (mensagem do bot no chat)
-  - **Levenshtein 4-5:** "Quente! Está perto!" (mensagem do bot)
-  - **Acertou artista mas não a música:** "Artista certo! Mas qual música? 🎤"
-  - **Levenshtein > 5:** Palpite aparece normal no chat, sem feedback especial
-- A resposta correta aceita múltiplas variações:
-  - Ex: "Bohemian Rhapsody", "bohemian rhapsody", "bohemian rapsody", "boemian rapsodi"
-  - Ex artista: "Queen", "queen"
-- Quando alguém acerta, o palpite NÃO aparece no chat — apenas a mensagem do bot "[Player] acertou!"
+#### Verificação (Server-Side) — Algoritmo de Matching
+
+**Pipeline de normalização** (aplicado igualmente ao palpite e a cada entrada de `accepted_titles`/`accepted_artists`):
+
+1. `toLowerCase()`
+2. `.normalize('NFD').replace(/\p{Diacritic}/gu, '')` — remove acentos (ç → c, ã → a)
+3. Remover pontuação e caracteres especiais (`[^a-z0-9\s]`)
+4. Colapsar espaços (`\s+` → ` `), trim
+5. Remover artigos iniciais: `the`, `o`, `a`, `os`, `as`, `um`, `uma` (apenas no começo da string, não no meio)
+
+**Distância** = `levenshtein(palpiteNormalizado, candidatoNormalizado)`. Mantemos distância **absoluta** (não normalizada por comprimento) porque os thresholds são calibrados para nomes de música curtos. Para candidatos com > 20 caracteres, escalar thresholds proporcionalmente (multiplicar por `ceil(len/20)`).
+
+**Thresholds (modo multiplayer — estrito, competitivo):**
+| Distância mínima entre palpite e qualquer accepted_title | Resultado | Feedback no chat |
+|---|---|---|
+| ≤ 1 | ACERTOU ✓ | Bot: `✅ @Player acertou! [pts]` — palpite NÃO aparece no chat |
+| 2-3 | Muito quente | Bot: `🔥 @Player está muito perto!` — palpite aparece |
+| 4-5 | Quente | Bot: `🌡️ @Player está no caminho!` — palpite aparece |
+| Artist-only match (≤ 1 em accepted_artists, mas não no título) | artist_match | Bot: `🎤 @Player acertou o artista! Qual é a música?` |
+| > 5 | wrong | Palpite aparece normal no chat, sem feedback |
+
+**Thresholds no modo Daily Sound (mais permissivo):**
+- `≤ 2` → ACERTOU (aceita 1 typo extra, porque é sessão solo menos tensa)
+- `3` → "Quase" (consome tentativa mas dá hint de typo). Ver `specs/features/05-daily-sound.md`.
+
+**Data model:** a tabela `midi_catalog` armazena `accepted_titles: text[]` e `accepted_artists: text[]`. Admins curam essas listas no painel (TASK-021). Sempre incluir pelo menos: título oficial, título sem acentos, versão em inglês se aplicável.
+
+**Testes obrigatórios antes de TASK-011:**
+- "bohemian rhapsody" vs "Bohemian Rhapsody" → distância 0, correct
+- "bohemiam rapsody" vs "Bohemian Rhapsody" → distância 2 (typo), wrong em MP, correct no Daily
+- "queen" quando título é "Bohemian Rhapsody" de "Queen" → artist_match
+- "garota de ipanema" vs "Garota de Ipanema" (acento) → distância 0
+- "the beatles" vs "Beatles" (artigo) → distância 0 (artigo removido)
+
+Quando alguém acerta, o palpite NÃO aparece no chat — apenas a mensagem do bot "[Player] acertou!".
 
 #### Bot (Sound Bot) Messages
 - Formatação visual diferenciada (cor diferente, ícone de robô)
@@ -152,9 +176,58 @@ Fase 4 (máx 250 pts):
 ## Requisitos Não-Funcionais
 - Latência de eventos WebSocket < 200ms (P95)
 - Reconexão automática em caso de desconexão (Socket.io built-in)
-- Estado do jogo sincronizado: se um jogador reconecta, recebe o estado atual completo
+- Estado do jogo sincronizado: se um jogador reconecta, recebe o estado atual completo (ver payload abaixo)
 - Suportar 20 jogadores simultâneos por sala sem degradação
 - Suportar 100 salas simultâneas no MVP
+
+### Payload de Reconexão (`room:state`)
+
+Quando um jogador se reconecta, o servidor emite `room:state` com o snapshot completo. O client sobrescreve o estado local. Estrutura:
+
+```typescript
+interface RoomStateSnapshot {
+  room: {
+    code: string;
+    hostId: string;
+    config: RoomConfig;            // categoria, rodadas, tempo/fase, maxPlayers, público
+    status: 'LOBBY' | 'ROUND_START' | 'PHASE_1' | 'PHASE_2' | 'PHASE_3' | 'PHASE_4' | 'ROUND_END' | 'GAME_END';
+    createdAt: string;
+  };
+  players: Array<{
+    id: string;
+    nickname: string;
+    avatar: string | null;
+    isGuest: boolean;
+    totalScore: number;
+    connected: boolean;
+    joinedAt: string;              // ordem de entrada — usada para host migration
+  }>;
+  round: {
+    current: number;               // rodada atual (1-indexed)
+    total: number;                 // total de rodadas
+    midiId: string | null;         // só exposto após PHASE_1 começar
+    phase: 1 | 2 | 3 | 4 | null;   // fase em reprodução
+    phaseStartAt: number;          // epoch ms server-side, para client calcular tempo restante
+    phaseEndAt: number;            // epoch ms server-side
+    correctPlayerIds: string[];    // IDs dos que acertaram nesta rodada (nome/artista NÃO são expostos)
+    phaseAudioData: unknown;       // dados necessários para reprodução da fase atual (notas filtradas)
+  } | null;                        // null em LOBBY e GAME_END
+  chat: Array<{
+    id: string;
+    authorId: string | 'bot';
+    text: string;                  // palpites corretos NÃO aparecem
+    kind: 'player' | 'bot';
+    at: number;                    // epoch ms
+  }>;                              // últimas 50 mensagens
+  version: number;                 // incrementa a cada mudança; client descarta snapshots antigos
+}
+```
+
+**Regras:**
+- Jamais incluir `midi.title` ou `midi.artist` no snapshot. Revelação acontece apenas no evento `round:reveal`.
+- Client calcula tempo restante de fase a partir de `phaseEndAt - Date.now() + clockSkew` (sincronizar clock via ping inicial).
+- Se `version` recebido é menor que local, ignorar (evita race em reconexão rápida).
+- Após receber snapshot, client reabre AudioContext se necessário e toca a fase atual a partir do offset correto.
 
 ## Componentes
 
@@ -203,8 +276,21 @@ Fase 4 (máx 250 pts):
 ### Tela: Resultado (/room/[code] — pós-jogo)
 - Pódio, ranking final, stats, botões "Jogar Novamente" e "Compartilhar"
 
+### Host Migration
+
+Regras de sucessão de host (quando o host atual desconecta e não reconecta em 30s, ou usa "Sair"):
+
+1. **Ordem de sucessão:** próximo host = player com `joinedAt` mais antigo entre os conectados (`connected === true`) que não sejam o host atual. Em empate (joinedAt igual), ordena por `id` lexicograficamente.
+2. **Poderes do novo host:**
+   - Se sala está em `LOBBY`: herda todos os poderes (editar config, iniciar jogo, kickar).
+   - Se sala está em jogo ativo: **não pode** editar config nem reiniciar a partida. Só pode `endGame` (encerrar antecipadamente) via confirmação.
+3. **Sem jogadores restantes:** se 0 players conectados, sala entra em estado `GAME_END` com status `abandoned` e é destruída após 60s (cleanup já previsto).
+4. **Host original reconecta após transferência:** volta como player regular. Não há "devolução" automática do papel.
+5. **Broadcast:** toda mudança de host emite `room:host_changed` com `{ previousHostId, newHostId }` e atualiza `RoomStateSnapshot.room.hostId`.
+6. **Migração durante rodada em andamento:** não pausa o game loop — timers e fases continuam, porque são server-side. Apenas controles visuais mudam no UI do novo host.
+
 ## Edge Cases
-- **Host desconecta:** Transferir host para o próximo jogador na lista. Se ninguém restar, fechar sala.
+- **Host desconecta:** aplicar regras de Host Migration acima.
 - **Jogador desconecta durante rodada:** Marcar como "desconectado" (ícone cinza). Se reconectar em 30s, volta ao jogo. Se não, perde a rodada.
 - **Sala vazia:** Auto-destruir após 5 minutos sem jogadores.
 - **Jogador tenta entrar durante rodada:** Entra como espectador, participa na próxima rodada.

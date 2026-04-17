@@ -1,0 +1,202 @@
+{
+  "metadata": {
+    "siteName": "What's the Sound?",
+    "siteDescription": "Jogo PWA multiplayer de adivinhação musical com MIDI e revelação progressiva.",
+    "termsTitle": "Termos de Uso — What's the Sound?",
+    "termsDescription": "Termos de uso do jogo What's the Sound?.",
+    "privacyTitle": "Política de Privacidade — What's the Sound?",
+    "privacyDescription": "Como o What's the Sound? coleta, usa e protege seus dados."
+  },
+  "common": {
+    "actions": {
+      "playNow": "Jogar agora",
+      "viewDaily": "Ver Daily Sound",
+      "close": "Fechar"
+    },
+    "footer": {
+      "terms": "Termos de Uso",
+      "privacy": "Privacidade"
+    },
+    "localeSwitcher": {
+      "label": "Idioma",
+      "pt-BR": "Português",
+      "en": "English"
+    }
+  },
+  "home": {
+    "sprintBadge": "Sprint 1 · Setup",
+    "heroTagline": "Ouça. Adivinhe. Repita.",
+    "cards": {
+      "phases": {
+        "title": "4 fases",
+        "description": "Cada música revela mais camadas a cada fase.",
+        "body": "De poucas notas até a música completa."
+      },
+      "scoring": {
+        "title": "Pontuação Gartic",
+        "description": "Acertou primeiro? Mais pontos.",
+        "body": "Decay por posição em cada fase."
+      },
+      "xp": {
+        "title": "XP & Level",
+        "description": "Logue para acumular progresso.",
+        "body": "Guests podem jogar, mas não ganham XP."
+      }
+    },
+    "placeholderNote": "Setup placeholder · Sprint 1 · TASK-032"
+  },
+  "legal": {
+    "lastUpdated": "Última atualização: {date}",
+    "brandLabel": "What's the Sound?",
+    "terms": {
+      "title": "Termos de Uso",
+      "lastUpdated": "2026-04-17",
+      "sections": [
+        {
+          "title": "1. Sobre o serviço",
+          "body": [
+            "What's the Sound? (\"WTS\") é um jogo web de adivinhação musical multiplayer que utiliza arquivos MIDI para a experiência sonora. O serviço é oferecido gratuitamente e destinado a uso pessoal e não comercial."
+          ]
+        },
+        {
+          "title": "2. Elegibilidade",
+          "body": [
+            "O serviço é destinado a pessoas com 13 anos ou mais. Usuários abaixo dessa idade devem ter autorização de um responsável legal, conforme as diretrizes da LGPD e do Marco Civil da Internet brasileiro."
+          ]
+        },
+        {
+          "title": "3. Conta e identidade",
+          "body": [
+            "Você pode jogar sem conta como convidado ou criar uma conta via Google ou Discord. Ao escolher um nickname você concorda em não utilizar termos ofensivos, discriminatórios ou que personifiquem terceiros. Nicknames inadequados podem ser alterados ou removidos pela moderação.",
+            "Você pode solicitar a exclusão completa da sua conta a qualquer momento enviando um e-mail para contato@whatsthesound.io. A exclusão é concluída em até 30 dias."
+          ]
+        },
+        {
+          "title": "4. Conteúdo gerado por jogadores",
+          "body": [
+            "Palpites digitados no chat, mensagens e nicknames são de responsabilidade integral do jogador que os envia. O WTS pode aplicar filtros automáticos e remover conteúdo considerado abusivo, spam ou ilegal, sem aviso prévio."
+          ]
+        },
+        {
+          "title": "5. Catálogo de MIDIs e direitos autorais",
+          "body": [
+            "O catálogo é curado para incluir apenas MIDIs que se enquadrem em uma das seguintes categorias: composições originais, obras em domínio público, obras licenciadas sob Creative Commons, ou obras licenciadas individualmente por seus detentores.",
+            "Se você identificar um arquivo que viola seus direitos autorais, envie um pedido de remoção para contato@whatsthesound.io informando título, artista, URL da reclamação e comprovação de titularidade. Tratamos esses pedidos em até 7 dias úteis."
+          ]
+        },
+        {
+          "title": "6. Uso aceitável",
+          "intro": "Você concorda em não:",
+          "list": [
+            "usar ferramentas automatizadas (bots, scrapers) para interagir com o serviço;",
+            "burlar mecanismos de pontuação, XP ou streak;",
+            "explorar vulnerabilidades do serviço com finalidade destrutiva;",
+            "reproduzir, redistribuir ou comercializar o código ou o catálogo do WTS."
+          ]
+        },
+        {
+          "title": "7. Modificações e encerramento",
+          "body": [
+            "Podemos alterar estes termos a qualquer momento. Alterações relevantes serão comunicadas por e-mail (para contas) ou por banner no site. O uso continuado após a comunicação implica aceitação. Podemos encerrar contas que violem estes termos."
+          ]
+        },
+        {
+          "title": "8. Lei aplicável",
+          "body": [
+            "Estes termos são regidos pela legislação brasileira. Fica eleito o foro da cidade de São Paulo/SP para dirimir eventuais controvérsias."
+          ]
+        },
+        {
+          "title": "9. Contato",
+          "body": ["Dúvidas sobre estes termos: contato@whatsthesound.io."]
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Política de Privacidade",
+      "lastUpdated": "2026-04-17",
+      "sections": [
+        {
+          "title": "1. Quem somos",
+          "body": [
+            "What's the Sound? (\"WTS\") é um jogo web mantido pela equipe do projeto. Esta política descreve como tratamos seus dados em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei 13.709/2018)."
+          ]
+        },
+        {
+          "title": "2. Dados que coletamos",
+          "body": [
+            "**Ao criar conta via OAuth (Google ou Discord):** e-mail, nome público, avatar público e um identificador único do provedor.",
+            "**Enquanto você joga:** nickname, palpites digitados, pontuação, XP, nível, streak do Daily Sound, histórico de partidas e de resultados do Daily.",
+            "**Dados técnicos:** cookie de sessão (gerenciado pelo Supabase Auth), endereço IP nos logs do servidor, user agent do navegador para detecção de abuso.",
+            "**Modo convidado (sem conta):** armazenamos apenas um identificador temporário no seu dispositivo (localStorage) e o nickname que você informou. Nenhum dado pessoal é coletado ou enviado aos nossos servidores além do que é necessário para o gameplay durante a partida."
+          ]
+        },
+        {
+          "title": "3. Como usamos os dados",
+          "list": [
+            "exibir seu perfil público (nickname, avatar, XP, level, estatísticas);",
+            "habilitar o multiplayer (sincronização em tempo real via Socket.io);",
+            "gerar rankings globais e personalizados;",
+            "calcular e persistir o streak do Daily Sound;",
+            "detectar e mitigar spam, cheating ou uso abusivo;",
+            "comunicar alterações de termos ou de política (por e-mail, apenas para contas)."
+          ]
+        },
+        {
+          "title": "4. Compartilhamento com terceiros",
+          "intro": "Não vendemos, alugamos ou cedemos seus dados para terceiros. Utilizamos os seguintes operadores estritamente como processadores técnicos:",
+          "list": [
+            "**Supabase** (autenticação, banco de dados e armazenamento): hospeda nossos dados na região South America (São Paulo) quando disponível.",
+            "**Google** / **Discord**: apenas como provedores de OAuth no momento do login.",
+            "**Vercel** e **Railway**: hospedagem de frontend e backend respectivamente. Logs técnicos ficam nessas plataformas."
+          ]
+        },
+        {
+          "title": "5. Seus direitos (LGPD)",
+          "intro": "Você tem direito a:",
+          "list": [
+            "confirmação de que tratamos seus dados;",
+            "acesso aos seus dados;",
+            "correção de dados incompletos ou desatualizados;",
+            "anonimização ou exclusão de dados desnecessários;",
+            "portabilidade para outro fornecedor;",
+            "revogar consentimentos e solicitar a exclusão completa da conta."
+          ],
+          "body": [
+            "Para exercer qualquer direito, envie e-mail para contato@whatsthesound.io. Respondemos em até 15 dias corridos; exclusões completas são concluídas em até 30 dias."
+          ]
+        },
+        {
+          "title": "6. Retenção de dados",
+          "body": [
+            "Mantemos seus dados enquanto a conta existir. Após o pedido de exclusão, removemos os dados em até 30 dias, exceto quando houver obrigação legal de retenção (ex: logs de segurança por prazo definido em lei)."
+          ]
+        },
+        {
+          "title": "7. Cookies e telemetria",
+          "body": [
+            "Usamos apenas cookies estritamente necessários (sessão do Supabase Auth e preferência de idioma `NEXT_LOCALE`). Não utilizamos cookies de rastreamento publicitário nem ferramentas de analytics de terceiros no MVP."
+          ]
+        },
+        {
+          "title": "8. Segurança",
+          "body": [
+            "Aplicamos controles razoáveis de segurança: HTTPS obrigatório, Row Level Security no banco de dados, rate limiting, validação de input no servidor, e logging estruturado para auditoria. Nenhum sistema é 100% seguro; comunique suspeitas de incidente para contato@whatsthesound.io."
+          ]
+        },
+        {
+          "title": "9. Alterações nesta política",
+          "body": [
+            "Atualizações significativas serão comunicadas por e-mail (para contas) e destacadas no site. O campo \"Última atualização\" indica quando esta versão entrou em vigor."
+          ]
+        },
+        {
+          "title": "10. Encarregado e contato",
+          "body": [
+            "Contato para qualquer assunto relacionado a dados pessoais: contato@whatsthesound.io."
+          ]
+        }
+      ]
+    }
+  }
+}

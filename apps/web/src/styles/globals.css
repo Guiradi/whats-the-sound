@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+@theme {
+  /* Background */
+  --color-bg-primary: #0a0a1a;
+  --color-bg-surface: #12122a;
+  --color-bg-surface-hover: #1a1a3a;
+  --color-bg-border: #2a2a4a;
+
+  /* Accent */
+  --color-accent-cyan: #00f0ff;
+  --color-accent-magenta: #ff00aa;
+  --color-accent-yellow: #ffd700;
+  --color-accent-green: #00ff88;
+  --color-accent-red: #ff3366;
+  --color-accent-orange: #ff8800;
+
+  /* Text */
+  --color-text-primary: #f0f0ff;
+  --color-text-secondary: #a0a0cc;
+  --color-text-muted: #606080;
+  --color-text-on-accent: #0a0a1a;
+
+  /* Glow shadows */
+  --shadow-glow-cyan: 0 0 20px rgba(0, 240, 255, 0.3);
+  --shadow-glow-magenta: 0 0 20px rgba(255, 0, 170, 0.3);
+  --shadow-glow-yellow: 0 0 20px rgba(255, 215, 0, 0.3);
+  --shadow-glow-green: 0 0 20px rgba(0, 255, 136, 0.3);
+  --shadow-glow-red: 0 0 20px rgba(255, 51, 102, 0.3);
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Font families (next/font sets var() in layout.tsx) */
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Animations */
+  --animate-fade-in: fade-in 150ms ease-out;
+  --animate-slide-up: slide-up 200ms ease-out;
+  --animate-scale-pop: scale-pop 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-pulse-glow: pulse-glow 1.5s ease-in-out infinite;
+  --animate-shake: shake 400ms ease-in-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: var(--shadow-glow-cyan);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(0, 240, 255, 0.55);
+    opacity: 0.85;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-bg-border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-bg-surface-hover);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-bg-border) var(--color-bg-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-cyan);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--color-accent-cyan);
+  color: var(--color-bg-primary);
+}

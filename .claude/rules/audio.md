@@ -15,10 +15,17 @@ paths:
 
 ## MIDI Playback
 - Parse MIDI with @tonejs/midi, play with Tone.js Sampler/Synth
-- Soundfonts: cache in service worker, fallback to Tone.Synth
 - Phase playback: filter tracks and beats per PhaseConfig
 - Stop: Tone.Transport.stop() + cancel all scheduled events
 - Replay: stop + play same phase again
+
+## Soundfont Caching
+- Total cache budget across all soundfonts: max 20 MB (SW cache can be evicted above that)
+- Default set (always precached): Piano only (~2 MB)
+- Lazy set (fetched on first use): Guitar, Bass, Strings, Drums — fetch when MidiPlayer detects the instrument in a track
+- Fallback cascade: exact soundfont → piano → Tone.PolySynth. Log which path was taken.
+- Cache key MUST include a version hash (e.g. `sf-piano-<hash8>.sf2`) so releases bust old entries without wiping unrelated caches
+- On SW `activate`, delete soundfont cache entries whose hash is not in the current manifest
 
 ## Browser Compatibility
 - Safari iOS: requires user gesture for first audio play

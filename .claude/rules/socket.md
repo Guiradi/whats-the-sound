@@ -24,7 +24,22 @@ paths:
 ## Auth
 - Token validated in connection handshake middleware
 - Guest connections: accepted without token, identified by socket.id + nickname
-- On reconnection: emit room:state with full current state
+- On reconnection: emit room:state with full snapshot (see below)
+
+## Reconnect payload (`room:state`)
+Emitted on reconnect and on any state-changing event. Shape enforced by shared type `RoomStateSnapshot`:
+- `room`: code, hostId, config, status (LOBBY/ROUND_*/PHASE_*/GAME_END), createdAt
+- `players[]`: id, nickname, avatar, isGuest, totalScore, connected, joinedAt (used for host migration order)
+- `round | null`: current/total, midiId (only after PHASE_1 starts), phase, phaseStartAt/phaseEndAt (epoch ms, server clock), correctPlayerIds (IDs only — never title/artist), phaseAudioData
+- `chat[]`: last 50 messages; correct guesses are NEVER included
+- `version`: monotonic; client ignores snapshots with older version
+
+Rules:
+- NEVER include midi title/artist in the snapshot — reveal only via `round:reveal` at ROUND_END
+- Client computes remaining time as `phaseEndAt - now + clockSkew` (ping handshake provides skew)
+- After receiving snapshot, client reopens AudioContext if needed and resumes phase from the correct offset
+
+Full spec lives in `specs/features/04-multiplayer-rooms.md#payload-de-reconexão-roomstate`.
 
 ## Game Loop
 - All game state transitions are server-authoritative

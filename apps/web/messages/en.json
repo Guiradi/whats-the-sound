@@ -1,0 +1,200 @@
+{
+  "metadata": {
+    "siteName": "What's the Sound?",
+    "siteDescription": "Multiplayer PWA music guessing game with MIDI audio and progressive reveal.",
+    "termsTitle": "Terms of Use — What's the Sound?",
+    "termsDescription": "Terms of use for the What's the Sound? game.",
+    "privacyTitle": "Privacy Policy — What's the Sound?",
+    "privacyDescription": "How What's the Sound? collects, uses and protects your data."
+  },
+  "common": {
+    "actions": {
+      "playNow": "Play now",
+      "viewDaily": "View Daily Sound",
+      "close": "Close"
+    },
+    "footer": {
+      "terms": "Terms of Use",
+      "privacy": "Privacy"
+    },
+    "localeSwitcher": {
+      "label": "Language",
+      "pt-BR": "Português",
+      "en": "English"
+    }
+  },
+  "home": {
+    "sprintBadge": "Sprint 1 · Setup",
+    "heroTagline": "Listen. Guess. Repeat.",
+    "cards": {
+      "phases": {
+        "title": "4 phases",
+        "description": "Each song reveals more layers as phases progress.",
+        "body": "From a few notes to the full track."
+      },
+      "scoring": {
+        "title": "Gartic-style scoring",
+        "description": "First to get it? More points.",
+        "body": "Decay based on your answer position in each phase."
+      },
+      "xp": {
+        "title": "XP & Level",
+        "description": "Sign in to build up progress.",
+        "body": "Guests can play, but don't earn XP."
+      }
+    },
+    "placeholderNote": "Setup placeholder · Sprint 1 · TASK-032"
+  },
+  "legal": {
+    "lastUpdated": "Last updated: {date}",
+    "brandLabel": "What's the Sound?",
+    "terms": {
+      "title": "Terms of Use",
+      "lastUpdated": "2026-04-17",
+      "sections": [
+        {
+          "title": "1. About the service",
+          "body": [
+            "What's the Sound? (\"WTS\") is a web-based multiplayer music guessing game that uses MIDI files for the audio experience. The service is offered free of charge and intended for personal, non-commercial use."
+          ]
+        },
+        {
+          "title": "2. Eligibility",
+          "body": [
+            "The service is intended for people aged 13 and over. Users below that age must have authorization from a legal guardian, consistent with Brazilian LGPD and Marco Civil da Internet guidelines."
+          ]
+        },
+        {
+          "title": "3. Account and identity",
+          "body": [
+            "You can play without an account as a guest or create one via Google or Discord. By choosing a nickname you agree not to use offensive, discriminatory, or impersonating terms. Inappropriate nicknames may be altered or removed by moderation.",
+            "You may request complete deletion of your account at any time by emailing contato@whatsthesound.io. Deletion is completed within 30 days."
+          ]
+        },
+        {
+          "title": "4. Player-generated content",
+          "body": [
+            "Guesses typed in chat, messages, and nicknames are the full responsibility of the player who submits them. WTS may apply automatic filters and remove content deemed abusive, spam, or illegal, without prior notice."
+          ]
+        },
+        {
+          "title": "5. MIDI catalog and copyright",
+          "body": [
+            "The catalog is curated to include only MIDIs falling into one of the following categories: original compositions, public-domain works, works licensed under Creative Commons, or works individually licensed by their rights holders.",
+            "If you identify a file that violates your copyright, send a removal request to contato@whatsthesound.io with title, artist, URL of the claim, and proof of ownership. We process these requests within 7 business days."
+          ]
+        },
+        {
+          "title": "6. Acceptable use",
+          "intro": "You agree not to:",
+          "list": [
+            "use automated tools (bots, scrapers) to interact with the service;",
+            "circumvent scoring, XP, or streak mechanisms;",
+            "exploit service vulnerabilities for destructive purposes;",
+            "reproduce, redistribute, or commercialize the WTS code or catalog."
+          ]
+        },
+        {
+          "title": "7. Modifications and termination",
+          "body": [
+            "We may change these terms at any time. Material changes will be communicated by email (for accounts) or via an in-site banner. Continued use after the notice constitutes acceptance. We may terminate accounts that violate these terms."
+          ]
+        },
+        {
+          "title": "8. Governing law",
+          "body": [
+            "These terms are governed by Brazilian law. The venue of São Paulo/SP is elected to resolve any disputes."
+          ]
+        },
+        {
+          "title": "9. Contact",
+          "body": ["Questions about these terms: contato@whatsthesound.io."]
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "2026-04-17",
+      "sections": [
+        {
+          "title": "1. Who we are",
+          "body": [
+            "What's the Sound? (\"WTS\") is a web game maintained by the project team. This policy describes how we handle your data in compliance with the Brazilian General Data Protection Law (LGPD — Law 13.709/2018)."
+          ]
+        },
+        {
+          "title": "2. Data we collect",
+          "body": [
+            "**When you create an account via OAuth (Google or Discord):** email, public name, public avatar, and a unique provider identifier.",
+            "**While you play:** nickname, typed guesses, score, XP, level, Daily Sound streak, match history, and Daily results.",
+            "**Technical data:** session cookie (managed by Supabase Auth), server-side IP in logs, browser user agent for abuse detection.",
+            "**Guest mode (no account):** we store only a temporary identifier on your device (localStorage) and the nickname you provided. No personal data is collected or sent to our servers beyond what is required for gameplay during a match."
+          ]
+        },
+        {
+          "title": "3. How we use data",
+          "list": [
+            "display your public profile (nickname, avatar, XP, level, statistics);",
+            "enable multiplayer (real-time sync via Socket.io);",
+            "generate global and personalized rankings;",
+            "compute and persist the Daily Sound streak;",
+            "detect and mitigate spam, cheating, or abusive use;",
+            "communicate terms or policy changes (by email, accounts only)."
+          ]
+        },
+        {
+          "title": "4. Sharing with third parties",
+          "intro": "We do not sell, rent, or transfer your data to third parties. We use the following operators strictly as technical processors:",
+          "list": [
+            "**Supabase** (authentication, database, and storage): hosts our data in the South America (São Paulo) region when available.",
+            "**Google** / **Discord**: solely as OAuth providers at login time.",
+            "**Vercel** and **Railway**: frontend and backend hosting respectively. Technical logs reside on these platforms."
+          ]
+        },
+        {
+          "title": "5. Your rights (LGPD)",
+          "intro": "You have the right to:",
+          "list": [
+            "confirm that we process your data;",
+            "access your data;",
+            "correct incomplete or outdated data;",
+            "anonymize or delete unnecessary data;",
+            "portability to another provider;",
+            "revoke consents and request complete deletion of the account."
+          ],
+          "body": [
+            "To exercise any right, email contato@whatsthesound.io. We respond within 15 calendar days; complete deletions complete within 30 days."
+          ]
+        },
+        {
+          "title": "6. Data retention",
+          "body": [
+            "We keep your data while the account exists. After a deletion request, we remove the data within 30 days, except where there is a legal obligation to retain (e.g., security logs for a legally defined term)."
+          ]
+        },
+        {
+          "title": "7. Cookies and telemetry",
+          "body": [
+            "We use only strictly necessary cookies (Supabase Auth session and the `NEXT_LOCALE` language preference). We do not use advertising tracking cookies nor third-party analytics in the MVP."
+          ]
+        },
+        {
+          "title": "8. Security",
+          "body": [
+            "We apply reasonable security controls: enforced HTTPS, Row Level Security on the database, rate limiting, server-side input validation, and structured logging for audit. No system is 100% secure; report suspected incidents to contato@whatsthesound.io."
+          ]
+        },
+        {
+          "title": "9. Changes to this policy",
+          "body": [
+            "Significant updates will be communicated by email (accounts only) and highlighted on the site. The \"Last updated\" field indicates when this version took effect."
+          ]
+        },
+        {
+          "title": "10. Data officer and contact",
+          "body": ["Contact for any matter related to personal data: contato@whatsthesound.io."]
+        }
+      ]
+    }
+  }
+}

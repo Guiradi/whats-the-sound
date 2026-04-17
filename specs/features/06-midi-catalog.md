@@ -6,7 +6,16 @@
 ## Depende de: 01-project-setup, 02-midi-engine
 
 ## Overview
-Sistema de gerenciamento do catálogo de 100 músicas MIDI. Inclui upload, metadata, configuração das fases de revelação por música, categorização e validação. No MVP, a administração é feita via painel simples protegido por auth — não é necessário um CMS completo.
+Sistema de gerenciamento do catálogo de músicas MIDI. Inclui upload, metadata, configuração das fases de revelação por música, categorização e validação. No MVP, a administração é feita via painel simples protegido por auth — não é necessário um CMS completo.
+
+> **Meta MVP revisada:** 30-50 músicas verificadas com licença, em vez das 100 originalmente planejadas. Curar + configurar fases + validar licença para 100 MIDIs é trabalho de semanas, não horas. A infraestrutura de seed/upload é desenhada para suportar 100+; o que foi reduzido é o volume inicial. Pós-MVP, expandir para 100+ conforme fluxo de curadoria e licenciamento amadurece.
+
+> **⚠️ Copyright — cada arquivo do catálogo precisa se enquadrar em UMA das três categorias:**
+> 1. **Composição original** — feita pelo projeto, pela comunidade sob termos explícitos, ou encomendada.
+> 2. **Domínio público / Creative Commons** — música com direitos expirados (ex: clássicas pré-1928 nos EUA, regras variam por país) ou licença CC que permita uso em produto com ads/monetização.
+> 3. **Licença individual** — permissão explícita do detentor dos direitos da composição (não só da gravação — MIDI = composição).
+>
+> **Antes de subir um MIDI:** registrar em planilha de curadoria (ainda a criar) a fonte, a categoria acima e o link/contrato da licença. Uploads sem essa verificação não devem ser publicados.
 
 ## Requisitos Funcionais
 
@@ -60,8 +69,10 @@ type MidiCategory =
 ### Categorias
 - 9 categorias fixas (ver enum acima) + "random" (sem categoria fixa)
 - Cada música pertence a exatamente 1 categoria
-- Distribuição sugerida para as 100 músicas do MVP:
-  - Rock: 15, Pop: 15, MPB: 10, Sertanejo: 10, Games: 15, Anime: 10, Classical: 5, Electronic: 10, Hip-Hop: 10
+- Distribuição sugerida para o catálogo inicial do MVP (~30-50 músicas):
+  - Alvo de 30 (mínimo viável): Rock: 5, Pop: 5, MPB: 3, Sertanejo: 3, Games: 5, Anime: 3, Classical: 2, Electronic: 2, Hip-Hop: 2
+  - Alvo de 50: dobra proporcionalmente
+  - Meta original (100 músicas) permanece como marco pós-MVP
 
 ### API do Catálogo
 - `GET /api/catalog/categories` — lista categorias com contagem de músicas

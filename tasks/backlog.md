@@ -8,107 +8,12 @@
 
 ## Sprint 1 — Fundação
 
-### [ ] TASK-001: Setup do Monorepo com Turborepo (2h) — specs/features/01-project-setup.md
-    → Estrutura:
-      • Criar monorepo: apps/web (Next.js 15) + apps/server (Fastify) + packages/shared
-      • Turborepo config: turbo.json com pipelines (dev, build, lint, type-check)
-      • pnpm workspace: pnpm-workspace.yaml
-    → Frontend (apps/web):
-      • Next.js 15 App Router com TypeScript strict
-      • Tailwind CSS v4 configurado
-      • Biome config (biome.json) com rules padrão
-      • tsconfig.json com path aliases (@/components, @/lib, @/hooks, @/types)
-      • Layout raiz com metadata do PWA
-      • Página placeholder "/" com logo WTS
-    → Backend (apps/server):
-      • Fastify com TypeScript
-      • Estrutura: src/routes/, src/services/, src/socket/, src/types/
-      • GET /health endpoint
-      • CORS configurado (aceitar localhost em dev)
-    → Shared (packages/shared):
-      • TypeScript types compartilhados
-      • Enums (MidiCategory, GameStatus, etc)
-      • Constants (scoring values, phase config)
-    → Scripts:
-      • pnpm dev — roda ambos apps simultaneamente
-      • pnpm build — build de produção
-      • pnpm lint — Biome check em tudo
-      • pnpm type-check — tsc --noEmit em tudo
-    → Validação:
-      • pnpm build completa sem erros
-      • pnpm type-check zero erros
-      • pnpm lint zero warnings
-      • Página "/" renderiza no browser
-
-### [ ] TASK-002: Setup Supabase + Schema inicial (2h) — specs/technical/database.md
-    → Supabase Project:
-      • Criar projeto no Supabase (região São Paulo)
-      • Configurar Auth providers: Google OAuth + Discord OAuth
-      • Criar Storage bucket "midis" (público, read-all)
-    → Migrations:
-      • 001_create_enums.sql — midi_category, midi_difficulty, game_status, user_role
-      • 002_create_users.sql — tabela users + trigger auto-create + RLS
-      • 003_create_midi_catalog.sql — tabela midi_catalog + RLS
-      • 004_create_game_tables.sql — game_sessions, game_players, round_scores + RLS
-      • 005_create_daily_tables.sql — daily_results, daily_schedule + RLS
-      • 006_create_functions.sql — update_user_stats, update_daily_streak, update_midi_stats
-      • 007_create_storage.sql — bucket midis + policies
-    → Environment:
-      • .env.local no apps/web com NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY
-      • .env no apps/server com SUPABASE_SERVICE_ROLE_KEY e DATABASE_URL
-      • .env.example em ambos apps
-    → Validação:
-      • Todas as migrations rodam sem erro (supabase db push)
-      • RLS ativo em todas as tabelas
-      • Auth com Google funciona (redirect + callback)
-      • Storage bucket acessível publicamente
-
-### [ ] TASK-003: Design System + Tailwind Theme (2h) — docs/design-system.md
-    → Tailwind Config:
-      • Estender tema com cores custom (bg, accent, text) conforme design-system.md
-      • Configurar fonts: Space Grotesk (Google Fonts) + Inter (Google Fonts)
-      • Configurar boxShadow glow effects
-      • Configurar animações custom (fade-in, slide-up, scale-pop, pulse-glow)
-    → CSS Global:
-      • globals.css com CSS variables (:root)
-      • Dark mode como default (sem toggle no MVP)
-      • Reset de estilos base (body bg-primary, text text-primary)
-      • Scrollbar custom (dark, fina)
-    → Componentes Shadcn/UI:
-      • Instalar Shadcn/UI (pnpx shadcn-ui@latest init)
-      • Customizar theme.css para match com design system
-      • Instalar componentes base: Button, Input, Card, Dialog, Toast, Avatar, Badge
-    → Validação:
-      • Página "/" renderiza com tema dark correto
-      • Botão Primary tem glow cyan no hover
-      • Fonts carregam corretamente
-      • Cores batem com o design-system.md
-
-### [ ] TASK-004: PWA Setup com Serwist (2h) — specs/features/07-pwa-sharing.md
-    → Manifest:
-      • public/manifest.json com name, short_name, icons, colors, display standalone
-      • Gerar ícones em todos os tamanhos necessários (72-512px)
-      • Splash screen config
-    → Service Worker:
-      • Instalar e configurar Serwist para Next.js App Router
-      • Precache: shell HTML/CSS/JS das rotas principais (/, /daily, /rooms)
-      • Runtime cache: Network-first para API, Cache-first para assets
-      • Offline fallback page
-    → Meta Tags:
-      • <meta name="theme-color"> dinâmico
-      • Apple touch icon
-      • Viewport config para PWA
-    → Validação:
-      • Lighthouse PWA score ≥ 90
-      • App instalável no Chrome/Android
-      • Offline: shell carrega sem internet
-      • Ícone correto na home screen
-
 ---
 
 ## Sprint 2 — MIDI Engine + Auth
 
-### [ ] TASK-005: MIDI Audio Engine com Tone.js (6h) — specs/features/02-midi-engine.md
+### [ ] TASK-005: MIDI Audio Engine com Tone.js (11h) — specs/features/02-midi-engine.md
+    → Nota: Reestimado de 6h para 11h. Justificativa: parse multi-track + soundfont loader com cache/fallback + filtro por beats + Analyser + testes cross-browser com autoplay Safari. Soundfont + `Tone.start()` no iOS sozinhos tomam 1-2h. Ver M5/M6 na spec 02.
     → Dependências:
       • Instalar tone e @tonejs/midi no apps/web
     → MIDI Parser:
@@ -327,7 +232,8 @@
       • Lista de salas públicas atualiza em tempo real
       • Chat do lobby funciona entre jogadores
 
-### [ ] TASK-013: Tela de Jogo — Game Board (6h) — specs/features/04-multiplayer-rooms.md
+### [ ] TASK-013: Tela de Jogo — Game Board (8h) — specs/features/04-multiplayer-rooms.md
+    → Nota: Reestimado de 6h para 8h. 7 componentes + layout desktop 3 colunas + mobile responsivo com drawers + integração useMidiPlayer/useRoom + animações. Bloqueada também por TASK-018 (seed real de MIDIs) para validação end-to-end, não só por TASK-010/005/006.
     → Layout Desktop (3 colunas):
       • Esquerda: PlayerList com scores e status
       • Centro: GameBoard (rodada, fase, timer, visualizador, info)
@@ -565,3 +471,154 @@
       • Auth OAuth callbacks funcionam com URLs de produção
       • PWA instalável em produção
       • Lighthouse scores aceitáveis
+
+---
+
+## Sprint 1 (adicionais pós-auditoria)
+
+---
+
+## Sprint 2 (adicionais pós-auditoria)
+
+### [ ] TASK-029: Dev Docs Portal + Admin Middleware (5h) — specs/features/09-dev-docs.md
+    → Nota: depende de TASK-007 (Auth com role admin). Cria o middleware `requireAdmin` que a TASK-021 (Admin Panel) vai reusar; não duplicar.
+    → Admin middleware (compartilhado):
+      • `apps/web/src/middleware/require-admin.ts` — lê sessão Supabase, verifica `users.role = 'admin'`, retorna 404 (não 403) para não-admins (não revela a rota)
+      • Escape hatch de dev: se `ALLOW_ADMIN_WITHOUT_ROLE=true` no `.env.local`, permite acesso sem checagem
+      • Adicionar entry em `.env.example` documentando o flag e avisando que NUNCA é pra usar em prod
+      • Runbook "Como criar o primeiro admin" (SQL UPDATE via Supabase) como primeira page dos docs
+    → Infra MDX:
+      • Instalar `@next/mdx`, `remark-gfm`, `rehype-slug`, `rehype-autolink-headings`, `shiki`
+      • Configurar `next.config.ts` para processar .mdx
+      • Definir componentes MDX customizados: `<Callout>`, `<TaskRef id="TASK-XXX" />` (gera link para `completed.md#TASK-XXX`)
+      • Route catch-all: `app/(internal)/admin/docs/[[...slug]]/page.tsx` resolve arquivo em `src/content/dev-docs/**` e renderiza
+    → Layout & navegação:
+      • Sidebar fixa (desktop) / drawer (mobile) com hierarquia de pages
+      • Breadcrumb + TOC auto-gerada a partir de headings H2/H3
+      • Search client-side com `fuse.js` sobre índice gerado em build time (listar todas as pages + frontmatter)
+      • Rodapé de cada page: "Última atualização: TASK-XXX — YYYY-MM-DD" (frontmatter manual)
+      • Respeitar design system existente (dark, cyan/magenta, Space Grotesk + Inter)
+    → Conteúdo inicial (retroativo — cobre tudo que já concluiu até o momento da task):
+      • `/admin/docs` (home) — visão geral + links rápidos
+      • `/admin/docs/setup` — Node/pnpm/git, clone, install, `pnpm dev`, variáveis de ambiente (.env.example), como rodar Supabase local (quando TASK-002 estiver fechada)
+      • `/admin/docs/arch/overview` — resumo da architecture.md com diagrama ASCII
+      • `/admin/docs/arch/monorepo` — pnpm workspaces, turbo pipelines, packages/shared
+      • `/admin/docs/arch/database` — resumo do database.md (tabelas, RLS por grupo, XP tables da feature 08)
+      • `/admin/docs/arch/real-time` — Socket.io, eventos (namespace:action), reconnect payload
+      • `/admin/docs/arch/audio` — Tone.js, soundfonts (20MB cap), phase player, Safari autoplay
+      • `/admin/docs/conventions` — naming (kebab-case, PascalCase, etc), Biome rules, commits convencionais
+      • `/admin/docs/troubleshooting` — pnpm script approval, Safari autoplay, dev admin flag
+      • `/admin/docs/progress` — lista indexada de TASKs concluídas (espelha completed.md com links)
+      • `/admin/docs/runbooks/supabase-admin` — como criar primeiro admin, rodar migrations
+    → Check no CI:
+      • Script `pnpm docs:check` que parseia todos os MDX e falha se algum tiver erro de parse
+      • Adicionar ao workflow da TASK-024 como job separado
+    → Validação:
+      • Acesso como guest/não-admin em `/admin/docs` retorna 404 (verificar com 3 contas: guest, user comum, admin)
+      • Admin vê home + consegue navegar pelas seções iniciais
+      • Search retorna resultados por título
+      • Dev flag `ALLOW_ADMIN_WITHOUT_ROLE=true` funciona localmente e NÃO funciona em prod (checar `NODE_ENV`)
+      • `pnpm docs:check` passa sem erros
+      • Lighthouse do portal ≥ 80 (é só texto, deveria ser fácil)
+
+### [ ] TASK-025: Error Handling + Boundaries (3h) — specs/technical/architecture.md
+    → Frontend:
+      • `app/error.tsx` global — Error Boundary para rotas com mensagem amigável + botão "Tentar novamente"
+      • `app/not-found.tsx` — 404 custom
+      • Componente `<ErrorBoundary>` manual em volta de AudioVisualizer e GameBoard (falha local não derruba tela inteira)
+      • Toast system (sonner ou shadcn/ui toast) para erros não-fatais (guess rejeitado, reconnect, etc)
+    → Backend (Fastify):
+      • Error handler global: mapear erros para formato { code, message } sem vazar stack
+      • Distinguir erros operacionais (400/404/403) de crashes (500)
+      • Integrar com logger (TASK-026)
+      • Rate limit e validation errors com códigos específicos (ex: RATE_LIMITED, INVALID_GUESS)
+    → Socket.io:
+      • Handler de `disconnect` + `connect_error` no client com fallback UI "Reconectando..."
+      • Server: catch em handlers, emitir `error:*` events para client
+    → Validação:
+      • Quebrar uma rota propositalmente exibe fallback UI, não tela branca
+      • 500 no server retorna JSON estruturado e loga stack internamente
+      • Socket drop exibe banner "Reconectando..." e retoma estado ao reconectar
+
+---
+
+## Sprint 3 (adicionais pós-auditoria)
+
+### [ ] TASK-027: Rate Limiting (2h) — specs/features/04-multiplayer-rooms.md
+    → Chat & Guess (Socket.io):
+      • 1 palpite / segundo por jogador (já mencionado em TASK-011, consolidar aqui)
+      • 5 mensagens de chat / 10 segundos por jogador (burst tolerável)
+      • Exceder → evento `error:rate_limited` com cooldown em ms
+    → Room creation:
+      • 3 salas / 10 minutos por socketId (guest) e por userId (logado)
+      • Exceder → rejeitar com código e mensagem
+    → REST API (Fastify):
+      • @fastify/rate-limit: 60 req/min por IP (anon) e 300/min por userId
+      • Endpoints de escrita (POST /daily/guess, PATCH /profile) com limites específicos
+    → Implementação:
+      • In-memory (sliding window) por simplicidade — suficiente para 1 instância Railway
+      • Documentar limitação: não escala horizontal (precisaria Redis); revisitar quando necessário
+    → Validação:
+      • Spam de 20 mensagens em 1s recebe rate limit em algumas
+      • Criar 4 salas consecutivas rejeita a 4ª
+      • REST com 100 req/s retorna 429 nas excedentes
+
+---
+
+## Sprint 5 (adicionais pós-auditoria)
+
+### [ ] TASK-030: XP Engine — Backend (3.5h) — specs/features/08-xp-system.md
+    → Nota: depende de TASK-015 (daily backend, para gerar eventos de daily) e TASK-010 (game loop, para eventos multiplayer). Schema (`users.xp`, `users.level`, `xp_events`) já foi criado em TASK-002. Esta task implementa apenas o serviço + integração.
+    → Constants em @wts/shared:
+      • Adicionar `XP_VALUES` com: `multiplayerCorrectDivisor=10`, `multiplayerFinishBase=50`, `podiumBonus={1:100,2:50,3:25}`, `dailyCorrectByPhase={1:150,2:100,3:75,4:50}`, `dailyParticipation=15`, `dailyStreakMultiplier=10`, `dailyStreakCap=30`
+      • `XP_DAILY_CAP = 2000` (por user por dia BRT)
+      • `XP_LEVEL_FORMULA = (xp) => Math.floor(Math.sqrt(xp / 100)) + 1` (source of truth; trigger do DB usa a mesma fórmula)
+    → Service `apps/server/src/services/xp-service.ts`:
+      • `awardXp({ userId, source, sourceRef, amount, context })` — função única que:
+        1. Valida que `userId` existe e `users.is_guest === false`; guest → no-op
+        2. Calcula XP total ganho no dia (BRT) via query em `xp_events` com filtro de data; aplica cap
+        3. Persiste em `xp_events` (UNIQUE constraint torna idempotente — conflict = no-op)
+        4. Se não capped, `UPDATE users SET xp = xp + amount` (trigger `sync_user_level` recalcula nível)
+        5. Retorna `{ previousLevel, newLevel, amountCredited, capped }`
+      • Todas as chamadas passam um `source_ref` estável (ex: `round_score_id`, `daily_result_id`, `streak_bump_${userId}_${date}`)
+      • Rodar async via `setImmediate` ou fila — não bloquear request original
+    → Integrações:
+      • `scoring-service` (TASK-010): após INSERT em `round_scores`, chamar `awardXp('multiplayer_correct', round_score_id, floor(points/10), {phase, position})`
+      • `game-loop` (TASK-010): ao emitir `GAME_END`, para cada player conectado, `awardXp('multiplayer_finish', gameSessionId+playerId, base + podiumBonus, {finalPosition})`
+      • `daily-service` (TASK-015): após INSERT em `daily_results`, decidir entre `daily_correct` (com bonus por fase) ou `daily_participation`
+      • Trigger de streak (TASK-002/015): após `daily_streak` incrementar ≥ 2, emitir `daily_streak_bonus` com `amount = 10 * min(streak, 30)` e `source_ref = streak_${userId}_${date}`
+    → API REST:
+      • `GET /api/me/xp` — retorna `{ xp, level, todayEarned, todayCap, recent: LastXpEvent[10] }` para tela de perfil
+    → Socket event:
+      • Quando `awardXp` detecta level-up e user está em sala ativa, emitir `xp:level_up` para o socket do user (e broadcast o novo level para a sala — PlayerList atualiza)
+    → Validação:
+      • Guest jogando mp e daily: zero rows em `xp_events`, `users.xp` inalterado (teste com usuário marcado `is_guest`)
+      • User logado: acertar rodada gera evento com `amount = pts/10`, `users.xp` incrementa, level atualiza automaticamente via trigger
+      • Reprocessar mesma rodada (mesmo `source_ref`): zero duplicação, `users.xp` não incrementa duas vezes
+      • Ganhar mais de 2000 XP em um dia: `xp_events` marca `capped=true`, `users.xp` para no cap
+      • Cruzar threshold de level: evento socket `xp:level_up` chega ao client correto, com previous/new level
+
+### [ ] TASK-031: XP Engine — Frontend (2.5h) — specs/features/08-xp-system.md
+    → Nota: depende de TASK-030 (backend service e evento socket) e de TASK-013/014/016 (telas onde o badge aparece).
+    → Componentes novos:
+      • `components/shared/LevelBadge.tsx` — stateless, recebe `level: number | 'guest'`, decide classe por faixa (1-9 muted, 10-24 cyan, 25-49 magenta, 50+ gradient gold→magenta), exibe `[Lv.X]` ou `[Guest]`
+      • `components/shared/LevelUpModal.tsx` — overlay animado `previousLevel → newLevel`, scale-pop + glow, auto-dismiss em 4s ou click
+      • Hook `useLevelUp()` — subscribe ao evento socket `xp:level_up`, mantém fila de modais (caso múltiplos em sequência)
+    → Extend components existentes (do MP):
+      • `PlayerList` (TASK-013) — mostrar `<LevelBadge>` compacto em cada linha
+      • `GameChat` (TASK-013) — prefixo `[Lv.12]` nas mensagens dos players logados, `[Guest]` nos guests
+      • `Podium`/`FinalRanking` (TASK-014) — badge grande ao lado do avatar do pódio
+    → Extend components do Daily (TASK-016):
+      • `DailyResult` — mostrar XP ganho (ex: "+100 XP") com destaque; se guest, banner "Você teria ganho +100 XP. Crie uma conta para acumular" com CTA para `/login`
+    → Extend `/profile` (TASK-008):
+      • Card de XP com: level atual, XP total, progresso até próximo level (barra), XP ganho hoje vs cap
+      • Lista "últimos ganhos" (10 eventos mais recentes com source traduzido em PT-BR)
+    → Types compartilhados:
+      • Estender `RoomPlayer` em `@wts/shared/types` com `level: number | null` (null = guest)
+      • Adicionar evento `xp:level_up` em `ServerToClientEvents`
+      • Ajustar `RoomStateSnapshot` na spec 04 e nas docs (TASK-029 atualiza)
+    → Validação:
+      • Guest: badge `[Guest]` no chat, player list, pódio; banner de XP no final do Daily
+      • Logado: badge `[Lv.X]` com cor correta por faixa; testar em 4 valores (Lv.5, Lv.15, Lv.30, Lv.60)
+      • Level up mid-game: modal aparece, badge atualiza em tempo real para todos da sala
+      • Perfil exibe XP/level/progresso corretos; refresh mantém consistência com backend

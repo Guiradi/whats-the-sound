@@ -45,7 +45,11 @@ Configuração completa de PWA (instalável, offline shell, push notifications) 
   <meta property="og:image" content="https://whatsthesound.io/og/daily/47.png" />
   <meta property="og:url" content="https://whatsthesound.io/daily" />
   ```
-- **OG Image dinâmica:** Gerada via Next.js OG Image (Vercel OG) com resultado visual
+- **OG Image (estratégia revisada pós-auditoria):**
+  - `/daily/[n]`: **pré-gerada** pelo mesmo cron das 03:00 UTC que seleciona o MIDI. Gera a imagem uma vez via `@vercel/og` em ambiente Node, salva em Supabase Storage (`og/daily/{n}.png`), e o `og:image` aponta para essa URL estática. Cache 24h+ sem risco de cold-start.
+  - `/room/[code]`: usa **template estático** com overlay de texto leve via Next.js OG runtime (code + categoria). Cold-start aqui é aceitável porque é raro (compartilhamento ad-hoc) e não afeta loops críticos.
+  - `/daily/history/[date]` (compartilhamento retroativo): reaproveita a imagem pré-gerada daquele dia.
+  - **Meta antiga "< 500ms" só se aplica a imagens já cacheadas.** Cold start de Vercel OG pode chegar a 1-2s — por isso o caminho crítico (daily do dia) é pré-gerado.
 
 #### Resultado do Multiplayer
 - Botão "Compartilhar Resultado" no GAME_END

@@ -44,7 +44,8 @@ pnpm db:reset         # Reset do banco + re-seed
 - **Imports:** Absolute paths com aliases (@/components, @/lib, @/hooks, @/types)
 - **Components:** Function components only. Named exports para componentes, default export para páginas.
 - **Server vs Client:** Componentes são Server Components por padrão. Usar `"use client"` apenas quando necessário (hooks, eventos, browser APIs).
-- **Todo código em inglês.** Comentários em inglês. UI text em português (hardcoded no MVP, i18n na Fase 4).
+- **Todo código em inglês.** Nomes de funções, variáveis, tipos, arquivos, comentários, schema do banco (tabelas, colunas, enums) e documentação interna **SEMPRE em inglês**.
+- **UI text via next-intl desde o MVP** (pt-BR default + en). Nenhuma string voltada ao jogador fica hardcoded em componentes. Adicionar string nova = adicionar em `apps/web/messages/pt-BR.json` **E** `apps/web/messages/en.json` em paralelo. Identifiers de key (`home.hero.title`) também em inglês — só o valor varia por locale. Ver `specs/features/10-i18n.md`.
 - **Zod** para validação de input em API endpoints e forms.
 - **Sem `any`** — usar `unknown` e narrowing quando tipo é incerto.
 
@@ -67,7 +68,10 @@ whats-the-sound/
 │   │   ├── 04-multiplayer-rooms.md
 │   │   ├── 05-daily-sound.md
 │   │   ├── 06-midi-catalog.md
-│   │   └── 07-pwa-sharing.md
+│   │   ├── 07-pwa-sharing.md
+│   │   ├── 08-xp-system.md       ← XP + Level (MVP, logados only)
+│   │   ├── 09-dev-docs.md        ← Portal interno /admin/docs
+│   │   └── 10-i18n.md            ← next-intl pt-BR + en (MVP)
 │   └── technical/
 │       ├── architecture.md
 │       └── database.md
@@ -173,15 +177,23 @@ whats-the-sound/
 5. Implementar a task conforme a spec
 6. Validar usando o checklist da task
 7. Rodar: `pnpm lint && pnpm type-check && pnpm build`
-8. Atualizar status da task no backlog (`[→]` → `[✓]`)
-9. Mover task concluída para `tasks/completed.md`
+8. **Atualizar o Dev Docs Portal** (feature 09) — toda TASK concluída atualiza:
+   - A seção arquitetural correspondente em `apps/web/src/content/dev-docs/arch/*.mdx` (ou `setup/`, `conventions/`, `troubleshooting/` conforme o caso)
+   - Uma entrada nova em `apps/web/src/content/dev-docs/progress.mdx` com resumo do que foi entregue e link para `tasks/completed.md#TASK-XXX`
+   - Rodapé "Última atualização: TASK-XXX — YYYY-MM-DD" da page tocada
+   - Antes da TASK-029 estar pronta, escrever o conteúdo em `.md` colado na spec relacionada ou em um scratch; migrar quando o portal existir
+9. Atualizar status da task no backlog (`[→]` → `[✓]`)
+10. Mover task concluída para `tasks/completed.md`
 
 ## Specs & Docs
 
 | Documento                        | Conteúdo                                    |
 |----------------------------------|---------------------------------------------|
 | `specs/overview.md`              | Visão do produto, personas, fases, métricas |
-| `specs/features/*.md`            | Spec detalhada de cada feature              |
+| `specs/features/01-07.md`        | Features core do produto (setup, MIDI, auth, MP, daily, catálogo, PWA) |
+| `specs/features/08-xp-system.md` | XP + Level (badge visual, fontes, curva quadrática) |
+| `specs/features/09-dev-docs.md`  | Portal interno /admin/docs (MDX + role admin) |
+| `specs/features/10-i18n.md`      | Internacionalização pt-BR + en (next-intl, prefixo por locale) |
 | `specs/technical/architecture.md`| Stack, diagrama, decisões arquiteturais     |
 | `specs/technical/database.md`    | Schema DDL completo, RLS, triggers          |
 | `docs/design-system.md`         | Cores, tipografia, espaçamento, componentes |
