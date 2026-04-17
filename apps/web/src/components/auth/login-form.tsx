@@ -91,7 +91,10 @@ export function LoginForm({ next, onGuestLogin, onOAuthStart }: LoginFormProps) 
         <Input
           id="guest-nickname"
           value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
+          onChange={(e) => {
+            setNickname(e.target.value);
+            if (nicknameError) setNicknameError(null);
+          }}
           placeholder={t('guest.placeholder')}
           maxLength={20}
           autoComplete="off"

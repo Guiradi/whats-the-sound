@@ -27,6 +27,7 @@ Sistema de autenticação via Supabase Auth com providers sociais (Google e Disc
 ### User Profile
 - Campos:
   - `id` (UUID, gerado pelo Supabase Auth)
+  - `email` (do provider OAuth, NOT NULL)
   - `nickname` (único, 3-20 chars, alfanumérico + underscores)
   - `avatar_url` (do provider OAuth ou custom futuramente)
   - `created_at`

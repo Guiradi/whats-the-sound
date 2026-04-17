@@ -9,17 +9,17 @@
 │   users      │     │  game_sessions   │     │  midi_catalog    │
 │──────────────│     │──────────────────│     │──────────────────│
 │ id (PK)      │◄──┐ │ id (PK)          │  ┌─►│ id (PK)          │
-│ nickname     │   │ │ room_code        │  │  │ title            │
-│ avatar_url   │   │ │ host_id (FK)     │──┘  │ artist           │
-│ total_games  │   │ │ category         │     │ category         │
-│ total_wins   │   │ │ max_rounds       │     │ difficulty       │
-│ total_correct│   │ │ time_per_phase   │     │ midi_file_url    │
-│ daily_streak │   │ │ status           │     │ accepted_titles  │
-│ max_streak   │   │ │ created_at       │     │ accepted_artists │
-│ points_total │   │ │ ended_at         │     │ phases           │
-│ created_at   │   │ └──────────────────┘     │ is_active        │
-│ updated_at   │   │                          │ play_count       │
-└──────────────┘   │ ┌──────────────────┐     │ correct_rate     │
+│ email        │   │ │ room_code        │  │  │ title            │
+│ nickname     │   │ │ host_id (FK)     │──┘  │ artist           │
+│ avatar_url   │   │ │ category         │     │ category         │
+│ total_games  │   │ │ max_rounds       │     │ difficulty       │
+│ total_wins   │   │ │ time_per_phase   │     │ midi_file_url    │
+│ total_correct│   │ │ status           │     │ accepted_titles  │
+│ daily_streak │   │ │ created_at       │     │ accepted_artists │
+│ max_streak   │   │ │ ended_at         │     │ phases           │
+│ points_total │   │ └──────────────────┘     │ is_active        │
+│ created_at   │   │                          │ play_count       │
+│ updated_at   │   │ ┌──────────────────┐     │ correct_rate     │
                    │ │  game_players    │     │ created_at       │
                    │ │──────────────────│     │ updated_at       │
                    ├─┤ user_id (FK)     │     └──────────────────┘
@@ -79,6 +79,7 @@ CREATE TYPE xp_source AS ENUM (
 ```sql
 CREATE TABLE users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
   nickname TEXT UNIQUE NOT NULL CHECK (
     length(nickname) BETWEEN 3 AND 20
     AND nickname ~ '^[a-zA-Z0-9_]+$'
@@ -117,26 +118,56 @@ CREATE TRIGGER users_updated_at
   BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
--- Auto-criar perfil no primeiro login
+-- Auto-criar perfil no primeiro login.
+-- Sanitisa nickname do OAuth (strip non-alphanumeric), retry com sufixo numérico se já existir.
 CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  id_stub text;
+  raw_name text;
+  base_nick text;
+  candidate text;
+  suffix int;
+  avatar text;
 BEGIN
-  INSERT INTO public.users (id, nickname, avatar_url)
-  VALUES (
-    NEW.id,
-    COALESCE(
-      NEW.raw_user_meta_data->>'name',
-      NEW.raw_user_meta_data->>'full_name',
-      'player_' || substr(NEW.id::text, 1, 8)
-    ),
-    COALESCE(
-      NEW.raw_user_meta_data->>'avatar_url',
-      NEW.raw_user_meta_data->>'picture'
-    )
+  id_stub := substr(replace(NEW.id::text, '-', ''), 1, 8);
+  raw_name := COALESCE(
+    NULLIF(NEW.raw_user_meta_data->>'name', ''),
+    NULLIF(NEW.raw_user_meta_data->>'full_name', ''),
+    NULLIF(NEW.raw_user_meta_data->>'preferred_username', ''),
+    ''
   );
-  RETURN NEW;
+  base_nick := substr(regexp_replace(raw_name, '[^a-zA-Z0-9_]', '', 'g'), 1, 20);
+  IF char_length(base_nick) < 3 THEN
+    base_nick := 'player_' || id_stub;
+  END IF;
+  avatar := COALESCE(
+    NULLIF(NEW.raw_user_meta_data->>'avatar_url', ''),
+    NULLIF(NEW.raw_user_meta_data->>'picture', '')
+  );
+  candidate := base_nick;
+  suffix := 0;
+  LOOP
+    BEGIN
+      INSERT INTO public.users (id, email, nickname, avatar_url)
+      VALUES (NEW.id, NEW.email, candidate, avatar)
+      ON CONFLICT (id) DO UPDATE SET email = excluded.email;
+      RETURN NEW;
+    EXCEPTION WHEN unique_violation THEN
+      suffix := suffix + 1;
+      candidate := substr(base_nick, 1, 20 - char_length('_' || suffix::text))
+                   || '_' || suffix::text;
+      IF suffix > 99 THEN
+        candidate := 'player_' || id_stub;
+      END IF;
+    END;
+  END LOOP;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users

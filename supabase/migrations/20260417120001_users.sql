@@ -2,6 +2,7 @@
 
 create table public.users (
   id uuid primary key references auth.users(id) on delete cascade,
+  email text not null,
   nickname text unique not null check (
     char_length(nickname) between 3 and 20
     and nickname ~ '^[a-zA-Z0-9_]+$'
@@ -53,7 +54,8 @@ create trigger users_level_on_xp_change
   execute function public.sync_user_level();
 
 -- Auto-create a public.users row when a new auth.users row is created via OAuth.
--- Picks nickname from provider metadata, falling back to a deterministic "player_<id>" stub.
+-- Picks nickname from provider metadata, sanitises it to match the CHECK constraint,
+-- and appends a numeric suffix when the nickname is already taken.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -61,25 +63,58 @@ security definer
 set search_path = public
 as $$
 declare
-  fallback_nickname text;
+  id_stub text;
+  raw_name text;
+  base_nick text;
+  candidate text;
+  suffix int;
+  avatar text;
 begin
-  fallback_nickname := 'player_' || substr(replace(new.id::text, '-', ''), 1, 8);
-  insert into public.users (id, nickname, avatar_url)
-  values (
-    new.id,
-    coalesce(
-      nullif(new.raw_user_meta_data->>'name', ''),
-      nullif(new.raw_user_meta_data->>'full_name', ''),
-      nullif(new.raw_user_meta_data->>'preferred_username', ''),
-      fallback_nickname
-    ),
-    coalesce(
-      nullif(new.raw_user_meta_data->>'avatar_url', ''),
-      nullif(new.raw_user_meta_data->>'picture', '')
-    )
-  )
-  on conflict (id) do nothing;
-  return new;
+  id_stub := substr(replace(new.id::text, '-', ''), 1, 8);
+
+  -- Pick the first non-empty provider name
+  raw_name := coalesce(
+    nullif(new.raw_user_meta_data->>'name', ''),
+    nullif(new.raw_user_meta_data->>'full_name', ''),
+    nullif(new.raw_user_meta_data->>'preferred_username', ''),
+    ''
+  );
+
+  -- Strip everything except [a-zA-Z0-9_] and truncate to 20 chars
+  base_nick := substr(regexp_replace(raw_name, '[^a-zA-Z0-9_]', '', 'g'), 1, 20);
+
+  -- Fall back if sanitised result is too short (< 3 chars)
+  if char_length(base_nick) < 3 then
+    base_nick := 'player_' || id_stub;
+  end if;
+
+  avatar := coalesce(
+    nullif(new.raw_user_meta_data->>'avatar_url', ''),
+    nullif(new.raw_user_meta_data->>'picture', '')
+  );
+
+  -- Try the base nickname first; on uniqueness collision append _NNN suffix
+  candidate := base_nick;
+  suffix := 0;
+  loop
+    begin
+      insert into public.users (id, email, nickname, avatar_url)
+      values (new.id, new.email, candidate, avatar)
+      on conflict (id) do update set email = excluded.email;
+      -- Success (or row already existed for this id) — done
+      return new;
+    exception when unique_violation then
+      -- Nickname taken — try next suffix
+      suffix := suffix + 1;
+      -- Truncate base so that base + _NNN still fits in 20 chars
+      candidate := substr(base_nick, 1, 20 - char_length('_' || suffix::text))
+                   || '_' || suffix::text;
+      if suffix > 99 then
+        -- Extremely unlikely; fall back to guaranteed-unique id stub
+        candidate := 'player_' || id_stub;
+      end if;
+    end;
+  end loop;
 end;
 $$;
 

@@ -21,10 +21,10 @@ pnpm build
 pnpm --filter @wts/web run docs:check
 ```
 
-- [ ] `lint`: 4/4 passed
-- [ ] `type-check`: 4/4 passed
-- [ ] `build`: 3/3 passed + 19 rotas geradas
-- [ ] `docs:check`: "11 files OK"
+- [x] `lint`: 4/4 passed
+- [x] `type-check`: 4/4 passed
+- [x] `build`: 3/3 passed + 19 rotas geradas
+- [x] `docs:check`: "11 files OK"
 
 **Se qualquer um falhar, parar aqui.** Capturar saída e investigar antes de seguir.
 
@@ -32,9 +32,8 @@ pnpm --filter @wts/web run docs:check
 
 Confirmar arquivos locais:
 
-- [ ] `apps/web/.env.local` existe com `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` preenchidos
-- [ ] `apps/server/.env.local` existe com `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `DATABASE_URL` preenchidos
-- [ ] Opcional para testar o portal sem role de admin: `ALLOW_ADMIN_WITHOUT_ROLE=true` no `apps/web/.env.local`
+- [x] `apps/web/.env.local` existe com `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` preenchidos
+- [x] `apps/server/.env.local` existe com `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `DATABASE_URL` preenchidos
 
 ### 0.3 Dev server up
 
@@ -42,9 +41,9 @@ Confirmar arquivos locais:
 pnpm dev
 ```
 
-- [ ] Web sobe em `http://localhost:3000` (Next.js)
-- [ ] Server sobe em `http://localhost:3001` (Fastify)
-- [ ] Nenhum erro de env validation no console
+- [x] Web sobe em `http://localhost:3000` (Next.js)
+- [x] Server sobe em `http://localhost:3001` (Fastify)
+- [x] Nenhum erro de env validation no console
 
 ### 0.4 Smoke do DB
 
@@ -52,7 +51,7 @@ pnpm dev
 pnpm --filter @wts/server smoke:db
 ```
 
-- [ ] 6/6 verdes (users, midi_catalog, xp_events, daily_schedule, storage, auth admin)
+- [x] 6/6 verdes (users, midi_catalog, xp_events, daily_schedule, storage, auth admin)
 
 ---
 
@@ -60,19 +59,19 @@ pnpm --filter @wts/server smoke:db
 
 ### 1.1 Acesso e redirect
 
-- [ ] Abrir `http://localhost:3000/` → redireciona pra `/pt-BR/` ou `/en/` (detecção de Accept-Language)
-- [ ] Header mostra **"Sign in"** (secondary button, canto direito)
-- [ ] Tagline "Ouça. Adivinhe. Repita." (pt-BR) ou "Listen. Guess. Repeat." (en) visível
-- [ ] 3 cards com ícones (Headphones, Trophy, Sparkles)
-- [ ] Footer: links "Termos de Uso" e "Privacidade" + switcher PT/EN
+- [x] Abrir `http://localhost:3000/` → redireciona pra `/pt-BR/` ou `/en/` (detecção de Accept-Language)
+- [x] Header mostra **"Sign in"** (secondary button, canto direito)
+- [x] Tagline "Ouça. Adivinhe. Repita." (pt-BR) ou "Listen. Guess. Repeat." (en) visível
+- [x] 3 cards com ícones (Headphones, Trophy, Sparkles)
+- [x] Footer: links "Termos de Uso" e "Privacidade" + switcher PT/EN
 
 ### 1.2 Switcher de locale
 
-- [ ] Clicar **EN** no switcher → URL vira `/en/...`, textos viram inglês
-- [ ] Cookie `NEXT_LOCALE=en` setado (DevTools → Application → Cookies)
-- [ ] Clicar **PT** → volta pra pt-BR
-- [ ] Abrir **`/en/terms`** → página de Terms of Use em inglês renderiza
-- [ ] Abrir **`/pt-BR/privacy`** → LGPD-compliant, 10 seções
+- [x] Clicar **EN** no switcher → URL vira `/en/...`, textos viram inglês
+- [x] Cookie `NEXT_LOCALE=en` setado (DevTools → Application → Cookies)
+- [x] Clicar **PT** → volta pra pt-BR
+- [x] Abrir **`/en/terms`** → página de Terms of Use em inglês renderiza
+- [x] Abrir **`/pt-BR/privacy`** → LGPD-compliant, 10 seções
 
 ---
 
@@ -80,28 +79,28 @@ pnpm --filter @wts/server smoke:db
 
 ### 2.1 Guest mode
 
-- [ ] Limpar localStorage: DevTools → Application → Local Storage → "Clear"
-- [ ] Recarregar `/pt-BR/` — header mostra **"Sign in"**
-- [ ] Clicar **"Sign in"** → vai pra `/pt-BR/login`
-- [ ] Página mostra: heading "Entre para jogar" + 2 botões OAuth + divider "ou" + input de nickname + botão "Jogar como convidado"
-- [ ] Digitar `ab` no input → helper vira vermelho: "Nickname inválido. Use 3-20 caracteres..."
-- [ ] Clicar "Jogar como convidado" com `ab` → bloqueia, mantém mensagem de erro
-- [ ] Limpar, digitar `TestUser123` → helper volta pra neutro
-- [ ] Clicar "Jogar como convidado" → redireciona pra `/pt-BR/`
-- [ ] DevTools → Application → Local Storage → checar `wts_guest_id` (uuid) e `wts_guest_nickname` (`TestUser123`)
-- [ ] Header agora mostra badge "Guest · TestUser123" + botão "Entrar" (ghost)
-- [ ] Banner fino no topo: "Crie uma conta para salvar seu progresso. Entrar"
+- [x] Limpar localStorage: DevTools → Application → Local Storage → "Clear"
+- [x] Recarregar `/pt-BR/` — header mostra **"Sign in"**
+- [x] Clicar **"Sign in"** → vai pra `/pt-BR/login`
+- [x] Página mostra: heading "Entre para jogar" + 2 botões OAuth + divider "ou" + input de nickname + botão "Jogar como convidado"
+- [x] Digitar `ab` no input → helper vira vermelho: "Nickname inválido. Use 3-20 caracteres..."
+- [x] Clicar "Jogar como convidado" com `ab` → bloqueia, mantém mensagem de erro
+- [x] Limpar, digitar `TestUser123` → helper volta pra neutro -> falhou
+- [x] Clicar "Jogar como convidado" → redireciona pra `/pt-BR/`
+- [x] DevTools → Application → Local Storage → checar `wts_guest_id` (uuid) e `wts_guest_nickname` (`TestUser123`)
+- [x] Header agora mostra badge "Guest · TestUser123" + botão "Entrar" (ghost)
+- [x] Banner fino no topo: "Crie uma conta para salvar seu progresso. Entrar"
 
 ### 2.2 OAuth Google
 
-- [ ] Logout do guest: limpar localStorage, recarregar
-- [ ] `/pt-BR/login` → clicar **"Entrar com Google"**
-- [ ] Redireciona para consent screen do Google
-- [ ] Completar login → volta pra `/pt-BR/` **logado**
-- [ ] Header agora mostra avatar + nickname (vindo de `handle_new_user` trigger)
-- [ ] Dev Tools → Network → filtrar por `/auth/callback` → deve ter retornado 307 redirect pra `/`
-- [ ] SQL no Supabase: `SELECT id, email, nickname FROM public.users ORDER BY created_at DESC LIMIT 1;` → vê sua row nova
-- [ ] **Recarregar** a página → continua logado (cookie persistiu)
+- [x] Logout do guest: limpar localStorage, recarregar
+- [x] `/pt-BR/login` → clicar **"Entrar com Google"**
+- [x] Redireciona para consent screen do Google
+- [x] Completar login → volta pra `/pt-BR/` **logado**
+- [x] Header agora mostra avatar + nickname (vindo de `handle_new_user` trigger)
+- [x] Dev Tools → Network → filtrar por `/auth/callback` → deve ter retornado 307 redirect pra `/`
+- [x] SQL no Supabase: `SELECT id, email, nickname FROM public.users ORDER BY created_at DESC LIMIT 1;` → vê sua row nova
+- [x] **Recarregar** a página → continua logado (cookie persistiu)
 
 ### 2.3 OAuth Discord
 
