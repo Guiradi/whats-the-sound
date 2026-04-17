@@ -35,7 +35,7 @@ export async function requireAdmin(request: NextRequest): Promise<NextResponse |
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return notFoundResponse();
+  if (!user) return notFoundResponse(request);
 
   const { data: profile } = await supabase
     .from('users')
@@ -43,11 +43,17 @@ export async function requireAdmin(request: NextRequest): Promise<NextResponse |
     .eq('id', user.id)
     .maybeSingle();
 
-  if (!profile || profile.role !== 'admin') return notFoundResponse();
+  if (!profile || profile.role !== 'admin') return notFoundResponse(request);
 
   return null;
 }
 
-function notFoundResponse(): NextResponse {
-  return new NextResponse(null, { status: 404 });
+function notFoundResponse(request: NextRequest): NextResponse {
+  // Rewrite to a non-existent path under the current locale so the
+  // [locale]/[...rest] catch-all renders the custom not-found page.
+  const url = request.nextUrl.clone();
+  const localeMatch = request.nextUrl.pathname.match(/^\/(pt-BR|en)\//);
+  const locale = localeMatch?.[1] ?? 'pt-BR';
+  url.pathname = `/${locale}/__not-found`;
+  return NextResponse.rewrite(url, { status: 404 });
 }

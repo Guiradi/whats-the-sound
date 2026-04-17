@@ -4,6 +4,7 @@ import { checkNicknameAvailability, updateNickname } from '@/app/[locale]/profil
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useRouter } from '@/i18n/navigation';
+import { useAuth } from '@/hooks/use-auth';
 import { isValidNickname } from '@/lib/auth/guest';
 import { isBlockedNickname } from '@/lib/auth/profanity';
 import { cn } from '@/lib/utils';
@@ -42,6 +43,7 @@ const helperToneClass: Partial<Record<Status, string>> = {
 export function NicknameInput({ initialNickname }: { initialNickname: string }) {
   const t = useTranslations('profile.nickname');
   const router = useRouter();
+  const { refreshProfile } = useAuth();
   const inputId = useId();
   const helperId = useId();
   const [value, setValue] = useState(initialNickname);
@@ -109,6 +111,7 @@ export function NicknameInput({ initialNickname }: { initialNickname: string }) 
       setValue(result.nickname);
       setStatus('unchanged');
       toast.success(t('saved'));
+      await refreshProfile();
       router.refresh();
       return;
     }

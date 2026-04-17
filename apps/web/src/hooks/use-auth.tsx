@@ -18,8 +18,14 @@ import {
   useState,
 } from 'react';
 
+interface UserProfile {
+  nickname: string;
+  avatarUrl: string | null;
+}
+
 interface AuthContextValue {
   user: User | null;
+  profile: UserProfile | null;
   guest: GuestSession | null;
   isGuest: boolean;
   isLoading: boolean;
@@ -27,6 +33,7 @@ interface AuthContextValue {
   signInWithDiscord: (next?: string) => Promise<void>;
   signOut: () => Promise<void>;
   guestLogin: (nickname: string) => GuestSession;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -46,15 +53,36 @@ export function AuthProvider({
 }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [user, setUser] = useState<User | null>(initialUser);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [guest, setGuest] = useState<GuestSession | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
+
+  const fetchProfile = useCallback(
+    async (uid: string) => {
+      const { data } = await supabase
+        .from('users')
+        .select('nickname, avatar_url')
+        .eq('id', uid)
+        .maybeSingle();
+      if (data) {
+        setProfile({ nickname: data.nickname, avatarUrl: data.avatar_url });
+      }
+    },
+    [supabase],
+  );
+
+  const refreshProfile = useCallback(async () => {
+    if (user) await fetchProfile(user.id);
+  }, [user, fetchProfile]);
 
   useEffect(() => {
     if (!initialUser) {
       setGuest(getGuestSession());
+    } else {
+      fetchProfile(initialUser.id);
     }
     setIsHydrated(true);
-  }, [initialUser]);
+  }, [initialUser, fetchProfile]);
 
   useEffect(() => {
     const {
@@ -65,12 +93,15 @@ export function AuthProvider({
       if (nextUser) {
         clearGuestSession();
         setGuest(null);
+        fetchProfile(nextUser.id);
+      } else {
+        setProfile(null);
       }
     });
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, fetchProfile]);
 
   const signInWithGoogle = useCallback(
     async (next?: string) => {
@@ -108,6 +139,7 @@ export function AuthProvider({
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
+      profile,
       guest,
       isGuest: !user && guest !== null,
       isLoading: !isHydrated,
@@ -115,8 +147,9 @@ export function AuthProvider({
       signInWithDiscord,
       signOut,
       guestLogin,
+      refreshProfile,
     }),
-    [user, guest, isHydrated, signInWithGoogle, signInWithDiscord, signOut, guestLogin],
+    [user, profile, guest, isHydrated, signInWithGoogle, signInWithDiscord, signOut, guestLogin, refreshProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

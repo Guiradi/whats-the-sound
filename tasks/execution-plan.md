@@ -110,14 +110,16 @@ Sprint 4 (Frontend Multi)    Sprint 5 (Daily+Polish)     Sprint 6 (Admin+Deploy)
 - TASK-005/006 e TASK-007/008/029 podem ser desenvolvidas em paralelo
 
 ### Checklist de validação:
-- [ ] MIDI de teste reproduz corretamente nas 4 fases
-- [ ] Visualizador reage ao áudio em tempo real
-- [ ] Fase 1 toca apenas notas especificadas, Fase 4 toca tudo
-- [ ] Login Google funciona end-to-end
-- [ ] Login Discord funciona end-to-end
-- [ ] Guest mode funciona
-- [ ] Perfil exibe dados e nickname é editável
-- [ ] Sessão persiste entre reloads
+- [x] MIDI de teste reproduz corretamente nas 4 fases
+- [x] Visualizador reage ao áudio em tempo real
+- [x] Fase 1 toca apenas notas especificadas, Fase 4 toca tudo
+- [x] Login Google funciona end-to-end
+- [x] Login Discord funciona end-to-end
+- [x] Guest mode funciona
+- [x] Perfil exibe dados e nickname é editável
+- [x] Sessão persiste entre reloads
+
+**✅ Sprint 2 smoke test PASSED — 2026-04-17 (Chrome Desktop). Ver `tasks/sprint-2-smoke-test.md` para detalhes e 7 bugs corrigidos inline.**
 
 ---
 

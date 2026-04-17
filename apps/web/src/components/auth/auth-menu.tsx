@@ -6,22 +6,17 @@ import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 
-function getDisplayName(user: { user_metadata: { full_name?: string; name?: string } }): string {
-  return user.user_metadata.full_name ?? user.user_metadata.name ?? 'Player';
-}
-
 export function AuthMenu() {
   const t = useTranslations('auth.menu');
-  const { user, guest, isLoading } = useAuth();
+  const { user, profile, guest, isLoading } = useAuth();
 
   if (isLoading) {
     return <div className="h-10 w-24 animate-pulse rounded-md bg-bg-surface" aria-hidden="true" />;
   }
 
   if (user) {
-    const nickname = getDisplayName(user);
-    const avatarSrc =
-      typeof user.user_metadata.avatar_url === 'string' ? user.user_metadata.avatar_url : undefined;
+    const nickname = profile?.nickname ?? user.user_metadata.full_name ?? user.user_metadata.name ?? 'Player';
+    const avatarSrc = profile?.avatarUrl ?? (typeof user.user_metadata.avatar_url === 'string' ? user.user_metadata.avatar_url : undefined);
     return (
       <Link
         href="/profile"

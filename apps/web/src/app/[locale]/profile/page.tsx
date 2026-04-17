@@ -46,7 +46,30 @@ async function fetchProfile(): Promise<ProfileRow | null> {
     )
     .eq('id', user.id)
     .maybeSingle();
-  return data as ProfileRow | null;
+
+  if (data) return data as ProfileRow;
+
+  // Edge case: auth.users row exists but public.users row is missing (e.g. trigger
+  // failed on a previous OAuth attempt). Create the row now as a self-healing fallback.
+  const meta = user.user_metadata ?? {};
+  const rawName = (meta.name ?? meta.full_name ?? meta.preferred_username ?? '') as string;
+  const sanitized = rawName.replace(/[^a-zA-Z0-9_]/g, '').slice(0, 20);
+  const nickname = sanitized.length >= 3 ? sanitized : `player_${user.id.replace(/-/g, '').slice(0, 8)}`;
+
+  const { data: created } = await supabase
+    .from('users')
+    .insert({
+      id: user.id,
+      email: user.email ?? '',
+      nickname,
+      avatar_url: (meta.avatar_url ?? meta.picture ?? null) as string | null,
+    })
+    .select(
+      'nickname, avatar_url, created_at, total_games, total_wins, total_correct, daily_streak, max_daily_streak, points_total, level, xp',
+    )
+    .single();
+
+  return created as ProfileRow | null;
 }
 
 export default async function ProfilePage({ params }: { params: Promise<{ locale: Locale }> }) {

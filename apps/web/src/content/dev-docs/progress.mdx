@@ -1,7 +1,7 @@
 ---
 title: Progresso (por TASK)
 description: Índice narrativo das tasks concluídas. Complementa tasks/completed.md.
-lastTask: TASK-029
+lastTask: Sprint 2 Smoke Test
 lastUpdated: 2026-04-17
 ---
 
@@ -24,6 +24,21 @@ lastUpdated: 2026-04-17
 - **TASK-006** AudioVisualizer — canvas FFT, 30 fps rAF, Page Visibility pause, gradient cyan→magenta
 - **TASK-025** Error Handling + Boundaries — route `error.tsx` + `not-found.tsx`, `<ErrorBoundary>` class component, Fastify `setErrorHandler` + `setNotFoundHandler` com wire shape `{ error: { code, message } }`
 - **TASK-029** Dev Docs Portal + Admin Middleware — `/admin/docs` com MDX via `next-mdx-remote/rsc`, sidebar + search (fuse.js), `requireAdmin` middleware com dev escape hatch, initial content covering Sprints 1+2
+
+### Sprint 2 Smoke Test — ✅ PASSED (2026-04-17)
+
+Smoke test completo em Chrome Desktop. 7 bugs encontrados e corrigidos inline:
+- Guest nickname helper não resetava ao digitar
+- OAuth trigger `handle_new_user` não sanitizava nicknames do provider (espaços/acentos)
+- Coluna `email` ausente em `public.users`
+- Profile page não fazia self-healing quando `public.users` row estava ausente
+- Header mostrava nome do Google OAuth em vez do nickname do DB
+- Custom 404 não renderizava (faltava catch-all + admin middleware retornava body vazio)
+- Smoke test SQL usava `auth.uid()` que retorna NULL no SQL Editor
+
+Migrations adicionadas: `20260417120008_fix_handle_new_user.sql`, `20260417120009_add_users_email.sql`
+
+Cross-browser (Firefox, Safari, mobile) deferido para TASK-022 QA pass.
 
 ## Pendente
 
