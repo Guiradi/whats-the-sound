@@ -49,29 +49,21 @@ function section(title: string) {
 }
 
 /** Wait for a specific event with timeout. */
-function waitFor<T>(
-  socket: TypedSocket,
-  event: string,
-  timeoutMs = TIMEOUT,
-): Promise<T> {
+function waitFor<T>(socket: TypedSocket, event: string, timeoutMs = TIMEOUT): Promise<T> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error(`Timeout waiting for ${event}`)),
-      timeoutMs,
+    const timer = setTimeout(() => reject(new Error(`Timeout waiting for ${event}`)), timeoutMs);
+    socket.once(
+      event as keyof ServerToClientEvents,
+      ((...args: unknown[]) => {
+        clearTimeout(timer);
+        resolve(args[0] as T);
+      }) as never,
     );
-    socket.once(event as keyof ServerToClientEvents, ((...args: unknown[]) => {
-      clearTimeout(timer);
-      resolve(args[0] as T);
-    }) as never);
   });
 }
 
 /** Collect multiple events within a time window. */
-function collectEvents<T>(
-  socket: TypedSocket,
-  event: string,
-  durationMs: number,
-): Promise<T[]> {
+function collectEvents<T>(socket: TypedSocket, event: string, durationMs: number): Promise<T[]> {
   return new Promise((resolve) => {
     const results: T[] = [];
     const handler = ((...args: unknown[]) => {
@@ -96,10 +88,7 @@ function createSocket(auth?: { token: string }): TypedSocket {
 
 function connectSocket(socket: TypedSocket): Promise<void> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error('Connection timeout')),
-      TIMEOUT,
-    );
+    const timer = setTimeout(() => reject(new Error('Connection timeout')), TIMEOUT);
     socket.on('connect', () => {
       clearTimeout(timer);
       resolve();
@@ -112,14 +101,9 @@ function connectSocket(socket: TypedSocket): Promise<void> {
   });
 }
 
-function createRoom(
-  socket: TypedSocket,
-): Promise<{ code: string }> {
+function createRoom(socket: TypedSocket): Promise<{ code: string }> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error('Timeout creating room')),
-      TIMEOUT,
-    );
+    const timer = setTimeout(() => reject(new Error('Timeout creating room')), TIMEOUT);
     socket.emit(
       'room:create',
       {
@@ -238,11 +222,7 @@ async function testGameLoop() {
     assert(hasRound1, 'Bot message: Round 1 of 5');
 
     // Wait for phase:start (after 3s countdown)
-    const phase = await waitFor<{ phase: number; endsAt: number }>(
-      host,
-      'phase:start',
-      6000,
-    );
+    const phase = await waitFor<{ phase: number; endsAt: number }>(host, 'phase:start', 6000);
     assert(phase.phase === 1, `Phase 1 started (got phase ${phase.phase})`);
     assert(phase.endsAt > Date.now(), 'Phase endsAt is in the future');
 
@@ -261,10 +241,21 @@ async function testGameLoop() {
     // This is long — let's try to guess correctly to speed it up
     // The stub provides: Bohemian Rhapsody, Billie Jean, Garota de Ipanema, etc.
     const stubTitles = [
-      'Bohemian Rhapsody', 'Billie Jean', 'Garota de Ipanema',
-      'Smells Like Teen Spirit', 'Imagine', 'Yesterday', 'Evidências',
-      'Take On Me', 'Sweet Child O Mine', 'Hotel California',
-      'Despacito', 'Shape of You', 'Aquarela', 'Zelda Theme', 'Mario Theme',
+      'Bohemian Rhapsody',
+      'Billie Jean',
+      'Garota de Ipanema',
+      'Smells Like Teen Spirit',
+      'Imagine',
+      'Yesterday',
+      'Evidências',
+      'Take On Me',
+      'Sweet Child O Mine',
+      'Hotel California',
+      'Despacito',
+      'Shape of You',
+      'Aquarela',
+      'Zelda Theme',
+      'Mario Theme',
     ];
 
     // Spam all titles — one will be correct and trigger early advance
@@ -286,7 +277,10 @@ async function testGameLoop() {
       artist: string;
       correctPlayerIds: string[];
     }>(host, 'round:reveal', 120_000);
-    assert(typeof reveal.title === 'string' && reveal.title.length > 0, `Round reveal: "${reveal.title}" by "${reveal.artist}"`);
+    assert(
+      typeof reveal.title === 'string' && reveal.title.length > 0,
+      `Round reveal: "${reveal.title}" by "${reveal.artist}"`,
+    );
     assert(Array.isArray(reveal.correctPlayerIds), 'Reveal contains correctPlayerIds array');
 
     ok('Game loop runs (phase transitions + reveal work)');
@@ -330,10 +324,21 @@ async function testGuessVerification() {
 
     // Try all stub titles to find the correct one
     const stubTitles = [
-      'Bohemian Rhapsody', 'Billie Jean', 'Garota de Ipanema',
-      'Smells Like Teen Spirit', 'Imagine', 'Yesterday', 'Evidências',
-      'Take On Me', 'Sweet Child O Mine', 'Hotel California',
-      'Despacito', 'Shape of You', 'Aquarela', 'Zelda Theme', 'Mario Theme',
+      'Bohemian Rhapsody',
+      'Billie Jean',
+      'Garota de Ipanema',
+      'Smells Like Teen Spirit',
+      'Imagine',
+      'Yesterday',
+      'Evidências',
+      'Take On Me',
+      'Sweet Child O Mine',
+      'Hotel California',
+      'Despacito',
+      'Shape of You',
+      'Aquarela',
+      'Zelda Theme',
+      'Mario Theme',
     ];
 
     let foundCorrect = false;
@@ -384,14 +389,12 @@ async function testRateLimiting() {
     const roomCodes: string[] = [];
     let rateLimited = false;
 
-    const rateLimitPromise = new Promise<{ scope: string; retryAfterMs: number }>(
-      (resolve) => {
-        s.on('error:rate_limited', (payload) => {
-          rateLimited = true;
-          resolve(payload);
-        });
-      },
-    );
+    const rateLimitPromise = new Promise<{ scope: string; retryAfterMs: number }>((resolve) => {
+      s.on('error:rate_limited', (payload) => {
+        rateLimited = true;
+        resolve(payload);
+      });
+    });
 
     for (let i = 0; i < 4; i++) {
       try {
@@ -406,13 +409,13 @@ async function testRateLimiting() {
     }
 
     // Wait a bit for rate_limited event
-    const rlResult = await Promise.race([
-      rateLimitPromise,
-      sleep(2000).then(() => null),
-    ]);
+    const rlResult = await Promise.race([rateLimitPromise, sleep(2000).then(() => null)]);
 
     if (rlResult && 'scope' in rlResult) {
-      assert(rlResult.scope === 'room:create', `Room creation rate limited (scope: ${rlResult.scope})`);
+      assert(
+        rlResult.scope === 'room:create',
+        `Room creation rate limited (scope: ${rlResult.scope})`,
+      );
       assert(rlResult.retryAfterMs > 0, `retryAfterMs > 0: ${rlResult.retryAfterMs}ms`);
     } else if (roomCodes.length <= 3) {
       ok('Room creation limited (4th room failed)');
@@ -573,10 +576,21 @@ async function testScoring() {
 
     // Try to score by guessing all stub titles
     const stubTitles = [
-      'Bohemian Rhapsody', 'Billie Jean', 'Garota de Ipanema',
-      'Smells Like Teen Spirit', 'Imagine', 'Yesterday', 'Evidências',
-      'Take On Me', 'Sweet Child O Mine', 'Hotel California',
-      'Despacito', 'Shape of You', 'Aquarela', 'Zelda Theme', 'Mario Theme',
+      'Bohemian Rhapsody',
+      'Billie Jean',
+      'Garota de Ipanema',
+      'Smells Like Teen Spirit',
+      'Imagine',
+      'Yesterday',
+      'Evidências',
+      'Take On Me',
+      'Sweet Child O Mine',
+      'Hotel California',
+      'Despacito',
+      'Shape of You',
+      'Aquarela',
+      'Zelda Theme',
+      'Mario Theme',
     ];
 
     let hostScored = false;
