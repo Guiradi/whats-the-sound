@@ -11,7 +11,10 @@
       "Bash(tar -xzf t3-oss-env-nextjs-*.tgz)",
       "WebSearch",
       "Bash(pnpm --filter @wts/web add @t3-oss/env-nextjs)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm:*)",
+      "Bash(xargs grep:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
