@@ -55,13 +55,19 @@ curl -i http://localhost:3001/health
 
 ## 1 · Socket.io Connection — TASK-009 (5 min)
 
-### 1.1 Conectar como guest
+### 1.1 Conectar como usuário autenticado
 
-Abrir `http://localhost:3000` no Chrome. Abrir DevTools → Console. Colar:
+Abrir `http://localhost:3000` no Chrome **logado na sua conta**. Abrir DevTools → Console. Colar:
 
 ```js
+// Pegar o access token do Supabase armazenado no localStorage
+const sbKey = Object.keys(localStorage).find(k => k.startsWith('sb-'));
+const sbData = JSON.parse(localStorage.getItem(sbKey) || '{}');
+const token = sbData?.access_token;
+console.log('Token:', token ? '✅ found' : '❌ not found');
+
 const { io } = await import('https://cdn.socket.io/4.7.5/socket.io.esm.min.js');
-const socket = io('http://localhost:3001', { withCredentials: true });
+const socket = io('http://localhost:3001', { withCredentials: true, auth: { token } });
 socket.on('connect', () => console.log('✅ Connected:', socket.id));
 socket.on('connect_error', (err) => console.error('❌ Connect error:', err.message));
 socket.on('error:generic', (e) => console.log('⚠️ Error:', e));
@@ -73,13 +79,25 @@ socket.on('round:reveal', (r) => console.log('🎤 Reveal:', r.title, '-', r.art
 socket.on('room:host_changed', (h) => console.log('👑 Host changed:', h));
 ```
 
+- [ ] `Token: ✅ found` aparece no console
 - [ ] Console mostra: `✅ Connected: <socketId>`
-- [ ] Server console mostra: `socket connected` com userId `guest:<socketId>`
+- [ ] Server console mostra: `socket connected` com userId = seu UUID do Supabase (NÃO `guest:...`)
 
-### 1.2 Verificar que não-auth é aceito
+### 1.2 Conectar como guest (sem token)
 
-- [ ] Sem token no handshake → conecta como guest (observado acima)
-- [ ] userId no log do server começa com `guest:`
+Abrir aba anônima (ou deslogada). Console:
+
+```js
+const { io } = await import('https://cdn.socket.io/4.7.5/socket.io.esm.min.js');
+const guestSocket = io('http://localhost:3001', { withCredentials: true });
+guestSocket.on('connect', () => console.log('✅ Guest connected:', guestSocket.id));
+guestSocket.on('connect_error', (err) => console.error('❌ Connect error:', err.message));
+```
+
+- [ ] Conecta normalmente (guest aceito sem token)
+- [ ] Server log: userId começa com `guest:`
+
+**Nota:** O Socket.io NÃO lê cookies automaticamente — o token do Supabase precisa ser passado explicitamente via `auth: { token }` no handshake. Isso é por design (segurança).
 
 ---
 
