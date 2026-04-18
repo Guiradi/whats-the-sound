@@ -270,7 +270,9 @@ export function createCatalogRoutes(supabase: SupabaseClient) {
     });
 
     /**
-     * DELETE /api/catalog/:id — Soft-delete (deactivate) a MIDI entry.
+     * DELETE /api/catalog/:id — Delete a MIDI entry.
+     * Without ?permanent=true: soft-delete (set is_active = false).
+     * With ?permanent=true: hard-delete (remove from DB + Storage).
      * Admin-only.
      */
     server.delete('/api/catalog/:id', async (request, reply) => {
@@ -280,8 +282,39 @@ export function createCatalogRoutes(supabase: SupabaseClient) {
       }
 
       const { id } = request.params as { id: string };
+      const { permanent } = request.query as { permanent?: string };
 
       try {
+        if (permanent === 'true') {
+          // Fetch entry to get the MIDI file URL for Storage cleanup
+          const { data: entry } = await supabase
+            .from('midi_catalog')
+            .select('midi_file_url')
+            .eq('id', id)
+            .single();
+
+          // Hard-delete from DB
+          const { error } = await supabase.from('midi_catalog').delete().eq('id', id);
+
+          if (error) {
+            request.log.error(error, 'Failed to delete catalog entry');
+            return reply.status(500).send({
+              error: { code: 'INTERNAL_ERROR', message: 'Failed to delete catalog entry' },
+            });
+          }
+
+          // Clean up MIDI file from Storage
+          if (entry?.midi_file_url) {
+            const path = entry.midi_file_url.split('/midis/').pop();
+            if (path) {
+              await supabase.storage.from('midis').remove([path]);
+            }
+          }
+
+          return { deleted: true };
+        }
+
+        // Soft-delete: deactivate
         const { data, error } = await supabase
           .from('midi_catalog')
           .update({ is_active: false })
@@ -298,9 +331,9 @@ export function createCatalogRoutes(supabase: SupabaseClient) {
 
         return data;
       } catch (err) {
-        request.log.error(err, 'Failed to deactivate catalog entry');
+        request.log.error(err, 'Failed to delete catalog entry');
         return reply.status(500).send({
-          error: { code: 'INTERNAL_ERROR', message: 'Failed to deactivate catalog entry' },
+          error: { code: 'INTERNAL_ERROR', message: 'Failed to delete catalog entry' },
         });
       }
     });

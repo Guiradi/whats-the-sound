@@ -640,7 +640,33 @@
       "edit": "Editar",
       "deactivate": "Desativar",
       "activate": "Ativar",
-      "preview": "Preview"
+      "preview": "Preview",
+      "delete": "Excluir"
+    },
+    "deleteConfirm": {
+      "title": "Excluir música",
+      "message": "Tem certeza? Esta ação é irreversível e o arquivo MIDI será removido.",
+      "confirm": "Excluir permanentemente",
+      "cancel": "Cancelar"
+    },
+    "deleted": "Música excluída com sucesso!",
+    "breadcrumbCatalog": "Catálogo",
+    "categoryDisabled": "desativada",
+    "categories": {
+      "rock": "Rock",
+      "pop": "Pop",
+      "mpb": "MPB",
+      "sertanejo": "Sertanejo",
+      "games": "Games",
+      "anime": "Anime",
+      "classical": "Clássica",
+      "electronic": "Eletrônica",
+      "hiphop": "Hip-Hop"
+    },
+    "difficulties": {
+      "easy": "Fácil",
+      "medium": "Média",
+      "hard": "Difícil"
     },
     "form": {
       "createTitle": "Nova Música",
@@ -686,7 +712,8 @@
       },
       "review": {
         "heading": "Revisão",
-        "confirm": "Tudo certo? Confira os dados antes de salvar."
+        "confirm": "Tudo certo? Confira os dados antes de salvar.",
+        "phasesConfigured": "Fases configuradas"
       },
       "next": "Próximo",
       "previous": "Anterior",

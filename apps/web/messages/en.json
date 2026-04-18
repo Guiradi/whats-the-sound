@@ -638,7 +638,33 @@
       "edit": "Edit",
       "deactivate": "Deactivate",
       "activate": "Activate",
-      "preview": "Preview"
+      "preview": "Preview",
+      "delete": "Delete"
+    },
+    "deleteConfirm": {
+      "title": "Delete song",
+      "message": "Are you sure? This action cannot be undone and the MIDI file will be removed.",
+      "confirm": "Delete permanently",
+      "cancel": "Cancel"
+    },
+    "deleted": "Song deleted successfully!",
+    "breadcrumbCatalog": "Catalog",
+    "categoryDisabled": "disabled",
+    "categories": {
+      "rock": "Rock",
+      "pop": "Pop",
+      "mpb": "MPB",
+      "sertanejo": "Sertanejo",
+      "games": "Games",
+      "anime": "Anime",
+      "classical": "Classical",
+      "electronic": "Electronic",
+      "hiphop": "Hip-Hop"
+    },
+    "difficulties": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
     },
     "form": {
       "createTitle": "New Song",
@@ -684,7 +710,8 @@
       },
       "review": {
         "heading": "Review",
-        "confirm": "All good? Check the data before saving."
+        "confirm": "All good? Check the data before saving.",
+        "phasesConfigured": "Phases configured"
       },
       "next": "Next",
       "previous": "Previous",

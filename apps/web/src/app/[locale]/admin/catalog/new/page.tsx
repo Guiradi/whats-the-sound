@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export default function AdminCatalogNewPage() {
-  const t = useTranslations('adminCatalog.form');
+  const t = useTranslations('adminCatalog');
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -16,11 +16,11 @@ export default function AdminCatalogNewPage() {
           className="inline-flex items-center gap-2 text-xs text-text-muted transition-colors hover:text-accent-cyan"
         >
           <ArrowLeft className="h-3 w-3" />
-          Catalog
+          {t('breadcrumbCatalog')}
         </Link>
         <span className="text-text-muted">/</span>
         <h1 className="font-[family-name:var(--font-display)] text-lg font-semibold text-text-primary">
-          {t('createTitle')}
+          {t('form.createTitle')}
         </h1>
       </header>
       <main className="mx-auto w-full max-w-4xl px-6 py-8">

@@ -8,14 +8,20 @@ import { env } from '@/env';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
-import { MidiCategory, MidiDifficulty } from '@wts/shared';
+import { MidiDifficulty } from '@wts/shared';
 import type { MidiPhases, PhaseConfig } from '@wts/shared';
 import { Check, ChevronLeft, ChevronRight, Loader2, Upload, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-const CATEGORIES = Object.values(MidiCategory);
+interface CategoryInfo {
+  name: string;
+  totalSongs: number;
+  activeSongs: number;
+  isDisabled: boolean;
+}
+
 const DIFFICULTIES = Object.values(MidiDifficulty);
 
 const STEPS = ['upload', 'metadata', 'phases', 'answers', 'review'] as const;
@@ -66,6 +72,7 @@ interface MidiUploadFormProps {
 
 export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormProps) {
   const t = useTranslations('adminCatalog.form');
+  const tCatalog = useTranslations('adminCatalog');
   const { user } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState<Step>(mode === 'edit' ? 'metadata' : 'upload');
@@ -73,6 +80,7 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [categories, setCategories] = useState<CategoryInfo[]>([]);
 
   const stepIndex = STEPS.indexOf(step);
   const isFirst = stepIndex === 0;
@@ -81,6 +89,30 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
   const updateForm = useCallback((patch: Partial<FormData>) => {
     setForm((prev) => ({ ...prev, ...patch }));
   }, []);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/admin/categories`, {
+          headers: { 'x-user-id': user?.id ?? '' },
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = (await res.json()) as { categories: CategoryInfo[] };
+          setCategories(data.categories);
+          if (mode === 'create' && data.categories.length > 0) {
+            const firstEnabled = data.categories.find((c) => !c.isDisabled);
+            if (firstEnabled) {
+              updateForm({ category: firstEnabled.name });
+            }
+          }
+        }
+      } catch {
+        // fallback: categories stay empty
+      }
+    }
+    loadCategories();
+  }, [user?.id, mode, updateForm]);
 
   const updatePhase = useCallback((phaseKey: keyof MidiPhases, patch: Partial<PhaseConfig>) => {
     setForm((prev) => ({
@@ -290,9 +322,10 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                     onChange={(e) => updateForm({ category: e.target.value })}
                     className="h-10 w-full rounded-md border border-bg-border bg-bg-surface px-3 text-sm text-text-primary"
                   >
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
+                    {categories.map((c) => (
+                      <option key={c.name} value={c.name}>
+                        {tCatalog(`categories.${c.name}`)}
+                        {c.isDisabled ? ` (${tCatalog('categoryDisabled')})` : ''}
                       </option>
                     ))}
                   </select>
@@ -312,7 +345,7 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                   >
                     {DIFFICULTIES.map((d) => (
                       <option key={d} value={d}>
-                        {d}
+                        {tCatalog(`difficulties.${d}`)}
                       </option>
                     ))}
                   </select>
@@ -526,19 +559,19 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
 
               <div className="grid gap-3 rounded-lg bg-bg-surface p-4 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Title</span>
+                  <span className="text-text-muted">{t('metadata.title')}</span>
                   <span className="font-medium text-text-primary">{form.title}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Artist</span>
+                  <span className="text-text-muted">{t('metadata.artist')}</span>
                   <span className="font-medium text-text-primary">{form.artist}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Category</span>
-                  <Badge variant="cyan">{form.category}</Badge>
+                  <span className="text-text-muted">{t('metadata.category')}</span>
+                  <Badge variant="cyan">{tCatalog(`categories.${form.category}`)}</Badge>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Difficulty</span>
+                  <span className="text-text-muted">{t('metadata.difficulty')}</span>
                   <Badge
                     variant={
                       form.difficulty === 'easy'
@@ -548,29 +581,29 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                           : 'yellow'
                     }
                   >
-                    {form.difficulty}
+                    {tCatalog(`difficulties.${form.difficulty}`)}
                   </Badge>
                 </div>
                 {form.year && (
                   <div className="flex justify-between">
-                    <span className="text-text-muted">Year</span>
+                    <span className="text-text-muted">{t('metadata.year')}</span>
                     <span className="text-text-primary">{form.year}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Accepted titles</span>
+                  <span className="text-text-muted">{t('answers.titlesLabel')}</span>
                   <span className="text-text-primary">
                     {form.acceptedTitles.filter(Boolean).length}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Accepted artists</span>
+                  <span className="text-text-muted">{t('answers.artistsLabel')}</span>
                   <span className="text-text-primary">
                     {form.acceptedArtists.filter(Boolean).length}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Phases configured</span>
+                  <span className="text-text-muted">{t('review.phasesConfigured')}</span>
                   <span className="text-text-primary">4</span>
                 </div>
               </div>

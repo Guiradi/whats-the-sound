@@ -7,7 +7,7 @@ import { env } from '@/env';
 import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
-import { MidiCategory, MidiDifficulty } from '@wts/shared';
+import { MidiDifficulty } from '@wts/shared';
 import {
   ArrowUpDown,
   ChevronLeft,
@@ -18,9 +18,11 @@ import {
   Power,
   PowerOff,
   Search,
+  Trash2,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface CatalogItem {
   id: string;
@@ -39,7 +41,13 @@ interface CatalogResponse {
   total: number;
 }
 
-const CATEGORIES = Object.values(MidiCategory);
+interface CategoryInfo {
+  name: string;
+  totalSongs: number;
+  activeSongs: number;
+  isDisabled: boolean;
+}
+
 const DIFFICULTIES = Object.values(MidiDifficulty);
 const PAGE_SIZE = 20;
 
@@ -65,6 +73,25 @@ export function MidiCatalogTable() {
   const [showInactive, setShowInactive] = useState(false);
   const [sortBy, setSortBy] = useState<SortField>('created_at');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [categories, setCategories] = useState<CategoryInfo[]>([]);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/admin/categories`, {
+          headers: { 'x-user-id': user?.id ?? '' },
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = (await res.json()) as { categories: CategoryInfo[] };
+          setCategories(data.categories);
+        }
+      } catch {
+        // silent
+      }
+    }
+    loadCategories();
+  }, [user?.id]);
 
   const fetchCatalog = useCallback(async () => {
     setLoading(true);
@@ -109,6 +136,8 @@ export function MidiCatalogTable() {
     setPage(0);
   };
 
+  const [deleteTarget, setDeleteTarget] = useState<CatalogItem | null>(null);
+
   const handleToggleActive = async (item: CatalogItem) => {
     try {
       await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${item.id}`, {
@@ -120,6 +149,28 @@ export function MidiCatalogTable() {
       fetchCatalog();
     } catch {
       // silent
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${deleteTarget.id}?permanent=true`,
+        {
+          method: 'DELETE',
+          headers: { 'x-user-id': user?.id ?? '' },
+          credentials: 'include',
+        },
+      );
+      if (res.ok) {
+        toast.success(t('deleted'));
+        fetchCatalog();
+      }
+    } catch {
+      // silent
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -163,9 +214,10 @@ export function MidiCatalogTable() {
           className="h-10 rounded-md border border-bg-border bg-bg-surface px-3 text-sm text-text-primary"
         >
           <option value="">{t('filters.allCategories')}</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
+          {categories.map((c) => (
+            <option key={c.name} value={c.name}>
+              {t(`categories.${c.name}`)}
+              {c.isDisabled ? ` (${t('categoryDisabled')})` : ''}
             </option>
           ))}
         </select>
@@ -180,7 +232,7 @@ export function MidiCatalogTable() {
           <option value="">{t('filters.allDifficulties')}</option>
           {DIFFICULTIES.map((d) => (
             <option key={d} value={d}>
-              {d}
+              {t(`difficulties.${d}`)}
             </option>
           ))}
         </select>
@@ -251,7 +303,7 @@ export function MidiCatalogTable() {
                   <td className="px-4 py-3 font-medium text-text-primary">{item.title}</td>
                   <td className="px-4 py-3 text-text-secondary">{item.artist}</td>
                   <td className="px-4 py-3">
-                    <Badge variant="cyan">{item.category}</Badge>
+                    <Badge variant="cyan">{t(`categories.${item.category}`)}</Badge>
                   </td>
                   <td className="px-4 py-3">
                     <Badge
@@ -263,7 +315,7 @@ export function MidiCatalogTable() {
                             : 'yellow'
                       }
                     >
-                      {item.difficulty}
+                      {t(`difficulties.${item.difficulty}`)}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-text-secondary">
@@ -307,6 +359,15 @@ export function MidiCatalogTable() {
                           <Eye className="h-4 w-4" />
                         </a>
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setDeleteTarget(item)}
+                        title={t('actions.delete')}
+                      >
+                        <Trash2 className="h-4 w-4 text-accent-red" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -339,6 +400,32 @@ export function MidiCatalogTable() {
               {t('pagination.next')}
               <ChevronRight className="h-4 w-4" />
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="mx-4 w-full max-w-md rounded-lg border border-bg-border bg-bg-surface p-6">
+            <h3 className="text-lg font-semibold text-text-primary">{t('deleteConfirm.title')}</h3>
+            <p className="mt-2 text-sm text-text-muted">{t('deleteConfirm.message')}</p>
+            <p className="mt-2 text-sm font-medium text-text-secondary">
+              {deleteTarget.title} — {deleteTarget.artist}
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <Button variant="secondary" size="sm" onClick={() => setDeleteTarget(null)}>
+                {t('deleteConfirm.cancel')}
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                className="bg-accent-red hover:bg-accent-red/80"
+                onClick={handleDelete}
+              >
+                {t('deleteConfirm.confirm')}
+              </Button>
+            </div>
           </div>
         </div>
       )}
