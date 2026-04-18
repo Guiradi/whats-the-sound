@@ -13,6 +13,7 @@ import { roomsRoutes } from './routes/rooms.js';
 import { createXpRoutes } from './routes/xp.js';
 import { startDailyCron } from './services/daily-cron.js';
 import { createDailyService } from './services/daily-service.js';
+import { createXpService } from './services/xp-service.js';
 import { initSocketServer } from './socket/index.js';
 import type { TypedServer } from './socket/index.js';
 
@@ -49,7 +50,8 @@ async function main() {
   // Daily Sound routes + cron (only when Supabase is configured)
   if (env.SUPABASE_URL && env.SUPABASE_SECRET_KEY && env.DAILY_SEED) {
     const supabase = getSupabaseAdmin();
-    const dailyService = createDailyService(supabase, env.DAILY_SEED);
+    const xpService = createXpService(supabase);
+    const dailyService = createDailyService(supabase, env.DAILY_SEED, xpService);
     await server.register(createDailyRoutes(dailyService));
     startDailyCron(dailyService, server.log);
     server.log.info('Daily Sound routes and cron registered');

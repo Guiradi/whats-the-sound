@@ -11,9 +11,14 @@ import {
   GuessResult,
   type MidiCategory,
   WEEKDAY_CATEGORY,
+  XP_DAILY_CORRECT,
+  XP_DAILY_PARTICIPATION,
+  XP_STREAK_CAP,
+  XP_STREAK_MULTIPLIER,
   verifyDailyGuess,
 } from '@wts/shared';
 import { SupabaseMidiProvider } from './supabase-midi-provider.js';
+import type { XpService } from './xp-service.js';
 
 /**
  * Get today's date string in BRT (America/Sao_Paulo).
@@ -46,7 +51,11 @@ function getBRTWeekday(dateISO: string): number {
   return date.getDay();
 }
 
-export function createDailyService(supabase: SupabaseClient, dailySeed: string) {
+export function createDailyService(
+  supabase: SupabaseClient,
+  dailySeed: string,
+  xpService?: XpService,
+) {
   const midiProvider = new SupabaseMidiProvider(supabase);
 
   /**
@@ -277,6 +286,9 @@ export function createDailyService(supabase: SupabaseClient, dailySeed: string) 
       completed,
     };
 
+    const isFirstAttemptToday = !existing;
+    const justCompleted = completed && !existing?.completed;
+
     if (existing) {
       const { error } = await supabase
         .from('daily_results')
@@ -295,6 +307,51 @@ export function createDailyService(supabase: SupabaseClient, dailySeed: string) 
       const { error } = await supabase.from('daily_results').insert(resultRow);
       if (error) {
         throw new Error(`Failed to insert daily_results: ${error.message}`);
+      }
+    }
+
+    // Award XP — requires xpService (skipped when Supabase is not configured in tests).
+    // Idempotent via source_ref; guest/unknown users are filtered inside xp-service.
+    if (xpService) {
+      if (justCompleted) {
+        if (isCorrect) {
+          await xpService.awardXp({
+            userId,
+            source: 'daily_correct',
+            sourceRef: `daily_correct_${dateISO}_${userId}`,
+            amount: XP_DAILY_CORRECT[phase] ?? 0,
+            context: { phase, date: dateISO },
+          });
+        } else {
+          await xpService.awardXp({
+            userId,
+            source: 'daily_participation',
+            sourceRef: `daily_participation_${dateISO}_${userId}`,
+            amount: XP_DAILY_PARTICIPATION,
+            context: { date: dateISO },
+          });
+        }
+      }
+
+      // Streak bonus: only fires on the first attempt of the day, when the INSERT
+      // trigger has just bumped `users.daily_streak`. Skipped on subsequent
+      // guesses of the same day (UPDATE doesn't re-trigger the streak function).
+      if (isFirstAttemptToday) {
+        const { data: streakRow } = await supabase
+          .from('users')
+          .select('daily_streak')
+          .eq('id', userId)
+          .maybeSingle();
+        const newStreak = (streakRow as { daily_streak: number } | null)?.daily_streak ?? 0;
+        if (newStreak >= 2) {
+          await xpService.awardXp({
+            userId,
+            source: 'daily_streak_bonus',
+            sourceRef: `daily_streak_${dateISO}_${userId}`,
+            amount: XP_STREAK_MULTIPLIER * Math.min(newStreak, XP_STREAK_CAP),
+            context: { streak: newStreak, date: dateISO },
+          });
+        }
       }
     }
 
