@@ -509,14 +509,27 @@
     },
     "result": {
       "correct": "Got it in Phase {phase}!",
-      "wrong": "Better luck next time..."
+      "wrong": "Better luck next time...",
+      "streak": "{count, plural, one {# day streak} other {# days streak}} 🔥",
+      "actions": {
+        "title": "What's next?",
+        "history": "View history",
+        "multiplayer": "Play with friends",
+        "home": "Back to home",
+        "profile": "My profile"
+      }
     },
     "share": {
-      "button": "Share result",
+      "title": "Share result",
       "correct": "Got it in Phase {phase}!",
       "wrong": "Didn't get it today...",
       "copied": "Result copied!",
-      "error": "Failed to share"
+      "error": "Failed to share",
+      "native": "Share",
+      "copy": "Copy text",
+      "whatsapp": "WhatsApp",
+      "twitter": "X (Twitter)",
+      "telegram": "Telegram"
     }
   },
   "dailyHistory": {

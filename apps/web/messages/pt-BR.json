@@ -511,14 +511,27 @@
     },
     "result": {
       "correct": "Acertou na Fase {phase}!",
-      "wrong": "Não foi desta vez..."
+      "wrong": "Não foi desta vez...",
+      "streak": "{count, plural, one {# dia seguido} other {# dias seguidos}} 🔥",
+      "actions": {
+        "title": "E agora?",
+        "history": "Ver histórico",
+        "multiplayer": "Jogar com amigos",
+        "home": "Voltar ao início",
+        "profile": "Meu perfil"
+      }
     },
     "share": {
-      "button": "Compartilhar resultado",
+      "title": "Compartilhar resultado",
       "correct": "Acertei na Fase {phase}!",
       "wrong": "Não acertei hoje...",
       "copied": "Resultado copiado!",
-      "error": "Erro ao compartilhar"
+      "error": "Erro ao compartilhar",
+      "native": "Compartilhar",
+      "copy": "Copiar texto",
+      "whatsapp": "WhatsApp",
+      "twitter": "X (Twitter)",
+      "telegram": "Telegram"
     }
   },
   "dailyHistory": {

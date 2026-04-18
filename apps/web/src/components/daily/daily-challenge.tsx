@@ -19,7 +19,7 @@ export function DailyChallenge() {
   const t = useTranslations('daily');
   const { user, isGuest } = useAuth();
   const userId = user?.id ?? null;
-  const { state, isLoading, error, submitGuess, revealedTitle, revealedArtist } = useDaily({
+  const { state, isLoading, error, submitGuess, revealedTitle, revealedArtist, streak } = useDaily({
     userId,
   });
   const player = useMidiPlayer();
@@ -130,6 +130,8 @@ export function DailyChallenge() {
         phaseGuessed={state.isCorrect ? state.currentPhase : null}
         title={revealedTitle}
         artist={revealedArtist}
+        currentStreak={streak?.currentStreak ?? null}
+        isLoggedIn={!isGuest && !!userId}
       />
     );
   }

@@ -10,6 +10,11 @@ interface UseDailyOptions {
   userId: string | null;
 }
 
+interface DailyStreak {
+  currentStreak: number;
+  maxStreak: number;
+}
+
 interface UseDailyReturn {
   state: DailyState | null;
   isLoading: boolean;
@@ -19,6 +24,8 @@ interface UseDailyReturn {
   revealedTitle: string | null;
   /** Artist revealed after completion */
   revealedArtist: string | null;
+  /** Streak info (available after completion for logged-in users) */
+  streak: DailyStreak | null;
 }
 
 export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
@@ -27,7 +34,28 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
   const [error, setError] = useState<string | null>(null);
   const [revealedTitle, setRevealedTitle] = useState<string | null>(null);
   const [revealedArtist, setRevealedArtist] = useState<string | null>(null);
+  const [streak, setStreak] = useState<DailyStreak | null>(null);
   const fetchedRef = useRef(false);
+
+  const fetchResult = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/daily/result`, {
+        headers: { 'x-user-id': userId },
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        title?: string;
+        artist?: string;
+        streak?: DailyStreak;
+      };
+      if (data.title) setRevealedTitle(data.title);
+      if (data.artist) setRevealedArtist(data.artist);
+      if (data.streak) setStreak(data.streak);
+    } catch {
+      // Non-fatal — UI shows result without streak
+    }
+  }, [userId]);
 
   // Fetch today's daily state
   useEffect(() => {
@@ -52,15 +80,7 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
 
         // If already completed, try to fetch the revealed result
         if (data.completed && userId) {
-          const resultRes = await fetch(`${API_BASE}/api/daily/result`, { headers });
-          if (resultRes.ok) {
-            const resultData = (await resultRes.json()) as {
-              title?: string;
-              artist?: string;
-            };
-            if (resultData.title) setRevealedTitle(resultData.title);
-            if (resultData.artist) setRevealedArtist(resultData.artist);
-          }
+          await fetchResult();
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load daily');
@@ -70,7 +90,7 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
     }
 
     load();
-  }, [userId]);
+  }, [userId, fetchResult]);
 
   const submitGuess = useCallback(
     async (guess: string): Promise<DailyGuessResponse | null> => {
@@ -119,6 +139,8 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
         if (data.completed && data.title) {
           setRevealedTitle(data.title);
           setRevealedArtist(data.artist ?? null);
+          // Fetch streak info (server updates daily_streak on completion)
+          fetchResult();
         }
 
         return data;
@@ -127,7 +149,7 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
         return null;
       }
     },
-    [state, userId],
+    [state, userId, fetchResult],
   );
 
   return {
@@ -137,5 +159,6 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
     submitGuess,
     revealedTitle,
     revealedArtist,
+    streak,
   };
 }
