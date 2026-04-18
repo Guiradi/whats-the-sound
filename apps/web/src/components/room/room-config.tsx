@@ -1,17 +1,18 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { env } from '@/env';
 import { MidiCategory } from '@wts/shared';
 import type { RoomConfig } from '@wts/shared';
 import { useTranslations } from 'next-intl';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface RoomConfigFormProps {
   onSubmit: (config: RoomConfig) => void;
   isLoading?: boolean;
 }
 
-const CATEGORIES: Array<MidiCategory | 'random'> = ['random', ...Object.values(MidiCategory)];
+const ALL_CATEGORIES: Array<MidiCategory | 'random'> = ['random', ...Object.values(MidiCategory)];
 
 const ROUND_OPTIONS = [5, 10, 15] as const;
 const TIME_OPTIONS = [15, 20, 30] as const;
@@ -23,6 +24,20 @@ export function RoomConfigForm({ onSubmit, isLoading }: RoomConfigFormProps) {
   const [timePerPhaseSec, setTimePerPhaseSec] = useState<15 | 20 | 30>(20);
   const [maxPlayers, setMaxPlayers] = useState(8);
   const [isPublic, setIsPublic] = useState(true);
+  const [disabledCategories, setDisabledCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/admin/disabled-categories`)
+      .then((res) => (res.ok ? res.json() : { disabledCategories: [] }))
+      .then((data: { disabledCategories: string[] }) =>
+        setDisabledCategories(data.disabledCategories),
+      )
+      .catch(() => {});
+  }, []);
+
+  const categories = ALL_CATEGORIES.filter(
+    (cat) => cat === 'random' || !disabledCategories.includes(cat),
+  );
 
   const handleSubmit = useCallback(() => {
     onSubmit({ category, maxRounds, timePerPhaseSec, maxPlayers, isPublic });
@@ -43,7 +58,7 @@ export function RoomConfigForm({ onSubmit, isLoading }: RoomConfigFormProps) {
           onChange={(e) => setCategory(e.target.value as MidiCategory | 'random')}
           className="h-10 w-full rounded-md border border-bg-border bg-bg-surface px-3 text-sm text-text-primary focus-visible:border-accent-cyan focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-cyan"
         >
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <option key={cat} value={cat}>
               {t(`categories.${cat}`)}
             </option>

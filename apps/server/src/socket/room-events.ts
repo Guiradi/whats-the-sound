@@ -70,6 +70,7 @@ function makeServerPlayer(
     joinedAt: new Date().toISOString(),
     socketId: socket.id,
     level: socket.data.isGuest ? null : (socket.data.level ?? null),
+    isReady: false,
   };
 }
 
@@ -160,6 +161,15 @@ export function registerRoomEvents(
       io.to(`room:${code}`).emit('room:state', roomManager.toSnapshot(room));
     } catch (err) {
       emitError(socket, 'JOIN_FAILED', err instanceof Error ? err.message : 'Failed to join room');
+    }
+  });
+
+  socket.on('player:ready', (ready: boolean) => {
+    const roomCode = socket.data.roomCode;
+    if (!roomCode) return;
+    const room = roomManager.setPlayerReady(roomCode, socket.data.userId, ready);
+    if (room) {
+      io.to(`room:${roomCode}`).emit('room:state', roomManager.toSnapshot(room));
     }
   });
 

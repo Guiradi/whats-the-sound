@@ -5,7 +5,6 @@ import { env } from '../env.js';
 import { getSupabaseAdmin } from '../lib/supabase.js';
 import { SocketRateLimiter } from '../middleware/rate-limiter.js';
 import { createGameLoop } from '../services/game-loop.js';
-import { StubMidiProvider } from '../services/midi-provider.js';
 import { SupabaseMidiProvider } from '../services/supabase-midi-provider.js';
 import { createAuthMiddleware } from './auth-middleware.js';
 import { registerGameEvents } from './game-events.js';
@@ -39,7 +38,12 @@ export function initSocketServer(server: FastifyInstance): TypedServer {
   io.use(createAuthMiddleware(getSupabase()));
 
   const supabase = getSupabase();
-  const midiProvider = supabase ? new SupabaseMidiProvider(supabase) : new StubMidiProvider();
+  if (!supabase) {
+    throw new Error(
+      'Supabase is required for the game server. Set SUPABASE_URL and SUPABASE_SECRET_KEY.',
+    );
+  }
+  const midiProvider = new SupabaseMidiProvider(supabase);
   const gameLoop = createGameLoop(io, midiProvider);
   const rateLimiter = new SocketRateLimiter();
 

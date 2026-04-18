@@ -10,8 +10,7 @@
     "start:local": "node --env-file=.env.local dist/index.js",
     "lint": "biome check src",
     "type-check": "tsc --noEmit",
-    "smoke:db": "tsx --env-file=.env.local scripts/smoke-db.ts",
-    "smoke:sprint3": "tsx scripts/smoke-sprint3.ts"
+    "smoke:db": "tsx --env-file=.env.local scripts/smoke-db.ts"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.2",

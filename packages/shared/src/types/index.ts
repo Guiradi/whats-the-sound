@@ -48,6 +48,7 @@ export interface RoomPlayer {
   connected: boolean;
   joinedAt: string;
   level: number | null;
+  isReady: boolean;
 }
 
 export interface RoundSnapshot {
@@ -195,6 +196,7 @@ export interface ClientToServerEvents {
   'room:create': (config: RoomConfig, ack: (payload: { code: string }) => void) => void;
   'room:join': (payload: { code: string; nickname?: string }) => void;
   'room:leave': () => void;
+  'player:ready': (ready: boolean) => void;
   'chat:send': (text: string) => void;
   'game:guess': (guess: string) => void;
   'game:start': () => void;

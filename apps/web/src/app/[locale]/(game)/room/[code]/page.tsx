@@ -33,6 +33,7 @@ export default function RoomPage({
     myId,
     phaseStart,
     roundReveal,
+    toggleReady,
     startGame,
     leaveRoom,
     sendChat,
@@ -101,6 +102,8 @@ export default function RoomPage({
       <RoomLobby
         snapshot={snapshot}
         isHost={isHost}
+        myId={myId}
+        onToggleReady={toggleReady}
         onStartGame={startGame}
         onLeave={handleLeave}
       />

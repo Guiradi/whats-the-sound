@@ -1,7 +1,7 @@
 'use client';
 
 import { AudioVisualizer } from '@/components/audio/audio-visualizer';
-import { StartAudioOverlay } from '@/components/audio/start-audio-overlay';
+import { AudioUnlockBanner } from '@/components/audio/audio-unlock-banner';
 import { DailyResult } from '@/components/daily/daily-result';
 import { PhaseAttempts } from '@/components/daily/phase-attempts';
 import { Button } from '@/components/ui/button';
@@ -133,7 +133,7 @@ export function DailyChallenge() {
   // Playing state
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6 p-4">
-      <StartAudioOverlay />
+      <AudioUnlockBanner />
 
       {/* Header */}
       <div className="text-center">

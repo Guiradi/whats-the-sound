@@ -165,6 +165,12 @@
       "subtitle": "Os navegadores precisam de um toque para liberar áudio. Toque aqui para habilitar o som.",
       "starting": "Iniciando áudio...",
       "error": "Não foi possível iniciar o áudio. Tente novamente."
+    },
+    "banner": {
+      "tapToUnlock": "Toque aqui para habilitar o áudio",
+      "starting": "Habilitando áudio...",
+      "ready": "Áudio pronto!",
+      "error": "Não foi possível iniciar o áudio. Tente novamente."
     }
   },
   "profile": {
@@ -260,8 +266,14 @@
       "configRounds": "{count} rodadas",
       "configTime": "{seconds}s por fase",
       "configPlayers": "Máx. {max}",
+      "ready": "Estou Pronto!",
+      "cancelReady": "Não Estou Pronto",
+      "readyBadge": "Pronto",
+      "notReadyBadge": "Não pronto",
+      "readyCount": "{ready}/{total} prontos",
       "start": "Iniciar Jogo",
       "needMorePlayers": "Aguardando mais jogadores...",
+      "waitingReady": "Aguardando todos ficarem prontos...",
       "waitingForHost": "Aguardando o host iniciar...",
       "leave": "Sair da sala"
     }
@@ -290,7 +302,8 @@
         "guessedCorrectly": "{nickname} acertou! (+{score} pts)",
         "hot": "{nickname} está quente! 🔥",
         "warm": "{nickname} está morno...",
-        "artistMatch": "{nickname} acertou o artista! Mas qual é a música?"
+        "artistMatch": "{nickname} acertou o artista! Mas qual é a música?",
+        "noSongsAvailable": "Sem músicas disponíveis para esta categoria. Tente outra!"
       }
     },
     "status": {
@@ -592,7 +605,11 @@
       "disabled": "Desativada",
       "enable": "Ativar",
       "disable": "Desativar",
-      "warning": "Sem músicas ativas nesta categoria"
+      "warning": "Sem músicas ativas nesta categoria",
+      "confirmDisableTitle": "Desativar categoria?",
+      "confirmDisableDescription": "Tem certeza que deseja desativar \"{category}\"? Jogadores não poderão selecionar esta categoria até que seja reativada.",
+      "confirmDisable": "Sim, desativar",
+      "cancel": "Cancelar"
     }
   },
   "adminCatalog": {

@@ -1,7 +1,8 @@
 'use client';
 
 import { AudioVisualizer } from '@/components/audio/audio-visualizer';
-import { StartAudioOverlay } from '@/components/audio/start-audio-overlay';
+import { AudioUnlockBanner } from '@/components/audio/audio-unlock-banner';
+import { useAudioContext } from '@/lib/midi/audio-context';
 import { ChatInput } from '@/components/game/chat-input';
 import { GameChat } from '@/components/game/game-chat';
 import { GameTimer } from '@/components/game/game-timer';
@@ -51,6 +52,7 @@ export function GameBoard({
   const t = useTranslations('game');
   const gameState = useGameState(snapshot, myId);
   const midiPlayer = useMidiPlayer();
+  const { isReady: audioReady } = useAudioContext();
   const currentMidiUrlRef = useRef<string | null>(null);
 
   // Load MIDI and play when phase:start fires
@@ -106,7 +108,12 @@ export function GameBoard({
 
   return (
     <div className="flex h-dvh flex-col lg:flex-row">
-      <StartAudioOverlay />
+      {/* Inline fallback if audio wasn't unlocked in the lobby (e.g. reconnection) */}
+      {!audioReady && (
+        <div className="absolute left-1/2 top-4 z-50 w-full max-w-sm -translate-x-1/2 px-4">
+          <AudioUnlockBanner />
+        </div>
+      )}
 
       {/* Left sidebar — Players (desktop) */}
       <aside className="hidden w-60 shrink-0 overflow-y-auto border-r border-bg-border p-3 lg:block xl:w-72">

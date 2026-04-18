@@ -48,6 +48,7 @@ function playerToWire(p: ServerPlayer): RoomPlayer {
     connected: p.connected,
     joinedAt: p.joinedAt,
     level: p.level,
+    isReady: p.isReady,
   };
 }
 
@@ -265,6 +266,24 @@ export function disconnectPlayer(code: string, playerId: string, onGraceExpired:
   player.disconnectTimer = setTimeout(() => {
     onGraceExpired();
   }, PLAYER_DISCONNECT_GRACE_MS);
+}
+
+export function setPlayerReady(code: string, playerId: string, ready: boolean): ServerRoomState | undefined {
+  const room = rooms.get(code);
+  if (!room) return undefined;
+  const player = room.players.get(playerId);
+  if (!player) return undefined;
+  player.isReady = ready;
+  room.version++;
+  return room;
+}
+
+export function resetAllReady(code: string): void {
+  const room = rooms.get(code);
+  if (!room) return;
+  for (const player of room.players.values()) {
+    player.isReady = false;
+  }
 }
 
 export function addChatMessage(code: string, message: ChatMessage): void {

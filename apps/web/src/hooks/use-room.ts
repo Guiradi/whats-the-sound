@@ -37,6 +37,7 @@ interface UseRoomReturn {
   phaseStart: PhaseStartPayload | null;
   roundReveal: RoundRevealPayload | null;
   sendChat: (text: string) => void;
+  toggleReady: (ready: boolean) => void;
   startGame: () => void;
   leaveRoom: () => void;
   createRoom: (config: RoomConfig, onCreated: (code: string) => void) => void;
@@ -182,6 +183,10 @@ export function useRoom(code: string | null): UseRoomReturn {
     socketRef.current?.emit('chat:send', text);
   }, []);
 
+  const toggleReady = useCallback((ready: boolean) => {
+    socketRef.current?.emit('player:ready', ready);
+  }, []);
+
   const startGame = useCallback(() => {
     socketRef.current?.emit('game:start');
   }, []);
@@ -237,6 +242,7 @@ export function useRoom(code: string | null): UseRoomReturn {
     phaseStart,
     roundReveal,
     sendChat,
+    toggleReady,
     startGame,
     leaveRoom,
     createRoom,

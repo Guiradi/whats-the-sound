@@ -165,6 +165,12 @@
       "subtitle": "Browsers require a tap to unlock audio. Tap here to enable sound.",
       "starting": "Starting audio...",
       "error": "Could not start audio. Try again."
+    },
+    "banner": {
+      "tapToUnlock": "Tap here to enable audio",
+      "starting": "Enabling audio...",
+      "ready": "Audio ready!",
+      "error": "Could not start audio. Try again."
     }
   },
   "profile": {
@@ -260,8 +266,14 @@
       "configRounds": "{count} rounds",
       "configTime": "{seconds}s per phase",
       "configPlayers": "Max {max}",
+      "ready": "I'm Ready!",
+      "cancelReady": "Not Ready",
+      "readyBadge": "Ready",
+      "notReadyBadge": "Not ready",
+      "readyCount": "{ready}/{total} ready",
       "start": "Start Game",
       "needMorePlayers": "Waiting for more players...",
+      "waitingReady": "Waiting for everyone to be ready...",
       "waitingForHost": "Waiting for host to start...",
       "leave": "Leave room"
     }
@@ -290,7 +302,8 @@
         "guessedCorrectly": "{nickname} guessed correctly! (+{score} pts)",
         "hot": "{nickname} is getting hot! 🔥",
         "warm": "{nickname} is warm...",
-        "artistMatch": "{nickname} got the artist right! But what's the song?"
+        "artistMatch": "{nickname} got the artist right! But what's the song?",
+        "noSongsAvailable": "No songs available for this category. Try another one!"
       }
     },
     "status": {
@@ -590,7 +603,11 @@
       "disabled": "Disabled",
       "enable": "Enable",
       "disable": "Disable",
-      "warning": "No active songs in this category"
+      "warning": "No active songs in this category",
+      "confirmDisableTitle": "Disable category?",
+      "confirmDisableDescription": "Are you sure you want to disable \"{category}\"? Players won't be able to select this category until it's re-enabled.",
+      "confirmDisable": "Yes, disable",
+      "cancel": "Cancel"
     }
   },
   "adminCatalog": {

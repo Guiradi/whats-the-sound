@@ -21,6 +21,27 @@ async function requireAdminRole(
 export function createAdminRoutes(supabase: SupabaseClient) {
   return async function adminRoutes(server: FastifyInstance) {
     /**
+     * GET /api/admin/disabled-categories — Public endpoint returning disabled category slugs.
+     * Used by room creation form to filter out unavailable categories.
+     */
+    server.get('/api/admin/disabled-categories', async (_request, reply) => {
+      try {
+        const { data } = await supabase
+          .from('admin_config')
+          .select('value')
+          .eq('key', 'disabled_categories')
+          .maybeSingle();
+
+        return { disabledCategories: (data?.value ?? []) as string[] };
+      } catch (err) {
+        _request.log.error(err, 'Failed to fetch disabled categories');
+        return reply.status(500).send({
+          error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch disabled categories' },
+        });
+      }
+    });
+
+    /**
      * GET /api/admin/stats — Dashboard statistics.
      * Admin-only.
      */

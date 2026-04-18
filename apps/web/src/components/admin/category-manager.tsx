@@ -3,6 +3,14 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { env } from '@/env';
 import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
@@ -24,6 +32,10 @@ export function CategoryManager() {
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [togglingCategory, setTogglingCategory] = useState<string | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<{
+    category: string;
+    currentlyDisabled: boolean;
+  } | null>(null);
 
   const fetchCategories = useCallback(async () => {
     if (!user) return;
@@ -55,7 +67,7 @@ export function CategoryManager() {
         `${env.NEXT_PUBLIC_SERVER_URL}/api/admin/categories/${category}/${action}`,
         {
           method: 'PATCH',
-          headers: { 'x-user-id': user.id, 'Content-Type': 'application/json' },
+          headers: { 'x-user-id': user.id },
           credentials: 'include',
         },
       );
@@ -68,6 +80,23 @@ export function CategoryManager() {
       // silently fail
     } finally {
       setTogglingCategory(null);
+    }
+  };
+
+  const handleToggleClick = (category: string, currentlyDisabled: boolean) => {
+    if (currentlyDisabled) {
+      // Re-enabling doesn't need confirmation
+      toggleCategory(category, currentlyDisabled);
+    } else {
+      // Disabling needs confirmation
+      setConfirmTarget({ category, currentlyDisabled });
+    }
+  };
+
+  const handleConfirm = () => {
+    if (confirmTarget) {
+      toggleCategory(confirmTarget.category, confirmTarget.currentlyDisabled);
+      setConfirmTarget(null);
     }
   };
 
@@ -128,7 +157,7 @@ export function CategoryManager() {
                 <Button
                   size="sm"
                   variant={cat.isDisabled ? 'secondary' : 'ghost'}
-                  onClick={() => toggleCategory(cat.name, cat.isDisabled)}
+                  onClick={() => handleToggleClick(cat.name, cat.isDisabled)}
                   disabled={isToggling}
                 >
                   {cat.isDisabled ? t('enable') : t('disable')}
@@ -138,6 +167,27 @@ export function CategoryManager() {
           })}
         </div>
       </CardHeader>
+
+      <Dialog open={!!confirmTarget} onOpenChange={(open) => !open && setConfirmTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('confirmDisableTitle')}</DialogTitle>
+            <DialogDescription>
+              {t('confirmDisableDescription', {
+                category: confirmTarget ? catT(confirmTarget.category as never) : '',
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setConfirmTarget(null)}>
+              {t('cancel')}
+            </Button>
+            <Button variant="danger" onClick={handleConfirm}>
+              {t('confirmDisable')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

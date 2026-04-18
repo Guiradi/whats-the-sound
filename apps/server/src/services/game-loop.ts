@@ -75,10 +75,11 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
       return 'INVALID_STATE';
     if (connectedPlayerCount(room) < MIN_PLAYERS_PER_ROOM) return 'NOT_ENOUGH_PLAYERS';
 
-    // Reset all player scores
+    // Reset all player scores and ready states
     for (const player of room.players.values()) {
       player.totalScore = 0;
       player.correctCount = 0;
+      player.isReady = false;
     }
 
     room.currentRoundIndex = 0;
@@ -90,6 +91,16 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
       .then((midis) => {
         const currentRoom = roomManager.getRoom(roomCode);
         if (!currentRoom) return;
+
+        if (midis.length === 0) {
+          const msg = makeBotMessage('bot.noSongsAvailable');
+          roomManager.addChatMessage(roomCode, msg);
+          io.to(`room:${roomCode}`).emit('chat:message', msg);
+          currentRoom.status = GameStatus.LOBBY;
+          currentRoom.version++;
+          broadcastState(io, currentRoom);
+          return;
+        }
 
         room.playlist = midis;
 
