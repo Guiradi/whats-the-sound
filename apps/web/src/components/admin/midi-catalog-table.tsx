@@ -137,23 +137,37 @@ export function MidiCatalogTable() {
   };
 
   const [deleteTarget, setDeleteTarget] = useState<CatalogItem | null>(null);
+  const [toggleTarget, setToggleTarget] = useState<CatalogItem | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const handleToggleActive = async (item: CatalogItem) => {
+  const handleToggleActive = async () => {
+    if (!toggleTarget) return;
+    setTogglingId(toggleTarget.id);
     try {
-      await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${item.id}`, {
+      const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${toggleTarget.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'x-user-id': user?.id ?? '' },
         credentials: 'include',
-        body: JSON.stringify({ isActive: !item.is_active }),
+        body: JSON.stringify({ isActive: !toggleTarget.is_active }),
       });
-      fetchCatalog();
+      if (res.ok) {
+        toast.success(toggleTarget.is_active ? t('deactivated') : t('activated'));
+        fetchCatalog();
+      } else {
+        toast.error(t('toggleError'));
+      }
     } catch {
-      // silent
+      toast.error(t('toggleError'));
+    } finally {
+      setTogglingId(null);
+      setToggleTarget(null);
     }
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    setDeleting(true);
     try {
       const res = await fetch(
         `${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${deleteTarget.id}?permanent=true`,
@@ -166,10 +180,13 @@ export function MidiCatalogTable() {
       if (res.ok) {
         toast.success(t('deleted'));
         fetchCatalog();
+      } else {
+        toast.error(t('deleteError'));
       }
     } catch {
-      // silent
+      toast.error(t('deleteError'));
     } finally {
+      setDeleting(false);
       setDeleteTarget(null);
     }
   };
@@ -339,11 +356,14 @@ export function MidiCatalogTable() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handleToggleActive(item)}
+                        className="h-8 w-8 cursor-pointer"
+                        onClick={() => setToggleTarget(item)}
+                        disabled={togglingId === item.id}
                         title={item.is_active ? t('actions.deactivate') : t('actions.activate')}
                       >
-                        {item.is_active ? (
+                        {togglingId === item.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : item.is_active ? (
                           <PowerOff className="h-4 w-4 text-accent-red" />
                         ) : (
                           <Power className="h-4 w-4 text-accent-green" />
@@ -362,8 +382,9 @@ export function MidiCatalogTable() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-8 w-8 cursor-pointer"
                         onClick={() => setDeleteTarget(item)}
+                        disabled={deleting && deleteTarget?.id === item.id}
                         title={t('actions.delete')}
                       >
                         <Trash2 className="h-4 w-4 text-accent-red" />
@@ -404,6 +425,56 @@ export function MidiCatalogTable() {
         </div>
       )}
 
+      {/* Toggle active confirmation dialog */}
+      {toggleTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="mx-4 w-full max-w-md rounded-lg border border-bg-border bg-bg-surface p-6">
+            <h3 className="text-lg font-semibold text-text-primary">
+              {toggleTarget.is_active
+                ? t('toggleConfirm.deactivateTitle')
+                : t('toggleConfirm.activateTitle')}
+            </h3>
+            <p className="mt-2 text-sm text-text-muted">
+              {toggleTarget.is_active
+                ? t('toggleConfirm.deactivateMessage')
+                : t('toggleConfirm.activateMessage')}
+            </p>
+            <p className="mt-2 text-sm font-medium text-text-secondary">
+              {toggleTarget.title} — {toggleTarget.artist}
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="cursor-pointer"
+                onClick={() => setToggleTarget(null)}
+              >
+                {t('toggleConfirm.cancel')}
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                className={cn(
+                  'cursor-pointer',
+                  toggleTarget.is_active
+                    ? 'bg-accent-red hover:bg-accent-red/80'
+                    : 'bg-accent-green hover:bg-accent-green/80',
+                )}
+                disabled={togglingId === toggleTarget.id}
+                onClick={handleToggleActive}
+              >
+                {togglingId === toggleTarget.id ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                {toggleTarget.is_active
+                  ? t('toggleConfirm.deactivateConfirm')
+                  : t('toggleConfirm.activateConfirm')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete confirmation dialog */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
@@ -414,15 +485,22 @@ export function MidiCatalogTable() {
               {deleteTarget.title} — {deleteTarget.artist}
             </p>
             <div className="mt-6 flex justify-end gap-3">
-              <Button variant="secondary" size="sm" onClick={() => setDeleteTarget(null)}>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="cursor-pointer"
+                onClick={() => setDeleteTarget(null)}
+              >
                 {t('deleteConfirm.cancel')}
               </Button>
               <Button
                 variant="primary"
                 size="sm"
-                className="bg-accent-red hover:bg-accent-red/80"
+                className="cursor-pointer bg-accent-red hover:bg-accent-red/80"
+                disabled={deleting}
                 onClick={handleDelete}
               >
+                {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {t('deleteConfirm.confirm')}
               </Button>
             </div>

@@ -1,4 +1,4 @@
-import { PHASE_SCORES, SIMULTANEOUS_ANSWER_WINDOW_MS } from '@wts/shared';
+import { ARTIST_MATCH_SCORE_RATIO, PHASE_SCORES, SIMULTANEOUS_ANSWER_WINDOW_MS } from '@wts/shared';
 
 type Phase = 1 | 2 | 3 | 4;
 
@@ -38,4 +38,29 @@ export function resolveGuessPosition(existingTimestamps: number[], newTimestamp:
   }
 
   return existingTimestamps.length + 1;
+}
+
+/**
+ * Score for guessing the artist correctly (partial credit).
+ * Awards ARTIST_MATCH_SCORE_RATIO of the full phase score.
+ */
+export function calculateArtistScore(phase: Phase, guessPosition: number): number {
+  return Math.floor(calculateScore(phase, guessPosition) * ARTIST_MATCH_SCORE_RATIO);
+}
+
+/**
+ * Score for guessing the title correctly.
+ * If the player already earned artist points, they get the remaining portion.
+ * If not, they get the full score (unchanged from before).
+ */
+export function calculateTitleScore(
+  phase: Phase,
+  guessPosition: number,
+  hasArtistMatch: boolean,
+): number {
+  const full = calculateScore(phase, guessPosition);
+  if (hasArtistMatch) {
+    return Math.ceil(full * (1 - ARTIST_MATCH_SCORE_RATIO));
+  }
+  return full;
 }

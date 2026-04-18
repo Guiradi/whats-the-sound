@@ -27,6 +27,7 @@ export function DailyChallenge() {
   const [lastFeedback, setLastFeedback] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [midiLoaded, setMidiLoaded] = useState(false);
+  const autoPlayedRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Load MIDI when state is available and not completed
@@ -38,10 +39,11 @@ export function DailyChallenge() {
     });
   }, [state, player, midiLoaded]);
 
-  // Auto-play current phase when MIDI is loaded
+  // Auto-play current phase ONCE when MIDI is first loaded
   useEffect(() => {
-    if (!midiLoaded || !state?.phaseAudioData || state.completed || player.isPlaying) return;
+    if (!midiLoaded || !state?.phaseAudioData || state.completed || autoPlayedRef.current) return;
 
+    autoPlayedRef.current = true;
     player.play(state.phaseAudioData);
   }, [midiLoaded, state, player]);
 

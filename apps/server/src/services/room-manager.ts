@@ -63,6 +63,7 @@ function roundToSnapshot(room: ServerRoomState): RoundSnapshot | null {
     phaseStartAt: r.phaseStartAt,
     phaseEndAt: r.phaseEndAt,
     correctPlayerIds: r.correctAnswers.map((a) => a.playerId),
+    artistMatchPlayerIds: r.artistMatchAnswers.map((a) => a.playerId),
     phaseAudioData: null, // Audio data is sent via phase:start, not snapshots
   };
 }

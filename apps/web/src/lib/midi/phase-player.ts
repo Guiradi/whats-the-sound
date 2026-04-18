@@ -55,10 +55,17 @@ export class PhasePlayer {
 
     const transport = Tone.getTransport();
     transport.bpm.value = midi.bpm;
+    transport.loop = false;
 
     const secondsPerBeat = 60 / midi.bpm;
     const phaseStartSec = phase.startBeat * secondsPerBeat;
     const phaseEndSec = phase.endBeat * secondsPerBeat;
+
+    // Count total notes for debug
+    let totalNotes = 0;
+    for (const track of midi.tracks) {
+      totalNotes += track.notes.length;
+    }
 
     const eventIds: number[] = [];
     let latestEnd = 0;
@@ -76,6 +83,12 @@ export class PhasePlayer {
     // If phase yielded zero notes, still resolve with an immediate end event.
     const endAt = Math.max(latestEnd, 0.1);
     this.scheduled = { eventIds, endAtSeconds: endAt, notes: noteCount };
+
+    console.debug(
+      `[PhasePlayer] bpm=${midi.bpm} phase=[${phase.startBeat},${phase.endBeat}] ` +
+        `window=[${phaseStartSec.toFixed(2)}s,${phaseEndSec.toFixed(2)}s] ` +
+        `notes=${noteCount}/${totalNotes} endAt=${endAt.toFixed(2)}s`,
+    );
 
     transport.position = 0;
     transport.start();

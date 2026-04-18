@@ -302,7 +302,7 @@
         "guessedCorrectly": "{nickname} guessed correctly! (+{score} pts)",
         "hot": "{nickname} is getting hot! 🔥",
         "warm": "{nickname} is warm...",
-        "artistMatch": "{nickname} got the artist right! But what's the song?",
+        "artistMatch": "{nickname} got the artist right! +{score} pts. But what's the song?",
         "noSongsAvailable": "No songs available for this category. Try another one!"
       }
     },
@@ -641,6 +641,15 @@
       "preview": "Preview",
       "delete": "Delete"
     },
+    "toggleConfirm": {
+      "deactivateTitle": "Deactivate song",
+      "deactivateMessage": "This song will no longer appear in games. You can reactivate it later.",
+      "deactivateConfirm": "Deactivate",
+      "activateTitle": "Activate song",
+      "activateMessage": "This song will be available in games again.",
+      "activateConfirm": "Activate",
+      "cancel": "Cancel"
+    },
     "deleteConfirm": {
       "title": "Delete song",
       "message": "Are you sure? This action cannot be undone and the MIDI file will be removed.",
@@ -648,6 +657,10 @@
       "cancel": "Cancel"
     },
     "deleted": "Song deleted successfully!",
+    "activated": "Song activated!",
+    "deactivated": "Song deactivated!",
+    "toggleError": "Failed to change song status.",
+    "deleteError": "Failed to delete song.",
     "breadcrumbCatalog": "Catalog",
     "categoryDisabled": "disabled",
     "categories": {

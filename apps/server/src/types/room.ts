@@ -15,6 +15,14 @@ export interface CorrectAnswer {
   score: number;
 }
 
+/** Artist match record — partial score awarded, player keeps guessing title. */
+export interface ArtistMatchAnswer {
+  playerId: string;
+  timestamp: number;
+  phase: 1 | 2 | 3 | 4;
+  score: number;
+}
+
 /** Server-side round state — holds the full MidiEntry (never sent to client). */
 export interface ServerRoundState {
   current: number;
@@ -24,6 +32,7 @@ export interface ServerRoundState {
   phaseStartAt: number;
   phaseEndAt: number;
   correctAnswers: CorrectAnswer[];
+  artistMatchAnswers: ArtistMatchAnswer[];
   phaseTimer: ReturnType<typeof setTimeout> | null;
   tickInterval: ReturnType<typeof setInterval> | null;
 }

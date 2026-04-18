@@ -57,6 +57,7 @@ export interface RoundSnapshot {
   phaseStartAt: number;
   phaseEndAt: number;
   correctPlayerIds: string[];
+  artistMatchPlayerIds: string[];
   phaseAudioData: PhaseConfig | null;
 }
 

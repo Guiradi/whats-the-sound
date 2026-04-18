@@ -65,7 +65,10 @@ function generateAcceptedVariations(original: string): string[] {
   add(noHyphens);
 
   // 6. Strip all non-alphanumeric (keep spaces)
-  const alphanumOnly = noHyphens.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+  const alphanumOnly = noHyphens
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   add(alphanumOnly);
 
   // 7. Without leading articles
@@ -672,7 +675,11 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
               onClick={() => {
                 const nextStep = STEPS[stepIndex + 1] as Step;
                 // Auto-generate accepted variations when entering answers step
-                if (nextStep === 'answers' && form.acceptedTitles.length <= 1 && !form.acceptedTitles[0]) {
+                if (
+                  nextStep === 'answers' &&
+                  form.acceptedTitles.length <= 1 &&
+                  !form.acceptedTitles[0]
+                ) {
                   updateForm({
                     acceptedTitles: generateAcceptedVariations(form.title),
                     acceptedArtists: generateAcceptedVariations(form.artist),

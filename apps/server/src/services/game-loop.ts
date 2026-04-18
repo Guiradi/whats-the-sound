@@ -2,11 +2,16 @@ import { randomUUID } from 'node:crypto';
 import { GameStatus, GuessResult, MIN_PLAYERS_PER_ROOM } from '@wts/shared';
 import type { ChatMessage } from '@wts/shared';
 import type { TypedServer } from '../socket/index.js';
-import type { CorrectAnswer, ServerRoomState, ServerRoundState } from '../types/room.js';
+import type {
+  ArtistMatchAnswer,
+  CorrectAnswer,
+  ServerRoomState,
+  ServerRoundState,
+} from '../types/room.js';
 import { verifyGuess } from './guess-verifier.js';
 import type { MidiProvider } from './midi-provider.js';
 import * as roomManager from './room-manager.js';
-import { calculateScore, resolveGuessPosition } from './scoring.js';
+import { calculateArtistScore, calculateTitleScore, resolveGuessPosition } from './scoring.js';
 
 const ROUND_START_COUNTDOWN_MS = 3000;
 const ROUND_END_DISPLAY_MS = 5000;
@@ -144,6 +149,7 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
       phaseStartAt: 0,
       phaseEndAt: 0,
       correctAnswers: [],
+      artistMatchAnswers: [],
       phaseTimer: null,
       tickInterval: null,
     };
@@ -318,7 +324,8 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
         const now = Date.now();
         const existingTimestamps = round.correctAnswers.map((a) => a.timestamp);
         const position = resolveGuessPosition(existingTimestamps, now);
-        const score = calculateScore(round.phase, position);
+        const hasArtistMatch = round.artistMatchAnswers.some((a) => a.playerId === playerId);
+        const score = calculateTitleScore(round.phase, position, hasArtistMatch);
 
         const answer: CorrectAnswer = {
           playerId,
@@ -360,11 +367,42 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
         break;
       }
       case GuessResult.ARTIST_MATCH: {
+        // Only award artist points once per player per round
+        if (round.artistMatchAnswers.some((a) => a.playerId === playerId)) {
+          // Already got artist — treat as a regular chat message
+          const dupMsg: ChatMessage = {
+            id: randomUUID(),
+            authorId: playerId,
+            text: guess,
+            kind: 'player',
+            at: Date.now(),
+          };
+          roomManager.addChatMessage(roomCode, dupMsg);
+          io.to(`room:${roomCode}`).emit('chat:message', dupMsg);
+          break;
+        }
+
+        const now = Date.now();
+        const existingArtistTimestamps = round.artistMatchAnswers.map((a) => a.timestamp);
+        const artistPosition = resolveGuessPosition(existingArtistTimestamps, now);
+        const artistScore = calculateArtistScore(round.phase, artistPosition);
+
+        const artistAnswer: ArtistMatchAnswer = {
+          playerId,
+          timestamp: now,
+          phase: round.phase,
+          score: artistScore,
+        };
+        round.artistMatchAnswers.push(artistAnswer);
+        player.totalScore += artistScore;
+        room.version++;
+
         const msg = makeBotMessage(
-          `bot.artistMatch:${JSON.stringify({ nickname: player.nickname })}`,
+          `bot.artistMatch:${JSON.stringify({ nickname: player.nickname, score: artistScore })}`,
         );
         roomManager.addChatMessage(roomCode, msg);
         io.to(`room:${roomCode}`).emit('chat:message', msg);
+        broadcastState(io, room);
         break;
       }
       case GuessResult.WRONG: {
