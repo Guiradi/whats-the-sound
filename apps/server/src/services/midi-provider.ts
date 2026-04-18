@@ -38,7 +38,9 @@ export class StubMidiProvider implements MidiProvider {
     // Shuffle using Fisher-Yates
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j]!, pool[i]!];
+      const temp = pool[i];
+      pool[i] = pool[j] as MidiEntry;
+      pool[j] = temp as MidiEntry;
     }
 
     return pool.slice(0, count);

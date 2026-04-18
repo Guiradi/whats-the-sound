@@ -62,12 +62,12 @@ export class SocketRateLimiter {
     }
 
     // Remove expired timestamps
-    while (timestamps.length > 0 && timestamps[0]! < cutoff) {
+    while (timestamps.length > 0 && (timestamps[0] ?? 0) < cutoff) {
       timestamps.shift();
     }
 
     if (timestamps.length >= limit) {
-      const oldestInWindow = timestamps[0]!;
+      const oldestInWindow = timestamps[0] ?? now;
       const retryAfterMs = oldestInWindow + windowMs - now;
       return { allowed: false, retryAfterMs: Math.max(retryAfterMs, 0) };
     }
@@ -86,7 +86,7 @@ export class SocketRateLimiter {
   private pruneMap(windows: Map<string, number[]>, now: number, windowMs: number): void {
     const cutoff = now - windowMs;
     for (const [key, timestamps] of windows) {
-      if (timestamps.length === 0 || timestamps[timestamps.length - 1]! < cutoff) {
+      if (timestamps.length === 0 || (timestamps[timestamps.length - 1] ?? 0) < cutoff) {
         windows.delete(key);
       }
     }

@@ -22,12 +22,12 @@ export function resolveGuessPosition(existingTimestamps: number[], newTimestamp:
 
   // Group by simultaneous window: if the new timestamp is within the window
   // of the last answer, they share the same position.
-  const lastTimestamp = existingTimestamps[existingTimestamps.length - 1]!;
+  const lastTimestamp = existingTimestamps[existingTimestamps.length - 1] ?? 0;
   if (newTimestamp - lastTimestamp <= SIMULTANEOUS_ANSWER_WINDOW_MS) {
     // Count how many players share the last position
     let samePositionCount = 0;
     for (let i = existingTimestamps.length - 1; i >= 0; i--) {
-      if (lastTimestamp - existingTimestamps[i]! <= SIMULTANEOUS_ANSWER_WINDOW_MS) {
+      if (lastTimestamp - (existingTimestamps[i] ?? 0) <= SIMULTANEOUS_ANSWER_WINDOW_MS) {
         samePositionCount++;
       } else {
         break;

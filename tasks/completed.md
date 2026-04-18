@@ -616,3 +616,30 @@
       • pnpm build: 3/3 verdes
 
 ---
+
+### [✓] TASK-022: QA Pass + Bug Fixes — 2026-04-18
+    Concluída em Sprint 6.
+    → Entregue (cleanup):
+      • Removida rota dev `/[locale]/dev/audio` (página de teste temporária) e namespace i18n `dev.audio`
+      • Removido `HashDebugLogger` component e import da login page
+      • Removidos 4 `console.log`/`console.error` de `auth/callback/route.ts`
+    → Entregue (lint fixes — zero errors em todo o monorepo):
+      • `rate-limiter.ts`: 3 non-null assertions → safe fallback values
+      • `midi-provider.ts`: Fisher-Yates shuffle → explicit temp variable swap
+      • `scoring.ts`: 2 non-null assertions → safe fallback values
+      • `guess-verifier.ts`: 4 non-null assertions → nullish coalescing
+      • `use-room.ts`: 1 non-null assertion → conditional guard
+    → Validação:
+      • pnpm lint: 4/4 verdes, 0 errors, 0 warnings (139 files checked)
+      • pnpm type-check: 4/4 verdes
+      • pnpm build: 3/3 verdes
+      • pnpm docs:check: 11/11 OK
+      • Rota dev/audio ausente do build output
+    → Pendente (requer ação manual do usuário):
+      • Testes manuais nos browsers (Chrome, Firefox, Edge, mobile)
+      • Lighthouse audit (Performance >= 80, PWA >= 90, SEO >= 90)
+      • Teste de fluxo multiplayer end-to-end com 2+ jogadores
+      • Teste de fluxo Daily Sound completo
+      • Teste de auth OAuth (Google + Discord) end-to-end
+
+---

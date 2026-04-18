@@ -166,34 +166,6 @@
       "error": "Não foi possível iniciar o áudio. Tente novamente."
     }
   },
-  "dev": {
-    "audio": {
-      "title": "Dev · Audio Engine",
-      "description": "Teste do MIDI engine. Carregue uma URL de .mid ou gere uma melodia de teste.",
-      "urlLabel": "URL do MIDI",
-      "urlPlaceholder": "/sample.mid",
-      "loadUrl": "Carregar URL",
-      "loadTestMelody": "Carregar melodia de teste (C major)",
-      "noMidi": "Nenhum MIDI carregado.",
-      "midiInfo": "BPM {bpm} · {duration}s · {tracks} tracks",
-      "tracksHeading": "Tracks",
-      "phaseHeading": "Fases",
-      "phase": "Fase {n}",
-      "phaseDescription": {
-        "1": "Primeiras 4 batidas, só track 0",
-        "2": "8 batidas, só track 0",
-        "3": "Todas as tracks, batidas 0-8",
-        "4": "Música completa"
-      },
-      "stop": "Parar",
-      "replay": "Repetir",
-      "progress": "Progresso",
-      "playing": "Tocando",
-      "idle": "Parado",
-      "loading": "Carregando MIDI...",
-      "error": "Erro: {message}"
-    }
-  },
   "profile": {
     "heading": "Perfil",
     "memberSince": "Membro desde {date}",

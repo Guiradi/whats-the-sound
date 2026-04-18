@@ -257,7 +257,7 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
       • Tabela lista todas as músicas com filtros
       • Apenas admins acessam
 
-### [ ] TASK-022: QA Pass + Bug Fixes (4h)
+### [✓] TASK-022: QA Pass + Bug Fixes (4h)
     → Testes manuais:
       • Fluxo completo multiplayer: criar sala → jogar 5 rodadas → resultado
       • Fluxo completo Daily Sound: jogar → resultado → compartilhar

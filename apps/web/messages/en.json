@@ -166,34 +166,6 @@
       "error": "Could not start audio. Try again."
     }
   },
-  "dev": {
-    "audio": {
-      "title": "Dev · Audio Engine",
-      "description": "MIDI engine smoke test. Load a .mid URL or generate a test melody.",
-      "urlLabel": "MIDI URL",
-      "urlPlaceholder": "/sample.mid",
-      "loadUrl": "Load URL",
-      "loadTestMelody": "Load test melody (C major)",
-      "noMidi": "No MIDI loaded.",
-      "midiInfo": "BPM {bpm} · {duration}s · {tracks} tracks",
-      "tracksHeading": "Tracks",
-      "phaseHeading": "Phases",
-      "phase": "Phase {n}",
-      "phaseDescription": {
-        "1": "First 4 beats, track 0 only",
-        "2": "8 beats, track 0 only",
-        "3": "All tracks, beats 0-8",
-        "4": "Full song"
-      },
-      "stop": "Stop",
-      "replay": "Replay",
-      "progress": "Progress",
-      "playing": "Playing",
-      "idle": "Idle",
-      "loading": "Loading MIDI...",
-      "error": "Error: {message}"
-    }
-  },
   "profile": {
     "heading": "Profile",
     "memberSince": "Member since {date}",

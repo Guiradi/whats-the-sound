@@ -1,4 +1,3 @@
-import { HashDebugLogger } from '@/components/auth/hash-debug-logger';
 import { LoginForm } from '@/components/auth/login-form';
 import { LocaleSwitcher } from '@/components/shared/locale-switcher';
 import type { Locale } from '@/i18n/config';
@@ -59,7 +58,6 @@ export default async function LoginPage({
               </div>
             ) : null}
             <LoginForm next={next} />
-            <HashDebugLogger />
           </div>
         </div>
       </main>

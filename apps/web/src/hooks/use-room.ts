@@ -138,7 +138,7 @@ export function useRoom(code: string | null): UseRoomReturn {
         setIsConnecting(false);
         // Join room on connect/reconnect
         const nickname = userRef.current ? undefined : guestRef.current?.nickname;
-        socket.emit('room:join', { code: code!, nickname });
+        if (code) socket.emit('room:join', { code, nickname });
       });
 
       socket.on('disconnect', () => {
