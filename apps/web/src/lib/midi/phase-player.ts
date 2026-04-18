@@ -60,6 +60,37 @@ export class PhasePlayer {
     const secondsPerBeat = 60 / midi.bpm;
     const phaseStartSec = phase.startBeat * secondsPerBeat;
     const phaseEndSec = phase.endBeat * secondsPerBeat;
+    return this.playWindow(midi, phaseStartSec, phaseEndSec, {
+      phaseLabel: `[${phase.startBeat},${phase.endBeat}]`,
+    });
+  }
+
+  playFull(midi: MidiData): PhasePlaybackSnapshot {
+    this.stop();
+
+    const transport = Tone.getTransport();
+    transport.bpm.value = midi.bpm;
+    transport.loop = false;
+
+    let lastEndSec = 0;
+    for (const track of midi.tracks) {
+      for (const note of track.notes) {
+        const noteEnd = note.time + note.duration;
+        if (noteEnd > lastEndSec) lastEndSec = noteEnd;
+      }
+    }
+    return this.playWindow(midi, 0, Math.max(lastEndSec, 0.1), {
+      phaseLabel: 'full',
+    });
+  }
+
+  private playWindow(
+    midi: MidiData,
+    phaseStartSec: number,
+    phaseEndSec: number,
+    meta: { phaseLabel: string },
+  ): PhasePlaybackSnapshot {
+    const transport = Tone.getTransport();
 
     // Count total notes for debug
     let totalNotes = 0;
@@ -85,7 +116,7 @@ export class PhasePlayer {
     this.scheduled = { eventIds, endAtSeconds: endAt, notes: noteCount };
 
     console.debug(
-      `[PhasePlayer] bpm=${midi.bpm} phase=[${phase.startBeat},${phase.endBeat}] ` +
+      `[PhasePlayer] bpm=${midi.bpm} phase=${meta.phaseLabel} ` +
         `window=[${phaseStartSec.toFixed(2)}s,${phaseEndSec.toFixed(2)}s] ` +
         `notes=${noteCount}/${totalNotes} endAt=${endAt.toFixed(2)}s`,
     );

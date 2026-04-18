@@ -20,7 +20,7 @@ import type { MidiProvider } from './midi-provider.js';
 import * as roomManager from './room-manager.js';
 
 const ROUND_START_COUNTDOWN_MS = 3000;
-const ROUND_END_DISPLAY_MS = 5000;
+const ROUND_END_DISPLAY_MS = 12000;
 
 type Phase = 1 | 2 | 3 | 4;
 

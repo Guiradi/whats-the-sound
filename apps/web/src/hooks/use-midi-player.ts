@@ -12,6 +12,7 @@ export interface UseMidiPlayer {
   loadMidi: (url: string) => Promise<void>;
   loadMidiFromBuffer: (buffer: ArrayBuffer) => void;
   play: (phase: PhaseConfig) => Promise<void>;
+  playFull: () => Promise<void>;
   stop: () => void;
   replay: () => Promise<void>;
   isPlaying: boolean;
@@ -99,6 +100,25 @@ export function useMidiPlayer(): UseMidiPlayer {
     await play(currentPhase);
   }, [currentPhase, play]);
 
+  const playFull = useCallback(async () => {
+    if (!isReady) {
+      throw new Error('Audio context not ready — call start() from the overlay first.');
+    }
+    const player = playerRef.current;
+    if (!player) {
+      throw new Error('Phase player not initialized yet.');
+    }
+    if (!midi) {
+      throw new Error('No MIDI loaded. Call loadMidi(url) first.');
+    }
+    setError(null);
+    setCurrentPhase(null);
+    player.playFull(midi);
+    setIsPlaying(true);
+    setProgress(0);
+    startProgressLoop();
+  }, [isReady, midi, startProgressLoop]);
+
   const resetForLoad = useCallback(() => {
     setError(null);
     playerRef.current?.stop();
@@ -161,6 +181,7 @@ export function useMidiPlayer(): UseMidiPlayer {
     loadMidi,
     loadMidiFromBuffer,
     play,
+    playFull,
     stop,
     replay,
     isPlaying,

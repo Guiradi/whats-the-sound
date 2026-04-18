@@ -75,12 +75,14 @@ export function GameBoard({
     handlePhaseStart(phaseStart);
   }, [phaseStart, midiPlayer]);
 
-  // Stop audio on round reveal
+  // Play the full MIDI on round reveal so players hear what the song was.
+  // Resetting currentMidiUrlRef ensures the next round reloads the MIDI.
   useEffect(() => {
-    if (roundReveal) {
-      midiPlayer.stop();
-      currentMidiUrlRef.current = null;
-    }
+    if (!roundReveal) return;
+    midiPlayer.playFull().catch(() => {
+      // Non-fatal: if audio context is not ready or MIDI missing, skip silently.
+    });
+    currentMidiUrlRef.current = null;
   }, [roundReveal, midiPlayer]);
 
   const playerNames = useMemo(() => {

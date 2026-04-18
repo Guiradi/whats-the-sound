@@ -66,7 +66,7 @@ export function DailyChallenge() {
       switch (result.result) {
         case GuessResult.CORRECT:
           setLastFeedback(t('feedback.correct'));
-          player.stop();
+          player.playFull().catch(() => {});
           break;
         case GuessResult.HOT:
           setLastFeedback(t('feedback.almost'));
@@ -84,7 +84,7 @@ export function DailyChallenge() {
             player.play(result.nextPhaseAudioData);
           }
           if (result.completed) {
-            player.stop();
+            player.playFull().catch(() => {});
           }
           break;
       }
