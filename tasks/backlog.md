@@ -274,7 +274,7 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
       • Ajustar responsividade se necessário
       • Otimizar assets (imagens, fonts)
 
-### [ ] TASK-023: Deploy Production (3h) — specs/technical/architecture.md
+### [→] TASK-023: Deploy Production (3h) — specs/technical/architecture.md
     → Frontend (Vercel):
       • Conectar repo GitHub → auto-deploy da branch main
       • Configurar variáveis de ambiente (production)

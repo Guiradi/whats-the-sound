@@ -643,3 +643,20 @@
       • Teste de auth OAuth (Google + Discord) end-to-end
 
 ---
+
+### [→] TASK-023: Deploy Production — 2026-04-18 (code-side prep)
+    Em progresso. Sprint 6.
+    → Entregue (configuração de deploy):
+      • `vercel.json` — framework nextjs, build command filtrado por @wts/web, output .next
+      • `apps/server/railway.json` — Nixpacks builder, build + start commands, healthcheck /health
+      • `apps/server/package.json` — split start script: `start` (production, no env file) + `start:local` (dev, with .env.local)
+    → Pendente (requer ação manual do usuário):
+      • **Vercel:** importar repo GitHub → configurar env vars (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_SERVER_URL apontando para domínio Railway) → configurar root directory como `apps/web` → deploy
+      • **Railway:** criar projeto → conectar repo → configurar env vars (SUPABASE_URL, SUPABASE_SECRET_KEY, DATABASE_URL, DAILY_SEED, CORS_ORIGINS com domínio Vercel, PORT=3001, NODE_ENV=production) → deploy
+      • **DNS:** configurar domínio customizado no Vercel
+      • **OAuth:** atualizar redirect URLs no Google Cloud Console e Discord Developer Portal para o domínio de produção
+      • **Admin:** executar `UPDATE public.users SET role='admin' WHERE nickname='seu-nickname'` no Supabase SQL Editor
+      • **Seed:** executar `pnpm seed:midis` com env vars de produção
+      • **Validação final:** site acessível, WebSocket funciona, OAuth funciona, PWA instalável, Lighthouse scores aceitáveis
+
+---
