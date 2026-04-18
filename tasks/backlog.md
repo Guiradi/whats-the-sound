@@ -232,7 +232,7 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
 
 ## Sprint 6 — Admin + QA + Deploy
 
-### [ ] TASK-021: Admin Panel — Catálogo MIDI (4h) — specs/features/06-midi-catalog.md
+### [✓] TASK-021: Admin Panel — Catálogo MIDI (4h) — specs/features/06-midi-catalog.md
     → Página /admin/catalog (protegida por role admin):
       • Tabela de músicas: título, artista, categoria, dificuldade, play_count, correct_rate
       • Filtros: categoria, dificuldade, search por título/artista

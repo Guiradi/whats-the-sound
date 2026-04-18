@@ -593,3 +593,26 @@
       • Build: 13.5 kB room page (includes results components)
 
 ---
+
+### [✓] TASK-021: Admin Panel — Catálogo MIDI — 2026-04-18
+    Concluída em Sprint 6. Spec: `specs/features/06-midi-catalog.md`.
+    → Entregue (backend REST API):
+      • `apps/server/src/routes/catalog.ts` — 6 endpoints admin-only:
+        - `GET /api/catalog` (list with filters: category, difficulty, search, pagination, sort)
+        - `GET /api/catalog/:id` (single entry)
+        - `POST /api/catalog` (create with Zod validation)
+        - `PATCH /api/catalog/:id` (partial update)
+        - `DELETE /api/catalog/:id` (soft-delete via is_active=false)
+        - `POST /api/catalog/upload` (upload .mid to Supabase Storage, returns public URL)
+      • Admin auth via `requireAdminRole()` — checks `users.role = 'admin'` via Supabase; returns 404 (not 403)
+    → Entregue (frontend):
+      • `/admin/catalog` — table page with filters, sort, pagination, action buttons
+      • `/admin/catalog/new` — 5-step creation wizard (upload → metadata → phases → answers → review)
+      • `/admin/catalog/[id]/edit` — edit mode with data pre-loading
+      • Components: `MidiCatalogTable`, `MidiUploadForm`
+    → Entregue (i18n): `adminCatalog.*` namespace in pt-BR + en
+    → Validação:
+      • pnpm type-check: 4/4 verdes
+      • pnpm build: 3/3 verdes
+
+---

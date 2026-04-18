@@ -17,7 +17,11 @@
     "dailyTitle": "Daily Sound — What's the Sound?",
     "dailyDescription": "Today's music challenge. Listen to the MIDI and guess the song!",
     "dailyHistoryTitle": "Daily History — What's the Sound?",
-    "dailyHistoryDescription": "Your daily challenge history."
+    "dailyHistoryDescription": "Your daily challenge history.",
+    "adminCatalogTitle": "MIDI Catalog — What's the Sound?",
+    "adminCatalogDescription": "MIDI song catalog management.",
+    "adminCatalogNewTitle": "New Song — What's the Sound?",
+    "adminCatalogNewDescription": "Add a new song to the catalog."
   },
   "common": {
     "actions": {
@@ -572,6 +576,96 @@
       "daily_correct": "Daily Sound correct",
       "daily_participation": "Daily Sound played",
       "daily_streak_bonus": "Streak bonus"
+    }
+  },
+  "adminCatalog": {
+    "heading": "MIDI Catalog",
+    "description": "Manage game songs.",
+    "addNew": "New Song",
+    "search": "Search by title or artist...",
+    "filters": {
+      "allCategories": "All categories",
+      "allDifficulties": "All difficulties",
+      "showInactive": "Show inactive"
+    },
+    "table": {
+      "title": "Title",
+      "artist": "Artist",
+      "category": "Category",
+      "difficulty": "Difficulty",
+      "playCount": "Plays",
+      "correctRate": "Correct rate",
+      "status": "Status",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "empty": "No songs found.",
+      "loading": "Loading catalog..."
+    },
+    "actions": {
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "preview": "Preview"
+    },
+    "form": {
+      "createTitle": "New Song",
+      "editTitle": "Edit Song",
+      "steps": {
+        "upload": "Upload",
+        "metadata": "Metadata",
+        "phases": "Phases",
+        "answers": "Answers",
+        "review": "Review"
+      },
+      "upload": {
+        "label": "MIDI File",
+        "hint": "Drag a .mid file or click to select",
+        "uploading": "Uploading...",
+        "uploaded": "File uploaded"
+      },
+      "metadata": {
+        "title": "Title",
+        "artist": "Artist",
+        "category": "Category",
+        "difficulty": "Difficulty",
+        "year": "Year",
+        "yearPlaceholder": "e.g. 1985"
+      },
+      "phases": {
+        "heading": "Phase Configuration",
+        "description": "Define which tracks and beats play in each phase.",
+        "tracks": "Tracks",
+        "startBeat": "Start beat",
+        "endBeat": "End beat",
+        "phaseDescription": "Description",
+        "preview": "Preview"
+      },
+      "answers": {
+        "heading": "Accepted Answers",
+        "titlesLabel": "Accepted titles",
+        "titlesHint": "Title variations (e.g. 'Bohemian Rhapsody', 'bohemian rapsody')",
+        "artistsLabel": "Accepted artists",
+        "artistsHint": "Artist variations (e.g. 'Queen', 'queen')",
+        "addAnswer": "Add",
+        "removeAnswer": "Remove"
+      },
+      "review": {
+        "heading": "Review",
+        "confirm": "All good? Check the data before saving."
+      },
+      "next": "Next",
+      "previous": "Previous",
+      "save": "Save",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "saved": "Song saved successfully!",
+      "saveError": "Failed to save song."
+    },
+    "pagination": {
+      "showing": "Showing {from}–{to} of {total}",
+      "previous": "Previous",
+      "next": "Next"
     }
   }
 }

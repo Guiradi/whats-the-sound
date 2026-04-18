@@ -17,7 +17,11 @@
     "dailyTitle": "Daily Sound — What's the Sound?",
     "dailyDescription": "Desafio musical do dia. Ouça o MIDI e adivinhe a música!",
     "dailyHistoryTitle": "Histórico Daily — What's the Sound?",
-    "dailyHistoryDescription": "Seu histórico de desafios diários."
+    "dailyHistoryDescription": "Seu histórico de desafios diários.",
+    "adminCatalogTitle": "Catálogo MIDI — What's the Sound?",
+    "adminCatalogDescription": "Gerenciamento do catálogo de músicas MIDI.",
+    "adminCatalogNewTitle": "Nova Música — What's the Sound?",
+    "adminCatalogNewDescription": "Adicionar nova música ao catálogo."
   },
   "common": {
     "actions": {
@@ -574,6 +578,96 @@
       "daily_correct": "Daily Sound acertou",
       "daily_participation": "Daily Sound participou",
       "daily_streak_bonus": "Bônus de streak"
+    }
+  },
+  "adminCatalog": {
+    "heading": "Catálogo MIDI",
+    "description": "Gerencie as músicas do jogo.",
+    "addNew": "Nova Música",
+    "search": "Buscar por título ou artista...",
+    "filters": {
+      "allCategories": "Todas as categorias",
+      "allDifficulties": "Todas as dificuldades",
+      "showInactive": "Mostrar inativas"
+    },
+    "table": {
+      "title": "Título",
+      "artist": "Artista",
+      "category": "Categoria",
+      "difficulty": "Dificuldade",
+      "playCount": "Partidas",
+      "correctRate": "Taxa de acerto",
+      "status": "Status",
+      "actions": "Ações",
+      "active": "Ativa",
+      "inactive": "Inativa",
+      "empty": "Nenhuma música encontrada.",
+      "loading": "Carregando catálogo..."
+    },
+    "actions": {
+      "edit": "Editar",
+      "deactivate": "Desativar",
+      "activate": "Ativar",
+      "preview": "Preview"
+    },
+    "form": {
+      "createTitle": "Nova Música",
+      "editTitle": "Editar Música",
+      "steps": {
+        "upload": "Upload",
+        "metadata": "Metadados",
+        "phases": "Fases",
+        "answers": "Respostas",
+        "review": "Revisão"
+      },
+      "upload": {
+        "label": "Arquivo MIDI",
+        "hint": "Arraste um arquivo .mid ou clique para selecionar",
+        "uploading": "Enviando...",
+        "uploaded": "Arquivo enviado"
+      },
+      "metadata": {
+        "title": "Título",
+        "artist": "Artista",
+        "category": "Categoria",
+        "difficulty": "Dificuldade",
+        "year": "Ano",
+        "yearPlaceholder": "Ex: 1985"
+      },
+      "phases": {
+        "heading": "Configuração de Fases",
+        "description": "Defina quais tracks e beats tocam em cada fase.",
+        "tracks": "Tracks",
+        "startBeat": "Beat inicial",
+        "endBeat": "Beat final",
+        "phaseDescription": "Descrição",
+        "preview": "Preview"
+      },
+      "answers": {
+        "heading": "Respostas Aceitas",
+        "titlesLabel": "Títulos aceitos",
+        "titlesHint": "Variações do título (ex: 'Bohemian Rhapsody', 'bohemian rapsody')",
+        "artistsLabel": "Artistas aceitos",
+        "artistsHint": "Variações do artista (ex: 'Queen', 'queen')",
+        "addAnswer": "Adicionar",
+        "removeAnswer": "Remover"
+      },
+      "review": {
+        "heading": "Revisão",
+        "confirm": "Tudo certo? Confira os dados antes de salvar."
+      },
+      "next": "Próximo",
+      "previous": "Anterior",
+      "save": "Salvar",
+      "saving": "Salvando...",
+      "cancel": "Cancelar",
+      "saved": "Música salva com sucesso!",
+      "saveError": "Erro ao salvar música."
+    },
+    "pagination": {
+      "showing": "Mostrando {from}–{to} de {total}",
+      "previous": "Anterior",
+      "next": "Próximo"
     }
   }
 }

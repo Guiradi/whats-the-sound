@@ -5,6 +5,7 @@ import Fastify from 'fastify';
 import { env } from './env.js';
 import { getSupabaseAdmin } from './lib/supabase.js';
 import { registerErrorHandlers } from './middleware/error-handler.js';
+import { createCatalogRoutes } from './routes/catalog.js';
 import { createDailyRoutes } from './routes/daily.js';
 import { healthRoutes } from './routes/health.js';
 import { roomsRoutes } from './routes/rooms.js';
@@ -55,6 +56,10 @@ async function main() {
     // XP routes (requires Supabase)
     await server.register(createXpRoutes(supabase));
     server.log.info('XP routes registered');
+
+    // Catalog admin routes (requires Supabase)
+    await server.register(createCatalogRoutes(supabase));
+    server.log.info('Catalog admin routes registered');
   } else {
     server.log.warn(
       'Daily Sound disabled: missing SUPABASE_URL, SUPABASE_SECRET_KEY, or DAILY_SEED',

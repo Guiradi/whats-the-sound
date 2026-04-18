@@ -1,0 +1,354 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { MidiCategory, MidiDifficulty } from '@wts/shared';
+import type { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+
+const phaseConfigSchema = z.object({
+  tracks: z.array(z.number().int().min(0)),
+  startBeat: z.number().min(0),
+  endBeat: z.number().min(0),
+  description: z.string().max(200).default(''),
+});
+
+const phasesSchema = z.object({
+  phase1: phaseConfigSchema,
+  phase2: phaseConfigSchema,
+  phase3: phaseConfigSchema,
+  phase4: phaseConfigSchema,
+});
+
+const midiCategoryValues = Object.values(MidiCategory) as [string, ...string[]];
+const midiDifficultyValues = Object.values(MidiDifficulty) as [string, ...string[]];
+
+const createMidiSchema = z.object({
+  title: z.string().min(1).max(200),
+  artist: z.string().min(1).max(200),
+  category: z.enum(midiCategoryValues),
+  difficulty: z.enum(midiDifficultyValues),
+  year: z.number().int().min(1900).max(2030).nullable().optional(),
+  midiFileUrl: z.string().url(),
+  acceptedTitles: z.array(z.string().min(1)).min(1),
+  acceptedArtists: z.array(z.string().min(1)).min(1),
+  phases: phasesSchema,
+});
+
+const updateMidiSchema = createMidiSchema.partial().extend({
+  isActive: z.boolean().optional(),
+});
+
+const listQuerySchema = z.object({
+  category: z.enum(midiCategoryValues).optional(),
+  difficulty: z.enum(midiDifficultyValues).optional(),
+  search: z.string().max(200).optional(),
+  activeOnly: z
+    .enum(['true', 'false'])
+    .transform((v) => v === 'true')
+    .optional()
+    .default('true'),
+  limit: z.coerce.number().int().min(1).max(200).optional().default(50),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+  sortBy: z
+    .enum(['title', 'artist', 'category', 'difficulty', 'play_count', 'correct_rate', 'created_at'])
+    .optional()
+    .default('created_at'),
+  sortDir: z.enum(['asc', 'desc']).optional().default('desc'),
+});
+
+async function requireAdminRole(
+  supabase: SupabaseClient,
+  userId: string | undefined,
+): Promise<boolean> {
+  if (!userId) return false;
+  const { data } = await supabase.from('users').select('role').eq('id', userId).maybeSingle();
+  return data?.role === 'admin';
+}
+
+export function createCatalogRoutes(supabase: SupabaseClient) {
+  return async function catalogRoutes(server: FastifyInstance) {
+    /**
+     * GET /api/catalog — List MIDI catalog entries with filters.
+     * Admin-only.
+     */
+    server.get('/api/catalog', async (request, reply) => {
+      const userId = request.headers['x-user-id'] as string | undefined;
+      if (!(await requireAdminRole(supabase, userId))) {
+        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
+      }
+
+      const parsed = listQuerySchema.safeParse(request.query);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          error: {
+            code: 'BAD_REQUEST',
+            message: parsed.error.issues[0]?.message ?? 'Invalid query',
+          },
+        });
+      }
+
+      const { category, difficulty, search, activeOnly, limit, offset, sortBy, sortDir } =
+        parsed.data;
+
+      try {
+        let query = supabase.from('midi_catalog').select('*', { count: 'exact' });
+
+        if (activeOnly) {
+          query = query.eq('is_active', true);
+        }
+        if (category) {
+          query = query.eq('category', category);
+        }
+        if (difficulty) {
+          query = query.eq('difficulty', difficulty);
+        }
+        if (search) {
+          query = query.or(`title.ilike.%${search}%,artist.ilike.%${search}%`);
+        }
+
+        query = query.order(sortBy, { ascending: sortDir === 'asc' });
+        query = query.range(offset, offset + limit - 1);
+
+        const { data, error, count } = await query;
+
+        if (error) {
+          request.log.error(error, 'Failed to list catalog');
+          return reply.status(500).send({
+            error: { code: 'INTERNAL_ERROR', message: 'Failed to list catalog' },
+          });
+        }
+
+        return { items: data ?? [], total: count ?? 0 };
+      } catch (err) {
+        request.log.error(err, 'Failed to list catalog');
+        return reply.status(500).send({
+          error: { code: 'INTERNAL_ERROR', message: 'Failed to list catalog' },
+        });
+      }
+    });
+
+    /**
+     * GET /api/catalog/:id — Get a single MIDI entry.
+     * Admin-only.
+     */
+    server.get('/api/catalog/:id', async (request, reply) => {
+      const userId = request.headers['x-user-id'] as string | undefined;
+      if (!(await requireAdminRole(supabase, userId))) {
+        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
+      }
+
+      const { id } = request.params as { id: string };
+
+      try {
+        const { data, error } = await supabase
+          .from('midi_catalog')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (error) {
+          request.log.error(error, 'Failed to get catalog entry');
+          return reply.status(500).send({
+            error: { code: 'INTERNAL_ERROR', message: 'Failed to get catalog entry' },
+          });
+        }
+        if (!data) {
+          return reply.status(404).send({
+            error: { code: 'NOT_FOUND', message: 'MIDI not found' },
+          });
+        }
+
+        return data;
+      } catch (err) {
+        request.log.error(err, 'Failed to get catalog entry');
+        return reply.status(500).send({
+          error: { code: 'INTERNAL_ERROR', message: 'Failed to get catalog entry' },
+        });
+      }
+    });
+
+    /**
+     * POST /api/catalog — Create a new MIDI entry.
+     * Admin-only.
+     */
+    server.post('/api/catalog', async (request, reply) => {
+      const userId = request.headers['x-user-id'] as string | undefined;
+      if (!(await requireAdminRole(supabase, userId))) {
+        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
+      }
+
+      const parsed = createMidiSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          error: {
+            code: 'BAD_REQUEST',
+            message: parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '),
+          },
+        });
+      }
+
+      const { midiFileUrl, acceptedTitles, acceptedArtists, ...rest } = parsed.data;
+
+      try {
+        const { data, error } = await supabase
+          .from('midi_catalog')
+          .insert({
+            ...rest,
+            midi_file_url: midiFileUrl,
+            accepted_titles: acceptedTitles,
+            accepted_artists: acceptedArtists,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          request.log.error(error, 'Failed to create catalog entry');
+          return reply.status(500).send({
+            error: { code: 'INTERNAL_ERROR', message: 'Failed to create catalog entry' },
+          });
+        }
+
+        return reply.status(201).send(data);
+      } catch (err) {
+        request.log.error(err, 'Failed to create catalog entry');
+        return reply.status(500).send({
+          error: { code: 'INTERNAL_ERROR', message: 'Failed to create catalog entry' },
+        });
+      }
+    });
+
+    /**
+     * PATCH /api/catalog/:id — Update a MIDI entry.
+     * Admin-only.
+     */
+    server.patch('/api/catalog/:id', async (request, reply) => {
+      const userId = request.headers['x-user-id'] as string | undefined;
+      if (!(await requireAdminRole(supabase, userId))) {
+        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
+      }
+
+      const { id } = request.params as { id: string };
+
+      const parsed = updateMidiSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          error: {
+            code: 'BAD_REQUEST',
+            message: parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '),
+          },
+        });
+      }
+
+      const { midiFileUrl, acceptedTitles, acceptedArtists, isActive, ...rest } = parsed.data;
+
+      const updateData: Record<string, unknown> = { ...rest };
+      if (midiFileUrl !== undefined) updateData.midi_file_url = midiFileUrl;
+      if (acceptedTitles !== undefined) updateData.accepted_titles = acceptedTitles;
+      if (acceptedArtists !== undefined) updateData.accepted_artists = acceptedArtists;
+      if (isActive !== undefined) updateData.is_active = isActive;
+
+      try {
+        const { data, error } = await supabase
+          .from('midi_catalog')
+          .update(updateData)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) {
+          request.log.error(error, 'Failed to update catalog entry');
+          return reply.status(500).send({
+            error: { code: 'INTERNAL_ERROR', message: 'Failed to update catalog entry' },
+          });
+        }
+
+        return data;
+      } catch (err) {
+        request.log.error(err, 'Failed to update catalog entry');
+        return reply.status(500).send({
+          error: { code: 'INTERNAL_ERROR', message: 'Failed to update catalog entry' },
+        });
+      }
+    });
+
+    /**
+     * DELETE /api/catalog/:id — Soft-delete (deactivate) a MIDI entry.
+     * Admin-only.
+     */
+    server.delete('/api/catalog/:id', async (request, reply) => {
+      const userId = request.headers['x-user-id'] as string | undefined;
+      if (!(await requireAdminRole(supabase, userId))) {
+        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
+      }
+
+      const { id } = request.params as { id: string };
+
+      try {
+        const { data, error } = await supabase
+          .from('midi_catalog')
+          .update({ is_active: false })
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) {
+          request.log.error(error, 'Failed to deactivate catalog entry');
+          return reply.status(500).send({
+            error: { code: 'INTERNAL_ERROR', message: 'Failed to deactivate catalog entry' },
+          });
+        }
+
+        return data;
+      } catch (err) {
+        request.log.error(err, 'Failed to deactivate catalog entry');
+        return reply.status(500).send({
+          error: { code: 'INTERNAL_ERROR', message: 'Failed to deactivate catalog entry' },
+        });
+      }
+    });
+
+    /**
+     * POST /api/catalog/upload — Upload a MIDI file to Supabase Storage.
+     * Returns the public URL. Admin-only.
+     */
+    server.post('/api/catalog/upload', async (request, reply) => {
+      const userId = request.headers['x-user-id'] as string | undefined;
+      if (!(await requireAdminRole(supabase, userId))) {
+        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
+      }
+
+      try {
+        const body = request.body as { fileName: string; fileBase64: string };
+        if (!body.fileName || !body.fileBase64) {
+          return reply.status(400).send({
+            error: { code: 'BAD_REQUEST', message: 'fileName and fileBase64 are required' },
+          });
+        }
+
+        const buffer = Buffer.from(body.fileBase64, 'base64');
+        const filePath = `catalog/${Date.now()}-${body.fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('midis')
+          .upload(filePath, buffer, {
+            contentType: 'audio/midi',
+            upsert: false,
+          });
+
+        if (uploadError) {
+          request.log.error(uploadError, 'Failed to upload MIDI file');
+          return reply.status(500).send({
+            error: { code: 'INTERNAL_ERROR', message: 'Failed to upload file' },
+          });
+        }
+
+        const { data: urlData } = supabase.storage.from('midis').getPublicUrl(filePath);
+
+        return { url: urlData.publicUrl, path: filePath };
+      } catch (err) {
+        request.log.error(err, 'Failed to upload MIDI file');
+        return reply.status(500).send({
+          error: { code: 'INTERNAL_ERROR', message: 'Failed to upload file' },
+        });
+      }
+    });
+  };
+}
