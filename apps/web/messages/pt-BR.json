@@ -314,6 +314,7 @@
       "share": "Compartilhar resultado",
       "copied": "Copiado!",
       "playAgain": "Jogar novamente",
+      "needMorePlayers": "Aguardando jogadores...",
       "waitingForHost": "Aguardando o host..."
     }
   },

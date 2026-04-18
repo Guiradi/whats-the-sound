@@ -15,7 +15,10 @@ export function registerGameEvents(
   socket.on('game:start', () => {
     const roomCode = socket.data.roomCode;
     if (!roomCode) return;
-    gameLoop.startGame(roomCode, socket.data.userId);
+    const error = gameLoop.startGame(roomCode, socket.data.userId);
+    if (error) {
+      socket.emit('error:generic', { code: error, message: error });
+    }
   });
 
   socket.on('game:guess', (guess) => {

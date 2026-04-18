@@ -49,24 +49,24 @@ curl -s http://localhost:3001/rooms | jq .
 
 ### 1.1 Acesso e layout
 
-- [ ] Abrir `http://localhost:3000/pt-BR/rooms`
-- [ ] Heading "Salas" visível
-- [ ] Link "Voltar para a home" → redireciona pra `/pt-BR/`
-- [ ] Input de código (placeholder "CÓDIGO") + botão "Entrar"
-- [ ] Botão "Criar Sala" visível
+- [x] Abrir `http://localhost:3000/pt-BR/rooms`
+- [x] Heading "Salas" visível
+- [x] Link "Voltar para a home" → redireciona pra `/pt-BR/`
+- [x] Input de código (placeholder "CÓDIGO") + botão "Entrar"
+- [x] Botão "Criar Sala" visível
 
 ### 1.2 Join por código inválido
 
-- [ ] Digitar `AB` (2 chars) → clicar "Entrar"
-- [ ] Mensagem "Código deve ter 5 caracteres." aparece em vermelho
-- [ ] Digitar `ABCDE` → clicar "Entrar" → navega pra `/pt-BR/room/ABCDE`
-- [ ] Sala não existe → mostra "Conectando..." ou erro do socket
+- [x] Digitar `AB` (2 chars) → clicar "Entrar"
+- [x] Mensagem "Código deve ter 5 caracteres." aparece em vermelho
+- [x] Digitar `ABCDE` → clicar "Entrar" → navega pra `/pt-BR/room/ABCDE`
+- [x] Sala não existe → mostra "Conectando..." ou erro do socket
 
 ### 1.3 Lista de salas públicas
 
-- [ ] Heading "Salas públicas" visível
-- [ ] Se não há salas: "Nenhuma sala pública disponível. Crie uma!"
-- [ ] _(após criar sala na seção 2):_ sala aparece na lista com código, categoria, contagem de jogadores, botão "Entrar"
+- [x] Heading "Salas públicas" visível
+- [x] Se não há salas: "Nenhuma sala pública disponível. Crie uma!"
+- [x] _(após criar sala na seção 2):_ sala aparece na lista com código, categoria, contagem de jogadores, botão "Entrar"
 
 ---
 
@@ -74,41 +74,41 @@ curl -s http://localhost:3001/rooms | jq .
 
 ### 2.1 Dialog de criação
 
-- [ ] Na página `/rooms`, clicar "Criar Sala" → dialog abre
-- [ ] Dialog mostra: select de categoria, botões de rodadas (5/10/15), botões de tempo (15s/20s/30s), slider de max jogadores, checkbox "Sala pública"
-- [ ] Selecionar: categoria "Rock", 5 rodadas, 20s, 8 jogadores, público
-- [ ] Clicar "Criar Sala" → dialog fecha, redireciona pra `/pt-BR/room/XXXXX`
+- [x] Na página `/rooms`, clicar "Criar Sala" → dialog abre
+- [x] Dialog mostra: select de categoria, botões de rodadas (5/10/15), botões de tempo (15s/20s/30s), slider de max jogadores, checkbox "Sala pública"
+- [x] Selecionar: categoria "Rock", 5 rodadas, 20s, 8 jogadores, público
+- [x] Clicar "Criar Sala" → dialog fecha, redireciona pra `/pt-BR/room/XXXXX`
 
 ### 2.2 Lobby — host view
 
-- [ ] Código de 5 chars exibido grande no topo (font mono, cyan)
-- [ ] Botão "Copiar link" funciona → toast "Link copiado!"
-- [ ] Config summary: badges mostrando "Rock", "5 rodadas", "20s por fase", "Máx. 8"
-- [ ] Lista de jogadores mostra 1 jogador (você) com ícone de crown (host)
-- [ ] Botão "Iniciar Jogo" aparece **desabilitado** com texto "Aguardando mais jogadores..."
-- [ ] Botão "Sair da sala" visível
+- [x] Código de 5 chars exibido grande no topo (font mono, cyan)
+- [x] Botão "Copiar link" funciona → toast "Link copiado!"
+- [x] Config summary: badges mostrando "Rock", "5 rodadas", "20s por fase", "Máx. 8"
+- [x] Lista de jogadores mostra 1 jogador (você) com ícone de crown (host)
+- [x] Botão "Iniciar Jogo" aparece **desabilitado** com texto "Aguardando mais jogadores..."
+- [x] Botão "Sair da sala" visível
 
 ### 2.3 Segundo jogador entra
 
 Abrir **segunda aba** no browser (anônima ou diferente):
 
-- [ ] Ir pra `/pt-BR/rooms`
-- [ ] _(se sala é pública)_ Sala aparece na lista → clicar "Entrar"
-- [ ] **OU**: digitar o código de 5 chars no input → clicar "Entrar"
-- [ ] Segunda aba mostra lobby com 2 jogadores
-- [ ] Primeira aba atualiza: agora mostra 2 jogadores na lista
-- [ ] Segundo jogador **NÃO** vê botão "Iniciar" — vê "Aguardando o host iniciar..."
-- [ ] Botão "Iniciar Jogo" na aba do host agora está **habilitado**
+- [x] Ir pra `/pt-BR/rooms`
+- [x] _(se sala é pública)_ Sala aparece na lista → clicar "Entrar"
+- [x] **OU**: digitar o código de 5 chars no input → clicar "Entrar"
+- [x] Segunda aba mostra lobby com 2 jogadores
+- [x] Primeira aba atualiza: agora mostra 2 jogadores na lista
+- [x] Segundo jogador **NÃO** vê botão "Iniciar" — vê "Aguardando o host iniciar..."
+- [x] Botão "Iniciar Jogo" na aba do host agora está **habilitado**
 
 ### 2.4 Chat no lobby
 
-- [ ] _(em qualquer aba)_ Digitar mensagem no chat input → Enter → mensagem aparece nas duas abas
-- [ ] Mensagem mostra autor correto (nickname ou "You")
+- [x] _(em qualquer aba)_ Digitar mensagem no chat input → Enter → mensagem aparece nas duas abas
+- [x] Mensagem mostra autor correto (nickname ou "You")
 
 ### 2.5 Sair e host migration
 
-- [ ] _(na segunda aba)_ Clicar "Sair da sala" → volta pra `/rooms`
-- [ ] Primeira aba: lista volta a mostrar 1 jogador
+- [x] _(na segunda aba)_ Clicar "Sair da sala" → volta pra `/rooms`
+- [x] Primeira aba: lista volta a mostrar 1 jogador
 - [ ] _(opcional — se houver 3 jogadores)_ Host sai → crown migra pro jogador mais antigo
 
 ---
@@ -119,23 +119,23 @@ Abrir **segunda aba** no browser (anônima ou diferente):
 
 ### 3.1 Início do jogo
 
-- [ ] Host clica "Iniciar Jogo"
-- [ ] Ambas as abas mostram overlay de countdown "3, 2, 1, Vai!"
-- [ ] Após countdown: game board aparece com layout de 3 colunas (desktop)
+- [x] Host clica "Iniciar Jogo"
+- [x] Ambas as abas mostram overlay de countdown "3, 2, 1, Vai!"
+- [x] Após countdown: game board aparece com layout de 3 colunas (desktop)
 
 ### 3.2 Layout desktop (≥1024px)
 
-- [ ] **Coluna esquerda**: lista de jogadores com rank, avatar, nickname, score (0 no início)
-- [ ] **Centro**: header com "Rodada 1 de 5" + indicator de fase (4 dots, primeiro ativo) + barra de timer (cyan)
-- [ ] **Centro abaixo**: AudioVisualizer (barras cyan→magenta)
-- [ ] **Coluna direita**: Chat com heading "Chat" + input no bottom
+- [x] **Coluna esquerda**: lista de jogadores com rank, avatar, nickname, score (0 no início)
+- [x] **Centro**: header com "Rodada 1 de 5" + indicator de fase (4 dots, primeiro ativo) + barra de timer (cyan)
+- [x] **Centro abaixo**: AudioVisualizer (barras cyan→magenta)
+- [x] **Coluna direita**: Chat com heading "Chat" + input no bottom
 
 ### 3.3 Timer e fases
 
-- [ ] Timer conta regressiva de 20s (ou o valor configurado)
-- [ ] Timer muda de cor: cyan (>50%) → amarelo (20-50%) → vermelho (<20%, pulsando)
-- [ ] Ao chegar a 0: avança pra fase 2 automaticamente
-- [ ] Dots no phase indicator atualizam (2º dot fica cyan)
+- [x] Timer conta regressiva de 20s (ou o valor configurado)
+- [x] Timer muda de cor: cyan (>50%) → amarelo (20-50%) → vermelho (<20%, pulsando)
+- [x] Ao chegar a 0: avança pra fase 2 automaticamente
+- [x] Dots no phase indicator atualizam (2º dot fica cyan)
 - [ ] Após fase 4: overlay "round:reveal" mostra título + artista da música
 
 ### 3.4 Palpites (guesses)

@@ -58,7 +58,7 @@ function connectedPlayerCount(room: ServerRoomState): number {
 }
 
 export interface GameLoop {
-  startGame(roomCode: string, hostId: string): void;
+  startGame(roomCode: string, hostId: string): string | null;
   handleGuess(roomCode: string, playerId: string, guess: string): void;
   handleChat(roomCode: string, playerId: string, text: string): void;
 }
@@ -66,13 +66,13 @@ export interface GameLoop {
 export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): GameLoop {
   // ─── Start Game ────────────────────────────────────────────
 
-  function startGame(roomCode: string, hostId: string): void {
+  function startGame(roomCode: string, hostId: string): string | null {
     const room = roomManager.getRoom(roomCode);
-    if (!room) return;
+    if (!room) return 'ROOM_NOT_FOUND';
 
-    if (room.hostId !== hostId) return;
-    if (room.status !== GameStatus.LOBBY && room.status !== GameStatus.GAME_END) return;
-    if (connectedPlayerCount(room) < MIN_PLAYERS_PER_ROOM) return;
+    if (room.hostId !== hostId) return 'NOT_HOST';
+    if (room.status !== GameStatus.LOBBY && room.status !== GameStatus.GAME_END) return 'INVALID_STATE';
+    if (connectedPlayerCount(room) < MIN_PLAYERS_PER_ROOM) return 'NOT_ENOUGH_PLAYERS';
 
     // Reset all player scores
     for (const player of room.players.values()) {
@@ -107,6 +107,8 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
           broadcastState(io, currentRoom);
         }
       });
+
+    return null;
   }
 
   // ─── Start Round ───────────────────────────────────────────
