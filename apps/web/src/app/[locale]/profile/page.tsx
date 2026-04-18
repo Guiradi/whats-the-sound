@@ -1,4 +1,3 @@
-import { AuthMenu } from '@/components/auth/auth-menu';
 import { AchievementsCard } from '@/components/profile/achievements-card';
 import { GuestEmptyState } from '@/components/profile/guest-empty-state';
 import { InviteCard } from '@/components/profile/invite-card';
@@ -89,7 +88,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="flex items-center justify-between px-6 py-4">
+      <header className="flex items-center px-6 py-4 lg:hidden">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm text-text-muted transition-colors hover:text-accent-cyan"
@@ -97,7 +96,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
           <ArrowLeft className="h-4 w-4" />
           {t('guestEmpty.backToHome')}
         </Link>
-        <AuthMenu />
       </header>
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 pb-16">
         {profile ? (

@@ -39,7 +39,46 @@
       "en": "English"
     }
   },
+  "nav": {
+    "primaryLabel": "Primary navigation",
+    "homeLabel": "Go to home",
+    "home": "Home",
+    "daily": "Daily",
+    "multiplayer": "Multiplayer",
+    "profile": "Profile"
+  },
   "home": {
+    "dashboard": {
+      "welcome": {
+        "greeting": "Hi,",
+        "xpProgress": "{current}/{span} XP",
+        "xpBarLabel": "Progress to level {level}",
+        "loginStreak": "{count, plural, one {# day} other {# days}}"
+      },
+      "daily": {
+        "title": "Today's Daily",
+        "description": "A new song every day. Keep your streak going.",
+        "streak": "{count, plural, one {# day} other {# days}}",
+        "playCta": "Play Daily",
+        "historyCta": "History"
+      },
+      "multiplayer": {
+        "title": "Multiplayer",
+        "description": "Create a room or join by code. Play with friends in real time.",
+        "cta": "Go to rooms"
+      },
+      "achievements": {
+        "title": "Achievements",
+        "progress": "{unlocked}/{total} unlocked",
+        "loading": "Loading achievements..."
+      },
+      "invite": {
+        "title": "Invite friends",
+        "description": "Earn +{amount} XP for every friend who signs up and plays their first match.",
+        "counter": "{completed} of {invited} friends played",
+        "noneYet": "No one has joined yet. Share your link!"
+      }
+    },
     "heroTagline": "Listen. Guess. Repeat.",
     "howItWorks": {
       "title": "How it works",

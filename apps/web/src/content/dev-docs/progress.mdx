@@ -1,7 +1,7 @@
 ---
 title: Progresso (por TASK)
 description: Índice narrativo das tasks concluídas. Complementa tasks/completed.md.
-lastTask: TASK-034
+lastTask: post-mvp-nav-dashboard
 lastUpdated: 2026-04-18
 ---
 
@@ -82,6 +82,16 @@ Cross-browser (Firefox, Safari, mobile) deferido para TASK-022 QA pass.
 - **Empty playlist handling** — Game loop detects empty `getMidis()` result, sends `bot.noSongsAvailable` chat message, and returns to lobby instead of crashing.
 - **Audio unlock moved to lobby** — Replaced blocking `StartAudioOverlay` (fullscreen z-50) with inline `AudioUnlockBanner` in the lobby. Players unlock audio before the game starts. Fallback banner in GameBoard for reconnection edge cases. Daily challenge also uses the inline banner.
 - **Player ready system** — `isReady` field added to `RoomPlayer` (shared types). New `player:ready` socket event. Lobby shows ready/not-ready toggle per player, ready count badge, and host can only start when all players are ready.
+
+## Post-MVP — Navigation & Home Dashboard (2026-04-18)
+
+- **Home dashboard pós-login** — `/[locale]/page.tsx` agora ramifica por auth state: logado renderiza `<HomeDashboard />` (welcome block + Daily hero + Multiplayer + Achievements + Invite); guest mantém a landing (Hero + HowItWorks + FeatureHighlights).
+- **Welcome block** — `components/home/welcome-block.tsx`: avatar + nickname + `LevelBadge` + barra de progresso de XP (usando `xpForLevel`) + login streak. Server Component.
+- **Cards acionáveis** — `daily-card.tsx` (hero com gradiente cyan→magenta + streak), `multiplayer-card.tsx` (CTA para `/rooms`), `achievements-card-compact.tsx` (mini-grid 8 badges, link para `/profile`), `invite-card-compact.tsx` (copy + share).
+- **Navegação persistente** — `components/shared/top-header.tsx` (logo + links Daily/Multi/Perfil em `lg+`, AuthMenu à direita) e `components/shared/bottom-nav.tsx` (4 tabs Lucide em `<lg`). Wire-up em `app/[locale]/layout.tsx` com `pb-20 lg:pb-0` para não esconder conteúdo. Ambos se auto-escondem em `/login`, `/admin/*`, `/auth/callback` e `/room/[code]`.
+- **i18n** — novos namespaces `nav.*` e `home.dashboard.*` em `messages/pt-BR.json` e `messages/en.json`.
+- **Profile page** — removido `AuthMenu` interno duplicado (global header já entrega). Back-link restrito a mobile (`lg:hidden`).
+- **Homepage passa a ser dinâmica** — `export const dynamic = 'force-dynamic'` em `app/[locale]/page.tsx` pois depende da sessão para escolher dashboard vs landing.
 
 ## v1.0.0 — MVP Complete (2026-04-18)
 

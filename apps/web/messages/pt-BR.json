@@ -39,7 +39,46 @@
       "en": "English"
     }
   },
+  "nav": {
+    "primaryLabel": "Navegação principal",
+    "homeLabel": "Ir para a home",
+    "home": "Home",
+    "daily": "Daily",
+    "multiplayer": "Multiplayer",
+    "profile": "Perfil"
+  },
   "home": {
+    "dashboard": {
+      "welcome": {
+        "greeting": "Olá,",
+        "xpProgress": "{current}/{span} XP",
+        "xpBarLabel": "Progresso até o nível {level}",
+        "loginStreak": "{count, plural, one {# dia} other {# dias}}"
+      },
+      "daily": {
+        "title": "Daily de hoje",
+        "description": "Uma nova música todo dia. Mantenha o streak.",
+        "streak": "{count, plural, one {# dia} other {# dias}}",
+        "playCta": "Jogar Daily",
+        "historyCta": "Histórico"
+      },
+      "multiplayer": {
+        "title": "Multiplayer",
+        "description": "Crie uma sala ou entre por código. Jogue com amigos em tempo real.",
+        "cta": "Ir para as salas"
+      },
+      "achievements": {
+        "title": "Conquistas",
+        "progress": "{unlocked}/{total} desbloqueadas",
+        "loading": "Carregando conquistas..."
+      },
+      "invite": {
+        "title": "Convide amigos",
+        "description": "Ganhe +{amount} XP para cada amigo que se cadastra e joga a primeira partida.",
+        "counter": "{completed} de {invited} amigos jogaram",
+        "noneYet": "Ninguém aceitou seu convite ainda. Compartilhe!"
+      }
+    },
     "heroTagline": "Ouça. Adivinhe. Repita.",
     "howItWorks": {
       "title": "Como funciona",
