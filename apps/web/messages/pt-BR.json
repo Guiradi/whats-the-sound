@@ -699,12 +699,11 @@
         "uploadFailed": "Falha no upload",
         "analysisTitle": "Análise do MIDI",
         "bpm": "BPM",
-        "measures": "Compassos",
-        "timeSignature": "Fórmula de compasso",
+        "noteEvents": "Eventos de nota",
         "duration": "Duração",
         "trimmed": "Silêncio removido",
         "phase": "Fase",
-        "measuresUnit": "compassos"
+        "notesUnit": "notas"
       },
       "metadata": {
         "title": "Título",

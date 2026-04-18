@@ -697,12 +697,11 @@
         "uploadFailed": "Upload failed",
         "analysisTitle": "MIDI Analysis",
         "bpm": "BPM",
-        "measures": "Measures",
-        "timeSignature": "Time signature",
+        "noteEvents": "Note events",
         "duration": "Duration",
         "trimmed": "Silence trimmed",
         "phase": "Phase",
-        "measuresUnit": "measures"
+        "notesUnit": "notes"
       },
       "metadata": {
         "title": "Title",

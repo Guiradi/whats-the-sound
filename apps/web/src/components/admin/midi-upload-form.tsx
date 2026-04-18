@@ -102,8 +102,7 @@ const STEPS = ['upload', 'metadata', 'answers', 'review'] as const;
 type Step = (typeof STEPS)[number];
 
 interface MidiAnalysisResult {
-  totalMeasures: number;
-  beatsPerMeasure: number;
+  totalNotes: number;
   bpm: number;
   durationSeconds: number;
   trimmedSeconds: number;
@@ -361,10 +360,8 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <span className="text-text-muted">{t('upload.bpm')}</span>
                     <span className="text-text-primary">{form.analysis.bpm}</span>
-                    <span className="text-text-muted">{t('upload.measures')}</span>
-                    <span className="text-text-primary">{form.analysis.totalMeasures}</span>
-                    <span className="text-text-muted">{t('upload.timeSignature')}</span>
-                    <span className="text-text-primary">{form.analysis.beatsPerMeasure}/4</span>
+                    <span className="text-text-muted">{t('upload.noteEvents')}</span>
+                    <span className="text-text-primary">{form.analysis.totalNotes}</span>
                     <span className="text-text-muted">{t('upload.duration')}</span>
                     <span className="text-text-primary">
                       {Math.floor(form.analysis.durationSeconds / 60)}:
@@ -380,9 +377,9 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                     )}
                   </div>
                   <div className="mt-3 flex gap-2">
-                    {[4, 8, 16, 32].map((m, i) => (
-                      <Badge key={m} variant={i === 3 ? 'cyan' : 'default'}>
-                        {t('upload.phase')} {i + 1}: {m} {t('upload.measuresUnit')}
+                    {[4, 8, 16, 32].map((n, i) => (
+                      <Badge key={n} variant={i === 3 ? 'cyan' : 'default'}>
+                        {t('upload.phase')} {i + 1}: {n} {t('upload.notesUnit')}
                       </Badge>
                     ))}
                   </div>
@@ -624,8 +621,8 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                 {form.analysis && (
                   <>
                     <div className="flex justify-between">
-                      <span className="text-text-muted">{t('upload.measures')}</span>
-                      <span className="text-text-primary">{form.analysis.totalMeasures}</span>
+                      <span className="text-text-muted">{t('upload.noteEvents')}</span>
+                      <span className="text-text-primary">{form.analysis.totalNotes}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-text-muted">{t('upload.bpm')}</span>
@@ -634,7 +631,7 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                     <div className="flex justify-between">
                       <span className="text-text-muted">{t('review.phases')}</span>
                       <span className="text-text-primary">
-                        4, 8, 16, 32 {t('upload.measuresUnit')}
+                        4, 8, 16, 32 {t('upload.notesUnit')}
                       </span>
                     </div>
                   </>
