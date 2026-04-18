@@ -74,6 +74,15 @@ Cross-browser (Firefox, Safari, mobile) deferido para TASK-022 QA pass.
 
 - **TASK-034** Admin Dashboard + Category Management — `/admin` landing page with stats cards (players, games, daily, catalog), category manager (enable/disable per category), unified admin navigation (Dashboard / Catalog / Docs), `admin_config` table for persisted settings, updated admin docs with runbook
 
+## Post-MVP — Gameplay & Reliability (2026-04-18)
+
+- **Admin UX** — Category disable now shows confirmation modal. Fixed empty JSON body error on PATCH requests.
+- **Disabled categories filtering** — New public endpoint `GET /api/admin/disabled-categories`. Room creation form fetches and hides disabled categories from the dropdown.
+- **StubMidiProvider removed** — Server now requires Supabase (fails explicitly on startup instead of silently serving fake songs). Deleted obsolete `smoke-sprint3.ts`.
+- **Empty playlist handling** — Game loop detects empty `getMidis()` result, sends `bot.noSongsAvailable` chat message, and returns to lobby instead of crashing.
+- **Audio unlock moved to lobby** — Replaced blocking `StartAudioOverlay` (fullscreen z-50) with inline `AudioUnlockBanner` in the lobby. Players unlock audio before the game starts. Fallback banner in GameBoard for reconnection edge cases. Daily challenge also uses the inline banner.
+- **Player ready system** — `isReady` field added to `RoomPlayer` (shared types). New `player:ready` socket event. Lobby shows ready/not-ready toggle per player, ready count badge, and host can only start when all players are ready.
+
 ## v1.0.0 — MVP Complete (2026-04-18)
 
 32 tasks across 6 sprints. All gates green: lint 0 errors, type-check 4/4, build 3/3, docs-check 11/11.

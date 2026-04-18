@@ -41,18 +41,20 @@ Categories are a Postgres enum (`midi_category`): rock, pop, mpb, sertanejo, gam
 Since enums are hard to extend at runtime, category **availability** is managed via soft-disable:
 
 - `admin_config` table stores a `disabled_categories` JSONB array
-- `PATCH /api/admin/categories/:category/disable` — adds to the list
-- `PATCH /api/admin/categories/:category/enable` — removes from the list
+- `PATCH /api/admin/categories/:category/disable` — adds to the list (requires confirmation modal)
+- `PATCH /api/admin/categories/:category/enable` — removes from the list (no confirmation needed)
 - Categories with 0 active songs show a yellow warning icon
+- **Disabling a category shows a confirmation dialog** to prevent accidental clicks
 
-Disabled categories should be filtered out when creating rooms (not yet enforced — future task).
+Disabled categories are **automatically filtered out** from the room creation dropdown. The frontend fetches `GET /api/admin/disabled-categories` (public, no auth required) on mount and hides those categories. The "Random" option always remains available.
 
 ## API Endpoints
 
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/api/admin/stats` | Dashboard statistics |
-| GET | `/api/admin/categories` | Category list with counts |
+| GET | `/api/admin/categories` | Category list with counts (admin-only) |
+| GET | `/api/admin/disabled-categories` | Disabled category slugs (public) |
 | PATCH | `/api/admin/categories/:cat/disable` | Disable category |
 | PATCH | `/api/admin/categories/:cat/enable` | Enable category |
 | GET | `/api/catalog` | List catalog (filters, sort, pagination) |

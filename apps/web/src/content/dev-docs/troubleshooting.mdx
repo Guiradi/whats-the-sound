@@ -1,8 +1,8 @@
 ---
 title: Troubleshooting
 description: Problemas comuns e soluções.
-lastTask: TASK-029
-lastUpdated: 2026-04-17
+lastTask: post-MVP
+lastUpdated: 2026-04-18
 ---
 
 ## Supabase: "missing env vars"
@@ -15,7 +15,7 @@ pnpm 10 pede aprovação explícita pra scripts de postinstall. Os necessários 
 
 ## Audio não toca no Safari / iOS
 
-**Esperado.** Safari requer user gesture pra iniciar o AudioContext. O `<StartAudioOverlay />` mostra um botão de tap que chama `Tone.start()`. Se você vê o overlay, o sistema tá funcionando — só tem que tocar nele.
+**Esperado.** Safari requer user gesture pra iniciar o AudioContext. No lobby multiplayer, o `<AudioUnlockBanner />` mostra um banner inline pedindo o tap — ao clicar, muda pra "Áudio pronto!". No daily, o mesmo banner aparece no topo. Se o banner está visível, o sistema está funcionando — só precisa tocar nele antes de jogar.
 
 ## `/admin/docs` retorna 404
 
@@ -36,12 +36,12 @@ Provável: a key não existe no locale ativo. Verificar se adicionou **em ambos*
 
 Checklist:
 
-1. Overlay "Toque para começar" foi dismissado? (audioContext.isReady)
+1. Banner "Toque aqui para habilitar o áudio" foi clicado? (audioContext.isReady — deve mostrar "Áudio pronto!")
 2. Carregou um MIDI? (loadMidi ou loadMidiFromBuffer)
 3. Volume do sistema / aba não está mutado?
 4. Browser tab tem permissão de autoplay? (Chrome: bloqueia em alguns casos)
 
-Rota de smoke: `/[locale]/dev/audio`.
+Para testar: usar `/daily` ou criar uma sala multiplayer.
 
 ## Type error após upgrade de dep
 

@@ -1,8 +1,8 @@
 ---
 title: Arquitetura — Audio Engine
 description: Tone.js, parser, phase player, autoplay Safari.
-lastTask: TASK-029
-lastUpdated: 2026-04-17
+lastTask: post-MVP
+lastUpdated: 2026-04-18
 ---
 
 ## Stack
@@ -44,13 +44,17 @@ interface UseMidiPlayer {
 
 ## Autoplay Safari / iOS
 
-Safari bloqueia áudio até um **user gesture**. Fluxo obrigatório:
+Safari bloqueia áudio até um **user gesture**. Fluxo:
 
-1. Renderizar `<StartAudioOverlay />` cheio até `Tone.context.state === 'running'`
-2. Botão do overlay chama `useAudioContext().start()` → `await Tone.start()`
-3. Depois disso todas as `play()` funcionam
+1. No **lobby** (antes do jogo), renderizar `<AudioUnlockBanner />` — banner inline não-bloqueante que pede o tap para desbloquear áudio
+2. Ao clicar, chama `useAudioContext().start()` → `await Tone.start()` → badge verde "Áudio pronto!"
+3. Quando o jogo inicia, o áudio já está desbloqueado para todos os jogadores
 
-Se um evento `phase_start` chegar antes do `audioReady`, o consumer deve bufferizar até o overlay ser resolvido.
+**Fallback**: Se o jogador reconectar durante o jogo sem ter desbloqueado áudio (edge case), o `GameBoard` mostra um banner flutuante no topo (z-50, não-bloqueante) para desbloquear.
+
+**Daily Challenge**: Também usa `<AudioUnlockBanner />` inline no topo do componente.
+
+> **Nota**: O antigo `<StartAudioOverlay />` (fullscreen bloqueante z-50) foi substituído pelo banner inline. O componente ainda existe no codebase mas não é mais importado.
 
 ## Visualizer
 
@@ -58,12 +62,9 @@ Se um evento `phase_start` chegar antes do `audioReady`, o consumer deve bufferi
 
 Cores: gradient `--color-accent-cyan` → `--color-accent-magenta` lidas via `getComputedStyle`.
 
-## Smoke test
-
-Rota **`/[locale]/dev/audio`** (dev-only, remover pré-prod): carrega melody de teste, 4 botões de fase, visualizer + progress bar.
-
 ## Pendências / decisões
 
 - **Soundfonts reais**: TASK-018 (catalog seed) traz assets. Interface `InstrumentRegistry` aceita drop-in de `Tone.Sampler`.
 - **20MB cache budget + hash versioning**: quando houver assets. Ver spec 02 (M5/M6) pra o plano completo.
 - **Page Visibility pause da playback**: deferred pra TASK-022 QA pass. rAF do visualizer já pausa naturalmente.
+- **Rota dev/audio removida** — smoke test de áudio foi removido no QA pass (TASK-022). Usar `/daily` ou uma sala multiplayer para testar playback.
