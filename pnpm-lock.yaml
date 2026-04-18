@@ -11,6 +11,9 @@ importers:
       '@biomejs/biome':
         specifier: ^1.9.4
         version: 1.9.4
+      next:
+        specifier: ^15.5.15
+        version: 15.5.15(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       supabase:
         specifier: ^2.2.1
         version: 2.92.1
