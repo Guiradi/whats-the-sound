@@ -19,7 +19,8 @@
       "Bash(curl -s http://localhost:3001/health)",
       "Bash(rm:*)",
       "Bash(curl:*)",
-      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(grep:*)"
     ]
   }
 }
