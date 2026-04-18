@@ -2,12 +2,11 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { MidiCategory, MidiDifficulty } from '@wts/shared';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { analyzeMidi } from '../services/midi-analyzer.js';
 
 const phaseConfigSchema = z.object({
-  tracks: z.array(z.number().int().min(0)),
   startBeat: z.number().min(0),
   endBeat: z.number().min(0),
-  description: z.string().max(200).default(''),
 });
 
 const phasesSchema = z.object({
@@ -356,12 +355,21 @@ export function createCatalogRoutes(supabase: SupabaseClient) {
           });
         }
 
-        const buffer = Buffer.from(body.fileBase64, 'base64');
-        const filePath = `catalog/${Date.now()}-${body.fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const rawBuffer = Buffer.from(body.fileBase64, 'base64');
 
+        // Analyze MIDI: trim silence, count measures, validate, compute phases
+        const result = analyzeMidi(rawBuffer);
+        if (!result.ok) {
+          return reply.status(400).send({
+            error: { code: 'MIDI_ANALYSIS_FAILED', message: result.error.message },
+          });
+        }
+
+        // Upload the (possibly trimmed) buffer
+        const filePath = `catalog/${Date.now()}-${body.fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
         const { error: uploadError } = await supabase.storage
           .from('midis')
-          .upload(filePath, buffer, {
+          .upload(filePath, result.buffer, {
             contentType: 'audio/midi',
             upsert: false,
           });
@@ -375,7 +383,11 @@ export function createCatalogRoutes(supabase: SupabaseClient) {
 
         const { data: urlData } = supabase.storage.from('midis').getPublicUrl(filePath);
 
-        return { url: urlData.publicUrl, path: filePath };
+        return {
+          url: urlData.publicUrl,
+          path: filePath,
+          analysis: result.analysis,
+        };
       } catch (err) {
         request.log.error(err, 'Failed to upload MIDI file');
         return reply.status(500).send({

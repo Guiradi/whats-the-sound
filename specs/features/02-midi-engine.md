@@ -49,64 +49,36 @@ Safari e Chrome mobile bloqueiam qualquer áudio até o primeiro gesto do usuár
 
 ### Sistema de Revelação Progressiva (4 Fases)
 
-Cada música MIDI tem metadata definindo como as fases são divididas:
+A revelação é **apenas por duração** (compassos), sem seleção de tracks. O MIDI é analisado automaticamente no upload: silêncio inicial é trimado, compassos são contados, e as fases são auto-computadas com durações fixas de **4, 8, 16 e 32 compassos**.
 
 ```typescript
-interface MidiRevealConfig {
-  id: string;
-  title: string;
-  artist: string;
-  category: MidiCategory;
-  bpm: number;
-  phases: {
-    phase1: {
-      tracks: number[];      // índices das tracks a tocar
-      startBeat: number;     // beat de início
-      endBeat: number;       // beat de fim
-      description: string;   // ex: "3 primeiras notas da melodia"
-    };
-    phase2: {
-      tracks: number[];
-      startBeat: number;
-      endBeat: number;
-      description: string;   // ex: "Melodia do primeiro verso"
-    };
-    phase3: {
-      tracks: number[];
-      startBeat: number;
-      endBeat: number;
-      description: string;   // ex: "Melodia + harmonia"
-    };
-    phase4: {
-      tracks: number[];
-      startBeat: number;
-      endBeat: number;
-      description: string;   // ex: "Música completa"
-    };
-  };
-  acceptedAnswers: string[];  // variações aceitas do título
-  acceptedArtists: string[]; // variações aceitas do artista
+interface PhaseConfig {
+  startBeat: number;  // sempre 0 (pós-trim)
+  endBeat: number;    // N compassos × beats por compasso
+}
+
+interface MidiPhases {
+  phase1: PhaseConfig; // 4 compassos
+  phase2: PhaseConfig; // 8 compassos
+  phase3: PhaseConfig; // 16 compassos
+  phase4: PhaseConfig; // 32 compassos
 }
 ```
 
-### Fase 1 — "Poucas Notas"
-- Toca apenas a track de melodia principal
-- Apenas 3-5 notas iniciais (ou primeiros 2-4 beats)
-- Sem harmonia, sem ritmo, sem acompanhamento
-- Duração: 2-5 segundos
+MIDIs com menos de 32 compassos são rejeitados no upload com mensagem explicativa.
 
-### Fase 2 — "Melodia Estendida"
-- Mesma track de melodia, mas com mais notas (8-16 notas, ~primeiro verso ou refrão)
-- Ainda sem acompanhamento
-- Duração: 5-10 segundos
+### Fase 1 — 4 compassos
+- Primeiros 4 compassos da música (todas as tracks)
+- Trecho mínimo — exige conhecimento forte da música
 
-### Fase 3 — "Melodia + Harmonia"
-- Adiciona tracks de acompanhamento (acordes, baixo)
-- Trecho mais longo, incluindo transições
-- Duração: 10-15 segundos
+### Fase 2 — 8 compassos
+- Dobro da fase 1, geralmente cobre intro ou início do verso
 
-### Fase 4 — "Música Completa"
-- Todas as tracks ativas
+### Fase 3 — 16 compassos
+- Trecho longo, tipicamente cobre verso + refrão
+
+### Fase 4 — 32 compassos
+- Trecho completo, quase toda a música
 - Reproduz a música MIDI inteira (ou um trecho longo reconhecível)
 - Duração: 15-30 segundos
 

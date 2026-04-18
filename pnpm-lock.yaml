@@ -32,6 +32,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.47.10
         version: 2.103.3
+      '@tonejs/midi':
+        specifier: ^2.0.28
+        version: 2.0.28
       '@wts/shared':
         specifier: workspace:*
         version: link:../../packages/shared

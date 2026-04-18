@@ -16,6 +16,7 @@
     "@fastify/cors": "^10.0.2",
     "@fastify/rate-limit": "^10.3.0",
     "@supabase/supabase-js": "^2.47.10",
+    "@tonejs/midi": "^2.0.28",
     "@wts/shared": "workspace:*",
     "fastify": "^5.2.1",
     "node-cron": "^4.2.1",

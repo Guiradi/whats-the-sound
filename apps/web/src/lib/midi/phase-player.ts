@@ -60,13 +60,11 @@ export class PhasePlayer {
     const phaseStartSec = phase.startBeat * secondsPerBeat;
     const phaseEndSec = phase.endBeat * secondsPerBeat;
 
-    const eligibleTracks = midi.tracks.filter((track) => phase.tracks.includes(track.index));
-
     const eventIds: number[] = [];
     let latestEnd = 0;
     let noteCount = 0;
 
-    for (const track of eligibleTracks) {
+    for (const track of midi.tracks) {
       noteCount += this.scheduleTrack(track, phaseStartSec, phaseEndSec, eventIds);
       for (const note of track.notes) {
         if (note.time < phaseStartSec || note.time >= phaseEndSec) continue;

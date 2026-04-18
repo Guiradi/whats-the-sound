@@ -1,10 +1,8 @@
 import type { GameStatus, GuessResult, MidiCategory, MidiDifficulty } from '../enums/index.js';
 
 export interface PhaseConfig {
-  tracks: number[];
   startBeat: number;
   endBeat: number;
-  description: string;
 }
 
 export interface MidiPhases {

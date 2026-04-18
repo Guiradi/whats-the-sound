@@ -672,7 +672,6 @@
       "steps": {
         "upload": "Upload",
         "metadata": "Metadata",
-        "phases": "Phases",
         "answers": "Answers",
         "review": "Review"
       },
@@ -680,7 +679,17 @@
         "label": "MIDI File",
         "hint": "Drag a .mid file or click to select",
         "uploading": "Uploading...",
-        "uploaded": "File uploaded"
+        "analyzing": "Analyzing MIDI...",
+        "uploaded": "File uploaded",
+        "uploadFailed": "Upload failed",
+        "analysisTitle": "MIDI Analysis",
+        "bpm": "BPM",
+        "measures": "Measures",
+        "timeSignature": "Time signature",
+        "duration": "Duration",
+        "trimmed": "Silence trimmed",
+        "phase": "Phase",
+        "measuresUnit": "measures"
       },
       "metadata": {
         "title": "Title",
@@ -690,28 +699,19 @@
         "year": "Year",
         "yearPlaceholder": "e.g. 1985"
       },
-      "phases": {
-        "heading": "Phase Configuration",
-        "description": "Define which tracks and beats play in each phase.",
-        "tracks": "Tracks",
-        "startBeat": "Start beat",
-        "endBeat": "End beat",
-        "phaseDescription": "Description",
-        "preview": "Preview"
-      },
       "answers": {
         "heading": "Accepted Answers",
         "titlesLabel": "Accepted titles",
-        "titlesHint": "Title variations (e.g. 'Bohemian Rhapsody', 'bohemian rapsody')",
+        "titlesHint": "Auto-generated from the title. Review and add more variations if needed.",
         "artistsLabel": "Accepted artists",
-        "artistsHint": "Artist variations (e.g. 'Queen', 'queen')",
+        "artistsHint": "Auto-generated from the artist. Review and add more variations if needed.",
         "addAnswer": "Add",
         "removeAnswer": "Remove"
       },
       "review": {
         "heading": "Review",
         "confirm": "All good? Check the data before saving.",
-        "phasesConfigured": "Phases configured"
+        "phases": "Phases"
       },
       "next": "Next",
       "previous": "Previous",

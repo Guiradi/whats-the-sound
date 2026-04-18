@@ -674,7 +674,6 @@
       "steps": {
         "upload": "Upload",
         "metadata": "Metadados",
-        "phases": "Fases",
         "answers": "Respostas",
         "review": "Revisão"
       },
@@ -682,7 +681,17 @@
         "label": "Arquivo MIDI",
         "hint": "Arraste um arquivo .mid ou clique para selecionar",
         "uploading": "Enviando...",
-        "uploaded": "Arquivo enviado"
+        "analyzing": "Analisando MIDI...",
+        "uploaded": "Arquivo enviado",
+        "uploadFailed": "Falha no upload",
+        "analysisTitle": "Análise do MIDI",
+        "bpm": "BPM",
+        "measures": "Compassos",
+        "timeSignature": "Fórmula de compasso",
+        "duration": "Duração",
+        "trimmed": "Silêncio removido",
+        "phase": "Fase",
+        "measuresUnit": "compassos"
       },
       "metadata": {
         "title": "Título",
@@ -692,28 +701,19 @@
         "year": "Ano",
         "yearPlaceholder": "Ex: 1985"
       },
-      "phases": {
-        "heading": "Configuração de Fases",
-        "description": "Defina quais tracks e beats tocam em cada fase.",
-        "tracks": "Tracks",
-        "startBeat": "Beat inicial",
-        "endBeat": "Beat final",
-        "phaseDescription": "Descrição",
-        "preview": "Preview"
-      },
       "answers": {
         "heading": "Respostas Aceitas",
         "titlesLabel": "Títulos aceitos",
-        "titlesHint": "Variações do título (ex: 'Bohemian Rhapsody', 'bohemian rapsody')",
+        "titlesHint": "Gerado automaticamente a partir do título. Revise e adicione mais se necessário.",
         "artistsLabel": "Artistas aceitos",
-        "artistsHint": "Variações do artista (ex: 'Queen', 'queen')",
+        "artistsHint": "Gerado automaticamente a partir do artista. Revise e adicione mais se necessário.",
         "addAnswer": "Adicionar",
         "removeAnswer": "Remover"
       },
       "review": {
         "heading": "Revisão",
         "confirm": "Tudo certo? Confira os dados antes de salvar.",
-        "phasesConfigured": "Fases configuradas"
+        "phases": "Fases"
       },
       "next": "Próximo",
       "previous": "Anterior",

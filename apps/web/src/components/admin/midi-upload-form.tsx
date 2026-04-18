@@ -2,14 +2,14 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { env } from '@/env';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { MidiDifficulty } from '@wts/shared';
-import type { MidiPhases, PhaseConfig } from '@wts/shared';
+import type { MidiPhases } from '@wts/shared';
 import { Check, ChevronLeft, ChevronRight, Loader2, Upload, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -24,8 +24,88 @@ interface CategoryInfo {
 
 const DIFFICULTIES = Object.values(MidiDifficulty);
 
-const STEPS = ['upload', 'metadata', 'phases', 'answers', 'review'] as const;
+const LEADING_ARTICLES = /^(the|o|a|os|as|um|uma)\s+/i;
+
+/**
+ * Generate unique accepted-answer variations from an original string.
+ * Produces: original, lowercase, no-diacritics, no-apostrophes/hyphens,
+ * without leading articles, and combinations thereof.
+ */
+function generateAcceptedVariations(original: string): string[] {
+  if (!original.trim()) return [''];
+
+  const seen = new Set<string>();
+  const results: string[] = [];
+
+  function add(s: string) {
+    const trimmed = s.replace(/\s+/g, ' ').trim();
+    if (trimmed && !seen.has(trimmed)) {
+      seen.add(trimmed);
+      results.push(trimmed);
+    }
+  }
+
+  // 1. Original as-is
+  add(original);
+
+  // 2. Lowercase
+  const lower = original.toLowerCase();
+  add(lower);
+
+  // 3. No diacritics (é→e, ã→a, ñ→n, etc.)
+  const noDiacritics = lower.normalize('NFD').replace(/\p{Mn}/gu, '');
+  add(noDiacritics);
+
+  // 4. No apostrophes (don't → dont, it's → its)
+  const noApostrophe = noDiacritics.replace(/[''`]/g, '');
+  add(noApostrophe);
+
+  // 5. No hyphens (rock-n-roll → rock n roll)
+  const noHyphens = noApostrophe.replace(/-/g, ' ').replace(/\s+/g, ' ');
+  add(noHyphens);
+
+  // 6. Strip all non-alphanumeric (keep spaces)
+  const alphanumOnly = noHyphens.replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+  add(alphanumOnly);
+
+  // 7. Without leading articles
+  const noArticle = alphanumOnly.replace(LEADING_ARTICLES, '').trim();
+  if (noArticle !== alphanumOnly) {
+    add(noArticle);
+  }
+
+  // 8. If has "&", also add "and" / "e" variants
+  if (original.includes('&')) {
+    add(alphanumOnly.replace(/&/g, 'and'));
+    add(alphanumOnly.replace(/&/g, 'e'));
+  }
+  if (lower.includes(' and ')) {
+    add(alphanumOnly.replace(/\band\b/g, 'e'));
+  }
+  if (lower.includes(' e ')) {
+    add(alphanumOnly.replace(/\be\b/g, 'and'));
+  }
+
+  // 9. "feat." / "ft." variations: strip them entirely
+  const featPattern = /\s*(feat\.?|ft\.?|featuring)\s+.+$/i;
+  if (featPattern.test(original)) {
+    add(alphanumOnly.replace(/\s*(feat\.?|ft\.?|featuring)\s+.+$/i, '').trim());
+  }
+
+  return results;
+}
+
+const STEPS = ['upload', 'metadata', 'answers', 'review'] as const;
 type Step = (typeof STEPS)[number];
+
+interface MidiAnalysisResult {
+  totalMeasures: number;
+  beatsPerMeasure: number;
+  bpm: number;
+  durationSeconds: number;
+  trimmedSeconds: number;
+  phases: MidiPhases;
+}
 
 interface FormData {
   midiFileUrl: string;
@@ -35,17 +115,11 @@ interface FormData {
   category: string;
   difficulty: string;
   year: string;
-  phases: MidiPhases;
+  phases: MidiPhases | null;
+  analysis: MidiAnalysisResult | null;
   acceptedTitles: string[];
   acceptedArtists: string[];
 }
-
-const defaultPhase = (tracks: number[], startBeat: number, endBeat: number): PhaseConfig => ({
-  tracks,
-  startBeat,
-  endBeat,
-  description: '',
-});
 
 const defaultFormData: FormData = {
   midiFileUrl: '',
@@ -55,12 +129,8 @@ const defaultFormData: FormData = {
   category: 'rock',
   difficulty: 'medium',
   year: '',
-  phases: {
-    phase1: defaultPhase([0], 0, 4),
-    phase2: defaultPhase([0], 0, 8),
-    phase3: defaultPhase([0, 1], 0, 8),
-    phase4: defaultPhase([0, 1, 2], 0, 16),
-  },
+  phases: null,
+  analysis: null,
   acceptedTitles: [''],
   acceptedArtists: [''],
 };
@@ -114,16 +184,6 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
     loadCategories();
   }, [user?.id, mode, updateForm]);
 
-  const updatePhase = useCallback((phaseKey: keyof MidiPhases, patch: Partial<PhaseConfig>) => {
-    setForm((prev) => ({
-      ...prev,
-      phases: {
-        ...prev.phases,
-        [phaseKey]: { ...prev.phases[phaseKey], ...patch },
-      },
-    }));
-  }, []);
-
   const handleFileUpload = async (file: File) => {
     setUploading(true);
     try {
@@ -137,11 +197,23 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
         credentials: 'include',
         body: JSON.stringify({ fileName: file.name, fileBase64: base64 }),
       });
-      if (!res.ok) throw new Error('Upload failed');
-      const data = (await res.json()) as { url: string };
-      updateForm({ midiFileUrl: data.url, fileName: file.name });
+      if (!res.ok) {
+        const err = (await res.json()) as { error?: { message?: string } };
+        toast.error(err.error?.message ?? t('upload.uploadFailed'));
+        return;
+      }
+      const data = (await res.json()) as {
+        url: string;
+        analysis: MidiAnalysisResult;
+      };
+      updateForm({
+        midiFileUrl: data.url,
+        fileName: file.name,
+        phases: data.analysis.phases,
+        analysis: data.analysis,
+      });
     } catch {
-      toast.error('Upload failed');
+      toast.error(t('upload.uploadFailed'));
     } finally {
       setUploading(false);
     }
@@ -195,11 +267,9 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
   const canProceed = (): boolean => {
     switch (step) {
       case 'upload':
-        return !!form.midiFileUrl;
+        return !!form.midiFileUrl && !!form.phases;
       case 'metadata':
         return !!form.title && !!form.artist && !!form.category && !!form.difficulty;
-      case 'phases':
-        return true;
       case 'answers':
         return form.acceptedTitles.some(Boolean) && form.acceptedArtists.some(Boolean);
       case 'review':
@@ -238,44 +308,83 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
         <CardContent className="p-6">
           {/* Upload step */}
           {step === 'upload' && (
-            <div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-              className={cn(
-                'flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-bg-border p-12 transition-colors',
-                'hover:border-accent-cyan',
+            <div className="flex flex-col gap-6">
+              <div
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+                className={cn(
+                  'flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed border-bg-border p-12 transition-colors',
+                  'hover:border-accent-cyan',
+                )}
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="h-8 w-8 animate-spin text-accent-cyan" />
+                    <p className="text-sm text-text-muted">{t('upload.analyzing')}</p>
+                  </>
+                ) : form.midiFileUrl ? (
+                  <>
+                    <Check className="h-8 w-8 text-accent-green" />
+                    <p className="text-sm text-text-primary">{t('upload.uploaded')}</p>
+                    <p className="text-xs text-text-muted">{form.fileName}</p>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-8 w-8 text-text-muted" />
+                    <p className="text-sm text-text-muted">{t('upload.hint')}</p>
+                  </>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".mid,.midi"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileUpload(file);
+                  }}
+                />
+                <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
+                  {t('upload.label')}
+                </Button>
+              </div>
+
+              {/* Analysis results */}
+              {form.analysis && (
+                <div className="rounded-lg bg-bg-surface p-4">
+                  <h4 className="mb-3 text-sm font-semibold text-text-primary">
+                    {t('upload.analysisTitle')}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <span className="text-text-muted">{t('upload.bpm')}</span>
+                    <span className="text-text-primary">{form.analysis.bpm}</span>
+                    <span className="text-text-muted">{t('upload.measures')}</span>
+                    <span className="text-text-primary">{form.analysis.totalMeasures}</span>
+                    <span className="text-text-muted">{t('upload.timeSignature')}</span>
+                    <span className="text-text-primary">{form.analysis.beatsPerMeasure}/4</span>
+                    <span className="text-text-muted">{t('upload.duration')}</span>
+                    <span className="text-text-primary">
+                      {Math.floor(form.analysis.durationSeconds / 60)}:
+                      {String(Math.floor(form.analysis.durationSeconds % 60)).padStart(2, '0')}
+                    </span>
+                    {form.analysis.trimmedSeconds > 0 && (
+                      <>
+                        <span className="text-text-muted">{t('upload.trimmed')}</span>
+                        <span className="text-accent-cyan">
+                          {form.analysis.trimmedSeconds.toFixed(1)}s
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    {[4, 8, 16, 32].map((m, i) => (
+                      <Badge key={m} variant={i === 3 ? 'cyan' : 'default'}>
+                        {t('upload.phase')} {i + 1}: {m} {t('upload.measuresUnit')}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               )}
-            >
-              {uploading ? (
-                <>
-                  <Loader2 className="h-8 w-8 animate-spin text-accent-cyan" />
-                  <p className="text-sm text-text-muted">{t('upload.uploading')}</p>
-                </>
-              ) : form.midiFileUrl ? (
-                <>
-                  <Check className="h-8 w-8 text-accent-green" />
-                  <p className="text-sm text-text-primary">{t('upload.uploaded')}</p>
-                  <p className="text-xs text-text-muted">{form.fileName}</p>
-                </>
-              ) : (
-                <>
-                  <Upload className="h-8 w-8 text-text-muted" />
-                  <p className="text-sm text-text-muted">{t('upload.hint')}</p>
-                </>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".mid,.midi"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFileUpload(file);
-                }}
-              />
-              <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
-                {t('upload.label')}
-              </Button>
             </div>
           )}
 
@@ -368,99 +477,6 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                   placeholder={t('metadata.yearPlaceholder')}
                 />
               </div>
-            </div>
-          )}
-
-          {/* Phases step */}
-          {step === 'phases' && (
-            <div className="flex flex-col gap-6">
-              <div>
-                <h3 className="text-base font-semibold text-text-primary">{t('phases.heading')}</h3>
-                <p className="text-sm text-text-muted">{t('phases.description')}</p>
-              </div>
-              {(['phase1', 'phase2', 'phase3', 'phase4'] as const).map((phaseKey, i) => (
-                <Card key={phaseKey}>
-                  <CardHeader>
-                    <CardTitle className="text-sm">Phase {i + 1}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      <div>
-                        <label
-                          htmlFor={`${phaseKey}-tracks`}
-                          className="mb-1 block text-xs text-text-muted"
-                        >
-                          {t('phases.tracks')}
-                        </label>
-                        <Input
-                          id={`${phaseKey}-tracks`}
-                          value={form.phases[phaseKey].tracks.join(', ')}
-                          onChange={(e) =>
-                            updatePhase(phaseKey, {
-                              tracks: e.target.value
-                                .split(',')
-                                .map((s) => Number(s.trim()))
-                                .filter((n) => !Number.isNaN(n)),
-                            })
-                          }
-                          placeholder="0, 1"
-                          className="text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor={`${phaseKey}-start`}
-                          className="mb-1 block text-xs text-text-muted"
-                        >
-                          {t('phases.startBeat')}
-                        </label>
-                        <Input
-                          id={`${phaseKey}-start`}
-                          type="number"
-                          min={0}
-                          value={form.phases[phaseKey].startBeat}
-                          onChange={(e) =>
-                            updatePhase(phaseKey, { startBeat: Number(e.target.value) })
-                          }
-                          className="text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor={`${phaseKey}-end`}
-                          className="mb-1 block text-xs text-text-muted"
-                        >
-                          {t('phases.endBeat')}
-                        </label>
-                        <Input
-                          id={`${phaseKey}-end`}
-                          type="number"
-                          min={0}
-                          value={form.phases[phaseKey].endBeat}
-                          onChange={(e) =>
-                            updatePhase(phaseKey, { endBeat: Number(e.target.value) })
-                          }
-                          className="text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor={`${phaseKey}-desc`}
-                          className="mb-1 block text-xs text-text-muted"
-                        >
-                          {t('phases.phaseDescription')}
-                        </label>
-                        <Input
-                          id={`${phaseKey}-desc`}
-                          value={form.phases[phaseKey].description}
-                          onChange={(e) => updatePhase(phaseKey, { description: e.target.value })}
-                          className="text-xs"
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
           )}
 
@@ -602,10 +618,24 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                     {form.acceptedArtists.filter(Boolean).length}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-text-muted">{t('review.phasesConfigured')}</span>
-                  <span className="text-text-primary">4</span>
-                </div>
+                {form.analysis && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">{t('upload.measures')}</span>
+                      <span className="text-text-primary">{form.analysis.totalMeasures}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">{t('upload.bpm')}</span>
+                      <span className="text-text-primary">{form.analysis.bpm}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">{t('review.phases')}</span>
+                      <span className="text-text-primary">
+                        4, 8, 16, 32 {t('upload.measuresUnit')}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -638,7 +668,20 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
               )}
             </Button>
           ) : (
-            <Button onClick={() => setStep(STEPS[stepIndex + 1] as Step)} disabled={!canProceed()}>
+            <Button
+              onClick={() => {
+                const nextStep = STEPS[stepIndex + 1] as Step;
+                // Auto-generate accepted variations when entering answers step
+                if (nextStep === 'answers' && form.acceptedTitles.length <= 1 && !form.acceptedTitles[0]) {
+                  updateForm({
+                    acceptedTitles: generateAcceptedVariations(form.title),
+                    acceptedArtists: generateAcceptedVariations(form.artist),
+                  });
+                }
+                setStep(nextStep);
+              }}
+              disabled={!canProceed()}
+            >
               {t('next')}
               <ChevronRight className="h-4 w-4" />
             </Button>
