@@ -4,6 +4,7 @@ import { DailyCalendar } from '@/components/daily/daily-calendar';
 import { DailyStats } from '@/components/daily/daily-stats';
 import { DayDetailModal } from '@/components/daily/day-detail-modal';
 import { Button } from '@/components/ui/button';
+import { env } from '@/env';
 import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@/i18n/navigation';
 import type { DailyHistoryEntry } from '@wts/shared';
@@ -11,7 +12,7 @@ import { ArrowLeft, Calendar, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const API_BASE = env.NEXT_PUBLIC_SERVER_URL;
 
 export default function DailyHistoryPage() {
   const t = useTranslations('dailyHistory');

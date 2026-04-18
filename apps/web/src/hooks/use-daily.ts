@@ -1,9 +1,10 @@
 'use client';
 
+import { env } from '@/env';
 import type { DailyAttempt, DailyGuessResponse, DailyState } from '@wts/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const API_BASE = env.NEXT_PUBLIC_SERVER_URL;
 
 interface UseDailyOptions {
   userId: string | null;

@@ -24,7 +24,11 @@
       "Bash(ls:*)",
       "Bash(node:*)",
       "Bash(git push:*)",
-      "WebFetch(domain:wtsserver-production.up.railway.app)"
+      "WebFetch(domain:wtsserver-production.up.railway.app)",
+      "Bash(kill %1)",
+      "Bash(git ls-files:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git:*)"
     ]
   }
 }
