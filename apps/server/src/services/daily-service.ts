@@ -18,6 +18,7 @@ import {
   XP_STREAK_MULTIPLIER,
   verifyDailyGuess,
 } from '@wts/shared';
+import type { AchievementService } from './achievement-service.js';
 import type { ReferralService } from './referral-service.js';
 import { SupabaseMidiProvider } from './supabase-midi-provider.js';
 import type { XpService } from './xp-service.js';
@@ -58,6 +59,7 @@ export function createDailyService(
   dailySeed: string,
   xpService?: XpService,
   referralService?: ReferralService,
+  achievementService?: AchievementService,
 ) {
   const midiProvider = new SupabaseMidiProvider(supabase);
 
@@ -374,6 +376,19 @@ export function createDailyService(
     if (referralService && justCompleted) {
       referralService.maybeRewardReferrer(userId).catch(() => {
         // Best-effort; never break the guess response because of a referral failure.
+      });
+    }
+
+    // Achievement evaluation — first_daily, daily_streak_7, daily_phase_1.
+    if (achievementService && justCompleted) {
+      setImmediate(() => {
+        achievementService
+          .checkAchievements(userId, 'daily', {
+            phase,
+            isCorrect,
+            date: dateISO,
+          })
+          .catch(() => {});
       });
     }
 

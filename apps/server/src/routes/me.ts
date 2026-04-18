@@ -1,7 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { ACHIEVEMENTS } from '@wts/shared/achievements';
 import { XP_REFERRAL_BONUS } from '@wts/shared/constants';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { AchievementService } from '../services/achievement-service.js';
 import type { LoginService } from '../services/login-service.js';
 
 const applyReferralSchema = z.object({
@@ -13,7 +15,11 @@ const applyReferralSchema = z.object({
     .regex(/^[A-Z0-9]+$/i, 'Invalid referral code'),
 });
 
-export function createMeRoutes(supabase: SupabaseClient, loginService: LoginService) {
+export function createMeRoutes(
+  supabase: SupabaseClient,
+  loginService: LoginService,
+  achievementService?: AchievementService,
+) {
   return async function meRoutes(server: FastifyInstance) {
     /**
      * POST /api/me/touch-login — Mark that the user opened the app today (BRT).
@@ -170,6 +176,35 @@ export function createMeRoutes(supabase: SupabaseClient, loginService: LoginServ
         request.log.error(err, 'Failed to fetch referrals');
         return reply.status(500).send({
           error: { code: 'INTERNAL_ERROR', message: 'Failed to load referrals' },
+        });
+      }
+    });
+
+    /**
+     * GET /api/me/achievements — Returns the full achievements catalog plus which ones
+     * the caller has unlocked (with timestamp). Clients render unlocked badges colored
+     * and locked ones muted.
+     */
+    server.get('/api/me/achievements', async (request, reply) => {
+      const userId = request.headers['x-user-id'] as string | undefined;
+      if (!userId) {
+        return reply.status(401).send({
+          error: { code: 'UNAUTHORIZED', message: 'Login required' },
+        });
+      }
+
+      try {
+        const unlocked = achievementService
+          ? await achievementService.listUnlockedForUser(userId)
+          : [];
+        return {
+          catalog: ACHIEVEMENTS,
+          unlocked,
+        };
+      } catch (err) {
+        request.log.error(err, 'Failed to fetch achievements');
+        return reply.status(500).send({
+          error: { code: 'INTERNAL_ERROR', message: 'Failed to load achievements' },
         });
       }
     });

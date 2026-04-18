@@ -1,6 +1,9 @@
 'use client';
 
+import { AchievementUnlockModal } from '@/components/shared/achievement-unlock-modal';
 import { LevelUpModal } from '@/components/shared/level-up-modal';
+import { useAchievementNotifications } from '@/hooks/use-achievement-notifications';
+import { useAchievementUnlock } from '@/hooks/use-achievement-unlock';
 import { useAuth } from '@/hooks/use-auth';
 import { useLevelUp } from '@/hooks/use-level-up';
 import { useXpNotifications } from '@/hooks/use-xp-notifications';
@@ -19,7 +22,16 @@ import { useEffect } from 'react';
 export function XpNotificationBridge() {
   const { user, isGuest } = useAuth();
   const enabled = !!user && !isGuest;
-  const { current, enqueue, dismiss } = useLevelUp();
+  const {
+    current: currentLevelUp,
+    enqueue: enqueueLevelUp,
+    dismiss: dismissLevelUp,
+  } = useLevelUp();
+  const {
+    current: currentUnlock,
+    enqueue: enqueueUnlock,
+    dismiss: dismissUnlock,
+  } = useAchievementUnlock();
 
   useEffect(() => {
     if (!enabled || !user) return;
@@ -39,7 +51,13 @@ export function XpNotificationBridge() {
     };
   }, [enabled, user]);
 
-  useXpNotifications({ enabled, onLevelUp: enqueue });
+  useXpNotifications({ enabled, onLevelUp: enqueueLevelUp });
+  useAchievementNotifications({ enabled, onUnlock: enqueueUnlock });
 
-  return <LevelUpModal levelUp={current} onDismiss={dismiss} />;
+  return (
+    <>
+      <LevelUpModal levelUp={currentLevelUp} onDismiss={dismissLevelUp} />
+      <AchievementUnlockModal unlock={currentUnlock} onDismiss={dismissUnlock} />
+    </>
+  );
 }

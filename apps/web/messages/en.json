@@ -595,10 +595,61 @@
       "daily_login": "Daily login",
       "login_streak_bonus": "Login streak",
       "first_match_of_day": "First match of day",
-      "referral_bonus": "Invited friend played"
+      "referral_bonus": "Invited friend played",
+      "achievement_unlocked": "Achievement unlocked"
     },
     "toast": {
       "awarded": "+{amount} XP · {source}"
+    }
+  },
+  "achievements": {
+    "unlock": {
+      "title": "Achievement unlocked!",
+      "xpAwarded": "+{amount} bonus XP"
+    },
+    "card": {
+      "title": "Achievements",
+      "description": "Milestones you've collected while playing.",
+      "progress": "{unlocked} of {total} unlocked"
+    },
+    "tiers": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold"
+    },
+    "catalog": {
+      "first_login": {
+        "title": "First step",
+        "description": "Open the game for the first time signed in."
+      },
+      "login_streak_7": {
+        "title": "Creature of habit",
+        "description": "Log in 7 days in a row."
+      },
+      "first_daily": {
+        "title": "Sharp ear",
+        "description": "Finish your first Daily Sound."
+      },
+      "daily_streak_7": {
+        "title": "Perfect week",
+        "description": "Finish Daily Sound 7 days in a row."
+      },
+      "daily_phase_1": {
+        "title": "Prodigy",
+        "description": "Solve a Daily Sound on phase 1."
+      },
+      "mp_first_win": {
+        "title": "On the podium",
+        "description": "Finish 1st in a multiplayer match."
+      },
+      "invite_first": {
+        "title": "Messenger",
+        "description": "An invited friend played their first match."
+      },
+      "invite_5": {
+        "title": "Influencer",
+        "description": "5 invited friends played at least one match."
+      }
     }
   },
   "admin": {

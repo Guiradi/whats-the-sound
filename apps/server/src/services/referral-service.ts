@@ -1,8 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { XP_REFERRAL_BONUS } from '@wts/shared/constants';
+import type { AchievementService } from './achievement-service.js';
 import type { XpService } from './xp-service.js';
 
-export function createReferralService(supabase: SupabaseClient, xpService: XpService) {
+export function createReferralService(
+  supabase: SupabaseClient,
+  xpService: XpService,
+  achievementService?: AchievementService,
+) {
   /**
    * Called whenever a user completes their first relevant match (daily or multiplayer).
    * If the user was referred and the reward hasn't fired yet, stamps referral_completed_at
@@ -46,6 +51,16 @@ export function createReferralService(supabase: SupabaseClient, xpService: XpSer
       amount: XP_REFERRAL_BONUS,
       context: { invitedUserId },
     });
+
+    // Fire-and-forget achievement evaluation on the referrer (invite_first, invite_5).
+    if (achievementService) {
+      const referrerId = state.referred_by_user_id;
+      setImmediate(() => {
+        achievementService
+          .checkAchievements(referrerId, 'referral', { invitedUserId })
+          .catch(() => {});
+      });
+    }
   }
 
   return { maybeRewardReferrer };

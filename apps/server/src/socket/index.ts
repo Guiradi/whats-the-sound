@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import { env } from '../env.js';
 import { getSupabaseAdmin } from '../lib/supabase.js';
 import { SocketRateLimiter } from '../middleware/rate-limiter.js';
+import type { AchievementService } from '../services/achievement-service.js';
 import { createGameLoop } from '../services/game-loop.js';
 import type { ReferralService } from '../services/referral-service.js';
 import { SupabaseMidiProvider } from '../services/supabase-midi-provider.js';
@@ -31,6 +32,7 @@ export function initSocketServer(
   server: FastifyInstance,
   xpService?: XpService,
   referralService?: ReferralService,
+  achievementService?: AchievementService,
 ): TypedServer {
   const io: TypedServer = new Server(server.server, {
     cors: {
@@ -50,7 +52,7 @@ export function initSocketServer(
     );
   }
   const midiProvider = new SupabaseMidiProvider(supabase);
-  const gameLoop = createGameLoop(io, midiProvider, xpService, referralService);
+  const gameLoop = createGameLoop(io, midiProvider, xpService, referralService, achievementService);
   const rateLimiter = new SocketRateLimiter();
 
   io.on('connection', (socket) => {

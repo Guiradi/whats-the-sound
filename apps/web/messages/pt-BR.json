@@ -597,10 +597,61 @@
       "daily_login": "Login diário",
       "login_streak_bonus": "Bônus de login",
       "first_match_of_day": "Primeira partida do dia",
-      "referral_bonus": "Amigo convidado jogou"
+      "referral_bonus": "Amigo convidado jogou",
+      "achievement_unlocked": "Conquista desbloqueada"
     },
     "toast": {
       "awarded": "+{amount} XP · {source}"
+    }
+  },
+  "achievements": {
+    "unlock": {
+      "title": "Conquista desbloqueada!",
+      "xpAwarded": "+{amount} XP de bônus"
+    },
+    "card": {
+      "title": "Conquistas",
+      "description": "Marcos que você colecionou jogando.",
+      "progress": "{unlocked} de {total} desbloqueadas"
+    },
+    "tiers": {
+      "bronze": "Bronze",
+      "silver": "Prata",
+      "gold": "Ouro"
+    },
+    "catalog": {
+      "first_login": {
+        "title": "Primeiro passo",
+        "description": "Abrir o jogo pela primeira vez logado."
+      },
+      "login_streak_7": {
+        "title": "Fiel ao hábito",
+        "description": "Logar por 7 dias consecutivos."
+      },
+      "first_daily": {
+        "title": "Ouvido afinado",
+        "description": "Completar sua primeira Daily Sound."
+      },
+      "daily_streak_7": {
+        "title": "Semana perfeita",
+        "description": "Completar Daily Sound 7 dias seguidos."
+      },
+      "daily_phase_1": {
+        "title": "Prodígio",
+        "description": "Acertar uma Daily Sound logo na fase 1."
+      },
+      "mp_first_win": {
+        "title": "No pódio",
+        "description": "Terminar em 1º em uma partida multiplayer."
+      },
+      "invite_first": {
+        "title": "Mensageiro",
+        "description": "Um amigo convidado jogou sua primeira partida."
+      },
+      "invite_5": {
+        "title": "Influenciador",
+        "description": "5 amigos convidados já jogaram pelo menos uma partida."
+      }
     }
   },
   "admin": {

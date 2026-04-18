@@ -25,6 +25,10 @@
     "./env": {
       "types": "./dist/env/index.d.ts",
       "default": "./dist/env/index.js"
+    },
+    "./achievements": {
+      "types": "./dist/achievements/index.d.ts",
+      "default": "./dist/achievements/index.js"
     }
   },
   "dependencies": {

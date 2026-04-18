@@ -23,6 +23,7 @@ import type {
   ServerRoomState,
   ServerRoundState,
 } from '../types/room.js';
+import type { AchievementService } from './achievement-service.js';
 import type { MidiProvider } from './midi-provider.js';
 import type { ReferralService } from './referral-service.js';
 import * as roomManager from './room-manager.js';
@@ -97,6 +98,7 @@ export function createGameLoop(
   midiProvider: MidiProvider,
   xpService?: XpService,
   referralService?: ReferralService,
+  achievementService?: AchievementService,
 ): GameLoop {
   /** Fire XP awards without blocking the game loop. Guests are filtered inside the service. */
   function awardXpAsync(
@@ -382,6 +384,20 @@ export function createGameLoop(
       if (referralService && !player.id.startsWith('guest:')) {
         setImmediate(() => {
           referralService.maybeRewardReferrer(player.id).catch(() => {});
+        });
+      }
+
+      // Achievement evaluation — mp_first_win fires when this player finishes in 1st place.
+      if (achievementService && !player.id.startsWith('guest:')) {
+        const playerId = player.id;
+        setImmediate(() => {
+          achievementService
+            .checkAchievements(playerId, 'multiplayer', {
+              finalPosition: position,
+              totalPlayers: ranking.length,
+              roomCode,
+            })
+            .catch(() => {});
         });
       }
     });

@@ -5,6 +5,17 @@
 
 ---
 
+### [✓] TASK-046: Achievements System — 8 conquistas MVP + unlock modal + profile card — 2026-04-18
+    → Entregue:
+      • Migration 20260420120000_achievements.sql: tabela user_achievements (UNIQUE user_id+achievement_id), RLS, índice; valor 'achievement_unlocked' no enum xp_source.
+      • Catálogo estático em packages/shared/src/achievements/catalog.ts: 8 achievements (first_login, login_streak_7, first_daily, daily_streak_7, daily_phase_1, mp_first_win, invite_first, invite_5) com tier bronze/silver/gold, icon Lucide, triggers, xpReward.
+      • achievement-checks.ts: 8 funções de verificação (DB queries otimizadas, idempotência via UNIQUE constraint).
+      • achievement-service.ts: checkAchievements(userId, trigger, ctx) com INSERT ON CONFLICT + awardXp('achievement_unlocked') via pipeline existente + emit socket achievement:unlocked. Padrão setIo() igual a xp-service.
+      • Wire-up em login-service, referral-service, game-loop (endGame) e daily-service (justCompleted) com setImmediate fire-and-forget.
+      • Rota GET /api/me/achievements retornando catalog + unlocked do user.
+      • Frontend: useAchievementUnlock (queue), useAchievementNotifications (socket), AchievementUnlockModal (auto-dismiss 5s), AchievementBadge (tier colors + glow), AchievementsCard no /profile. XpNotificationBridge estendido para montar ambos modais.
+      • i18n completo em pt-BR e en: achievements.{unlock,card,tiers,catalog.{id}.{title,description}}.
+
 ### [✓] TASK-044: XP Engagement Loop — MP wire-up + login streak + toast ao vivo — 2026-04-18
     → Entregue:
       • Wire-up do XP em game-loop.ts: multiplayer_correct (pts/10), multiplayer_finish (base+pódio), multiplayer_round_played (+5/rodada), first_match_of_day (+30). Idempotência por gameSessionId gerado em startGame.

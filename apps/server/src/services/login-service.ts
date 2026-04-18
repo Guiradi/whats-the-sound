@@ -4,6 +4,7 @@ import {
   XP_LOGIN_STREAK_CAP,
   XP_LOGIN_STREAK_MULTIPLIER,
 } from '@wts/shared/constants';
+import type { AchievementService } from './achievement-service.js';
 import type { XpService } from './xp-service.js';
 
 export interface TouchLoginResult {
@@ -29,7 +30,11 @@ function diffDays(laterISO: string, earlierISO: string): number {
   return Math.round((later - earlier) / (24 * 60 * 60 * 1000));
 }
 
-export function createLoginService(supabase: SupabaseClient, xpService?: XpService) {
+export function createLoginService(
+  supabase: SupabaseClient,
+  xpService?: XpService,
+  achievementService?: AchievementService,
+) {
   /**
    * Records a login for the given user for today (BRT), updating login_streak and
    * max_login_streak, and awarding daily_login + login_streak_bonus XP.
@@ -121,6 +126,15 @@ export function createLoginService(supabase: SupabaseClient, xpService?: XpServi
         });
         xpAwarded += streakResult.xpGained;
       }
+    }
+
+    // Fire-and-forget achievement evaluation. Never block the response.
+    if (achievementService) {
+      setImmediate(() => {
+        achievementService
+          .checkAchievements(userId, 'login', { streak: newStreak })
+          .catch(() => {});
+      });
     }
 
     return {

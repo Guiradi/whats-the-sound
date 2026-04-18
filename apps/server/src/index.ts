@@ -12,6 +12,7 @@ import { healthRoutes } from './routes/health.js';
 import { createMeRoutes } from './routes/me.js';
 import { roomsRoutes } from './routes/rooms.js';
 import { createXpRoutes } from './routes/xp.js';
+import { createAchievementService } from './services/achievement-service.js';
 import { startDailyCron } from './services/daily-cron.js';
 import { createDailyService } from './services/daily-service.js';
 import { createLoginService } from './services/login-service.js';
@@ -53,13 +54,22 @@ async function main() {
   // Daily Sound routes + cron (only when Supabase is configured)
   let xpServiceRef: ReturnType<typeof createXpService> | null = null;
   let referralServiceRef: ReturnType<typeof createReferralService> | null = null;
+  let achievementServiceRef: ReturnType<typeof createAchievementService> | null = null;
   if (env.SUPABASE_URL && env.SUPABASE_SECRET_KEY && env.DAILY_SEED) {
     const supabase = getSupabaseAdmin();
     const xpService = createXpService(supabase);
     xpServiceRef = xpService;
-    const referralService = createReferralService(supabase, xpService);
+    const achievementService = createAchievementService(supabase, xpService);
+    achievementServiceRef = achievementService;
+    const referralService = createReferralService(supabase, xpService, achievementService);
     referralServiceRef = referralService;
-    const dailyService = createDailyService(supabase, env.DAILY_SEED, xpService, referralService);
+    const dailyService = createDailyService(
+      supabase,
+      env.DAILY_SEED,
+      xpService,
+      referralService,
+      achievementService,
+    );
     await server.register(createDailyRoutes(dailyService));
     startDailyCron(dailyService, server.log);
     server.log.info('Daily Sound routes and cron registered');
@@ -68,10 +78,10 @@ async function main() {
     await server.register(createXpRoutes(supabase));
     server.log.info('XP routes registered');
 
-    // Engagement routes: daily login + referral
-    const loginService = createLoginService(supabase, xpService);
-    await server.register(createMeRoutes(supabase, loginService));
-    server.log.info('Me routes (login + referral) registered');
+    // Engagement routes: daily login + referral + achievements
+    const loginService = createLoginService(supabase, xpService, achievementService);
+    await server.register(createMeRoutes(supabase, loginService, achievementService));
+    server.log.info('Me routes (login + referral + achievements) registered');
 
     // Catalog admin routes (requires Supabase)
     await server.register(createCatalogRoutes(supabase));
@@ -91,6 +101,7 @@ async function main() {
     server,
     xpServiceRef ?? undefined,
     referralServiceRef ?? undefined,
+    achievementServiceRef ?? undefined,
   );
 
   // Wire the socket server back into xp-service so awardXp() can emit xp:awarded and
@@ -98,6 +109,11 @@ async function main() {
   // set the reference afterwards via setIo().
   if (xpServiceRef) {
     xpServiceRef.setIo(io);
+  }
+  // Same pattern for achievement-service: wire in the socket after it's initialized so
+  // unlock events reach the right per-user room.
+  if (achievementServiceRef) {
+    achievementServiceRef.setIo(io);
   }
 
   const shutdown = async (signal: string) => {

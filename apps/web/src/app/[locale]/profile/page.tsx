@@ -1,4 +1,5 @@
 import { AuthMenu } from '@/components/auth/auth-menu';
+import { AchievementsCard } from '@/components/profile/achievements-card';
 import { GuestEmptyState } from '@/components/profile/guest-empty-state';
 import { InviteCard } from '@/components/profile/invite-card';
 import { LogoutButton } from '@/components/profile/logout-button';
@@ -113,6 +114,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
               createdAt={profile.created_at}
             />
             <StatGrid stats={profile} locale={locale} />
+            <AchievementsCard />
             <InviteCard />
           </div>
         ) : (

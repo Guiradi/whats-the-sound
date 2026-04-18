@@ -145,7 +145,8 @@ export type XpSource =
   | 'daily_login'
   | 'login_streak_bonus'
   | 'first_match_of_day'
-  | 'referral_bonus';
+  | 'referral_bonus'
+  | 'achievement_unlocked';
 
 export interface XpEvent {
   id: string;
@@ -187,6 +188,13 @@ export interface XpAwardedPayload {
   newLevel: number;
 }
 
+export interface AchievementUnlockedPayload {
+  achievementId: string;
+  tier: 'bronze' | 'silver' | 'gold';
+  xpReward: number;
+  unlockedAt: string;
+}
+
 export interface ServerToClientEvents {
   'room:state': (snapshot: RoomStateSnapshot) => void;
   'room:host_changed': (payload: { previousHostId: string; newHostId: string }) => void;
@@ -200,6 +208,7 @@ export interface ServerToClientEvents {
   'round:reveal': (payload: { title: string; artist: string; correctPlayerIds: string[] }) => void;
   'xp:level_up': (payload: XpLevelUpPayload) => void;
   'xp:awarded': (payload: XpAwardedPayload) => void;
+  'achievement:unlocked': (payload: AchievementUnlockedPayload) => void;
   'error:rate_limited': (payload: { scope: string; retryAfterMs: number }) => void;
   'error:generic': (payload: { code: string; message: string }) => void;
 }
