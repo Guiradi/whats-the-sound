@@ -641,6 +641,7 @@
       "deactivate": "Deactivate",
       "activate": "Activate",
       "preview": "Preview",
+      "testPlay": "Test play",
       "delete": "Delete"
     },
     "toggleConfirm": {
@@ -739,6 +740,48 @@
       "showing": "Showing {from}–{to} of {total}",
       "previous": "Previous",
       "next": "Next"
+    },
+    "testPlay": {
+      "title": "Test play",
+      "backToCatalog": "Back to catalog",
+      "warningBanner": "Test mode — nothing is saved to stats, scores, or history.",
+      "loading": "Loading song...",
+      "loadError": "Could not load this song.",
+      "song": "Song",
+      "artist": "Artist",
+      "positionLabel": "Suppose you were the #{position} to guess correctly",
+      "position": "Position",
+      "useTimer": "Use phase timer",
+      "phaseLabel": "Phase {phase} of 4",
+      "phaseIdle": "Phase not started yet",
+      "startPhase": "Start phase {phase}",
+      "nextPhase": "Advance to phase {phase}",
+      "replay": "Replay",
+      "stop": "Stop",
+      "guessPlaceholder": "Type your guess...",
+      "submitGuess": "Submit",
+      "restart": "Restart",
+      "finish": "Finish",
+      "finishedHeading": "Simulated round finished",
+      "attempts": "Attempts this phase",
+      "attemptEmpty": "No guesses in this phase yet.",
+      "feedback": {
+        "correct": "Correct! Matched \"{match}\".",
+        "hot": "Very close! Matched \"{match}\".",
+        "warm": "Getting warmer. Matched \"{match}\".",
+        "artistMatch": "You guessed the artist! Matched \"{match}\".",
+        "wrong": "Wrong — keep trying."
+      },
+      "scorePreview": {
+        "heading": "Simulated score",
+        "phase": "Phase",
+        "position": "Hypothetical position",
+        "titlePoints": "Title points",
+        "artistPoints": "Artist points",
+        "total": "Total",
+        "nothing": "No correct guess — 0 points.",
+        "explain": "Formula: max − decay × (position − 1), with per-phase floor."
+      }
     }
   }
 }

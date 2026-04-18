@@ -1,5 +1,13 @@
 import { randomUUID } from 'node:crypto';
-import { GameStatus, GuessResult, MIN_PLAYERS_PER_ROOM } from '@wts/shared';
+import {
+  GameStatus,
+  GuessResult,
+  MIN_PLAYERS_PER_ROOM,
+  calculateArtistScore,
+  calculateTitleScore,
+  resolveGuessPosition,
+  verifyGuess,
+} from '@wts/shared';
 import type { ChatMessage } from '@wts/shared';
 import type { TypedServer } from '../socket/index.js';
 import type {
@@ -8,10 +16,8 @@ import type {
   ServerRoomState,
   ServerRoundState,
 } from '../types/room.js';
-import { verifyGuess } from './guess-verifier.js';
 import type { MidiProvider } from './midi-provider.js';
 import * as roomManager from './room-manager.js';
-import { calculateArtistScore, calculateTitleScore, resolveGuessPosition } from './scoring.js';
 
 const ROUND_START_COUNTDOWN_MS = 3000;
 const ROUND_END_DISPLAY_MS = 5000;

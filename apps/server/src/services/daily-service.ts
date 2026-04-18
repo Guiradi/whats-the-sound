@@ -11,8 +11,8 @@ import {
   GuessResult,
   type MidiCategory,
   WEEKDAY_CATEGORY,
+  verifyDailyGuess,
 } from '@wts/shared';
-import { verifyDailyGuess } from './guess-verifier.js';
 import { SupabaseMidiProvider } from './supabase-midi-provider.js';
 
 /**

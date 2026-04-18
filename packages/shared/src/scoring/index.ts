@@ -1,4 +1,8 @@
-import { ARTIST_MATCH_SCORE_RATIO, PHASE_SCORES, SIMULTANEOUS_ANSWER_WINDOW_MS } from '@wts/shared';
+import {
+  ARTIST_MATCH_SCORE_RATIO,
+  PHASE_SCORES,
+  SIMULTANEOUS_ANSWER_WINDOW_MS,
+} from '../constants/index.js';
 
 type Phase = 1 | 2 | 3 | 4;
 
@@ -20,11 +24,8 @@ export function calculateScore(phase: Phase, guessPosition: number): number {
 export function resolveGuessPosition(existingTimestamps: number[], newTimestamp: number): number {
   if (existingTimestamps.length === 0) return 1;
 
-  // Group by simultaneous window: if the new timestamp is within the window
-  // of the last answer, they share the same position.
   const lastTimestamp = existingTimestamps[existingTimestamps.length - 1] ?? 0;
   if (newTimestamp - lastTimestamp <= SIMULTANEOUS_ANSWER_WINDOW_MS) {
-    // Count how many players share the last position
     let samePositionCount = 0;
     for (let i = existingTimestamps.length - 1; i >= 0; i--) {
       if (lastTimestamp - (existingTimestamps[i] ?? 0) <= SIMULTANEOUS_ANSWER_WINDOW_MS) {
@@ -33,7 +34,6 @@ export function resolveGuessPosition(existingTimestamps: number[], newTimestamp:
         break;
       }
     }
-    // They get the same position as the group
     return existingTimestamps.length - samePositionCount + 1;
   }
 

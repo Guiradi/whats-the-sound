@@ -1,5 +1,6 @@
-import { GuessResult, LEVENSHTEIN_THRESHOLDS } from '@wts/shared';
-import type { GuessVerificationResult } from '@wts/shared';
+import { LEVENSHTEIN_THRESHOLDS } from '../constants/index.js';
+import { GuessResult } from '../enums/index.js';
+import type { GuessVerificationResult } from '../types/index.js';
 
 const LEADING_ARTICLES = /^(the|o|a|os|as|um|uma)\s+/;
 
@@ -8,20 +9,14 @@ const LEADING_ARTICLES = /^(the|o|a|os|as|um|uma)\s+/;
  * non-alphanumeric, collapse whitespace, remove leading articles.
  */
 export function normalizeText(text: string): string {
-  return (
-    text
-      .toLowerCase()
-      // Decompose accented chars then strip combining marks
-      .normalize('NFD')
-      .replace(/\p{Mn}/gu, '')
-      // Strip non-alphanumeric (keep spaces)
-      .replace(/[^a-z0-9\s]/g, '')
-      // Collapse whitespace
-      .replace(/\s+/g, ' ')
-      .trim()
-      // Strip leading articles
-      .replace(LEADING_ARTICLES, '')
-  );
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Mn}/gu, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(LEADING_ARTICLES, '');
 }
 
 /**
@@ -32,12 +27,10 @@ export function levenshteinDistance(a: string, b: string): number {
   const m = a.length;
   const n = b.length;
 
-  // Optimizations for trivial cases
   if (a === b) return 0;
   if (m === 0) return n;
   if (n === 0) return m;
 
-  // Use single-row optimization (only keep previous row)
   let prev = Array.from({ length: n + 1 }, (_, i) => i);
   let curr = new Array<number>(n + 1);
 
@@ -45,11 +38,7 @@ export function levenshteinDistance(a: string, b: string): number {
     curr[0] = i;
     for (let j = 1; j <= n; j++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      curr[j] = Math.min(
-        (prev[j] ?? 0) + 1, // deletion
-        (curr[j - 1] ?? 0) + 1, // insertion
-        (prev[j - 1] ?? 0) + cost, // substitution
-      );
+      curr[j] = Math.min((prev[j] ?? 0) + 1, (curr[j - 1] ?? 0) + 1, (prev[j - 1] ?? 0) + cost);
     }
     [prev, curr] = [curr, prev];
   }
@@ -57,18 +46,11 @@ export function levenshteinDistance(a: string, b: string): number {
   return prev[n] ?? 0;
 }
 
-/**
- * Scale threshold for longer candidates (>20 chars). Multiplies by
- * ceil(length / 20) so longer titles are more forgiving.
- */
 function scaleThreshold(base: number, candidateLength: number): number {
   if (candidateLength <= 20) return base;
   return base * Math.ceil(candidateLength / 20);
 }
 
-/**
- * Find the best (minimum distance) match among a list of candidates.
- */
 function findBestMatch(
   normalizedGuess: string,
   candidates: string[],
@@ -100,7 +82,6 @@ export function verifyGuess(
   const normalizedGuess = normalizeText(guess);
   const thresholds = LEVENSHTEIN_THRESHOLDS.multiplayer;
 
-  // Check titles first
   const titleMatch = findBestMatch(normalizedGuess, acceptedTitles);
   if (titleMatch) {
     const scaledCorrect = scaleThreshold(
@@ -133,7 +114,6 @@ export function verifyGuess(
     }
   }
 
-  // Check artists for artist_match
   const artistMatch = findBestMatch(normalizedGuess, acceptedArtists);
   if (artistMatch) {
     const scaledCorrect = scaleThreshold(
@@ -167,7 +147,6 @@ export function verifyDailyGuess(
   const normalizedGuess = normalizeText(guess);
   const thresholds = LEVENSHTEIN_THRESHOLDS.daily;
 
-  // Check titles first
   const titleMatch = findBestMatch(normalizedGuess, acceptedTitles);
   if (titleMatch) {
     const scaledCorrect = scaleThreshold(
@@ -195,7 +174,6 @@ export function verifyDailyGuess(
     }
   }
 
-  // Check artists for artist_match
   const artistMatch = findBestMatch(normalizedGuess, acceptedArtists);
   if (artistMatch) {
     const scaledCorrect = scaleThreshold(

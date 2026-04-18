@@ -15,6 +15,7 @@ import {
   Edit3,
   Eye,
   Loader2,
+  PlayCircle,
   Power,
   PowerOff,
   Search,
@@ -368,6 +369,14 @@ export function MidiCatalogTable() {
                         ) : (
                           <Power className="h-4 w-4 text-accent-green" />
                         )}
+                      </Button>
+                      <Button variant="ghost" size="icon" asChild className="h-8 w-8">
+                        <Link
+                          href={`/admin/catalog/${item.id}/test-play`}
+                          title={t('actions.testPlay')}
+                        >
+                          <PlayCircle className="h-4 w-4 text-accent-cyan" />
+                        </Link>
                       </Button>
                       <Button variant="ghost" size="icon" asChild className="h-8 w-8">
                         <a

@@ -643,6 +643,7 @@
       "deactivate": "Desativar",
       "activate": "Ativar",
       "preview": "Preview",
+      "testPlay": "Modo teste",
       "delete": "Excluir"
     },
     "toggleConfirm": {
@@ -741,6 +742,48 @@
       "showing": "Mostrando {from}–{to} de {total}",
       "previous": "Anterior",
       "next": "Próximo"
+    },
+    "testPlay": {
+      "title": "Modo teste",
+      "backToCatalog": "Voltar ao catálogo",
+      "warningBanner": "Modo teste — nada é salvo em estatísticas, pontuação ou histórico.",
+      "loading": "Carregando música...",
+      "loadError": "Não foi possível carregar esta música.",
+      "song": "Música",
+      "artist": "Artista",
+      "positionLabel": "Suponha que você foi o Nº {position} a acertar",
+      "position": "Posição",
+      "useTimer": "Usar timer da fase",
+      "phaseLabel": "Fase {phase} de 4",
+      "phaseIdle": "Fase ainda não iniciada",
+      "startPhase": "Iniciar fase {phase}",
+      "nextPhase": "Avançar para fase {phase}",
+      "replay": "Tocar de novo",
+      "stop": "Parar",
+      "guessPlaceholder": "Digite seu palpite...",
+      "submitGuess": "Enviar",
+      "restart": "Recomeçar",
+      "finish": "Finalizar",
+      "finishedHeading": "Rodada simulada finalizada",
+      "attempts": "Tentativas nesta fase",
+      "attemptEmpty": "Ainda sem palpites nesta fase.",
+      "feedback": {
+        "correct": "Acertou! Correspondeu a \"{match}\".",
+        "hot": "Muito perto! Correspondeu a \"{match}\".",
+        "warm": "Está no caminho. Correspondeu a \"{match}\".",
+        "artistMatch": "Você acertou o artista! Correspondeu a \"{match}\".",
+        "wrong": "Errou — continue tentando."
+      },
+      "scorePreview": {
+        "heading": "Pontuação simulada",
+        "phase": "Fase",
+        "position": "Posição hipotética",
+        "titlePoints": "Pontos por título",
+        "artistPoints": "Pontos por artista",
+        "total": "Total",
+        "nothing": "Nenhum palpite correto — 0 pontos.",
+        "explain": "Fórmula: max − decay × (posição − 1), com piso por fase."
+      }
     }
   }
 }
