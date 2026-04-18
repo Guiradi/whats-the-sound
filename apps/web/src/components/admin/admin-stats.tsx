@@ -2,6 +2,7 @@
 
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { env } from '@/env';
+import { useAuth } from '@/hooks/use-auth';
 import { Calendar, Gamepad2, Music, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
@@ -34,14 +35,16 @@ interface StatsData {
 
 export function AdminStats() {
   const t = useTranslations('admin.stats');
+  const { user } = useAuth();
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const fetchStats = useCallback(async () => {
+    if (!user) return;
     try {
       const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/admin/stats`, {
-        headers: { 'x-user-id': 'admin' },
+        headers: { 'x-user-id': user.id },
         credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed');
@@ -52,7 +55,7 @@ export function AdminStats() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchStats();

@@ -17,7 +17,8 @@
       "Bash(git commit:*)",
       "Bash(npx biome:*)",
       "Bash(curl -s http://localhost:3001/health)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(curl:*)"
     ]
   }
 }

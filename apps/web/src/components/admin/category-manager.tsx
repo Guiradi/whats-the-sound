@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { env } from '@/env';
+import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
 import { AlertTriangle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -19,14 +20,16 @@ interface CategoryInfo {
 export function CategoryManager() {
   const t = useTranslations('admin.categories');
   const catT = useTranslations('room.categories');
+  const { user } = useAuth();
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [togglingCategory, setTogglingCategory] = useState<string | null>(null);
 
   const fetchCategories = useCallback(async () => {
+    if (!user) return;
     try {
       const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/admin/categories`, {
-        headers: { 'x-user-id': 'admin' },
+        headers: { 'x-user-id': user.id },
         credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed');
@@ -37,13 +40,14 @@ export function CategoryManager() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
   const toggleCategory = async (category: string, currentlyDisabled: boolean) => {
+    if (!user) return;
     setTogglingCategory(category);
     try {
       const action = currentlyDisabled ? 'enable' : 'disable';
@@ -51,7 +55,7 @@ export function CategoryManager() {
         `${env.NEXT_PUBLIC_SERVER_URL}/api/admin/categories/${category}/${action}`,
         {
           method: 'PATCH',
-          headers: { 'x-user-id': 'admin', 'Content-Type': 'application/json' },
+          headers: { 'x-user-id': user.id, 'Content-Type': 'application/json' },
           credentials: 'include',
         },
       );
