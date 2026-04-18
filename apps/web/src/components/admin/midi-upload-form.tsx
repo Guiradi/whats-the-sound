@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { env } from '@/env';
+import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { MidiCategory, MidiDifficulty } from '@wts/shared';
@@ -65,6 +66,7 @@ interface MidiUploadFormProps {
 
 export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormProps) {
   const t = useTranslations('adminCatalog.form');
+  const { user } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState<Step>(mode === 'edit' ? 'metadata' : 'upload');
   const [form, setForm] = useState<FormData>(() => ({ ...defaultFormData, ...initialData }));
@@ -99,7 +101,7 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
       );
       const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/upload`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': 'admin' },
+        headers: { 'Content-Type': 'application/json', 'x-user-id': user?.id ?? '' },
         credentials: 'include',
         body: JSON.stringify({ fileName: file.name, fileBase64: base64 }),
       });
@@ -143,7 +145,7 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
 
       const res = await fetch(url, {
         method: mode === 'edit' ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': 'admin' },
+        headers: { 'Content-Type': 'application/json', 'x-user-id': user?.id ?? '' },
         credentials: 'include',
         body: JSON.stringify(body),
       });

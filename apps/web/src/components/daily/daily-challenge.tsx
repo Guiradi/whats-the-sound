@@ -1,7 +1,7 @@
 'use client';
 
-import { AudioVisualizer } from '@/components/audio/audio-visualizer';
 import { AudioUnlockBanner } from '@/components/audio/audio-unlock-banner';
+import { AudioVisualizer } from '@/components/audio/audio-visualizer';
 import { DailyResult } from '@/components/daily/daily-result';
 import { PhaseAttempts } from '@/components/daily/phase-attempts';
 import { Button } from '@/components/ui/button';

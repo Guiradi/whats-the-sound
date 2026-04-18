@@ -27,7 +27,9 @@ export function PlayerListLobby({ players, hostId, myId }: PlayerListLobbyProps)
             key={player.id}
             className={cn(
               'flex items-center gap-3 rounded-md px-3 py-2 transition-colors',
-              player.id === myId ? 'bg-accent-cyan/10 ring-1 ring-accent-cyan/20' : 'bg-bg-surface-hover',
+              player.id === myId
+                ? 'bg-accent-cyan/10 ring-1 ring-accent-cyan/20'
+                : 'bg-bg-surface-hover',
             )}
           >
             <UserAvatar nickname={player.nickname} src={player.avatar} size="sm" />

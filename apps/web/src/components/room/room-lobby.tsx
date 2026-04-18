@@ -21,7 +21,14 @@ interface RoomLobbyProps {
   onLeave: () => void;
 }
 
-export function RoomLobby({ snapshot, isHost, myId, onToggleReady, onStartGame, onLeave }: RoomLobbyProps) {
+export function RoomLobby({
+  snapshot,
+  isHost,
+  myId,
+  onToggleReady,
+  onStartGame,
+  onLeave,
+}: RoomLobbyProps) {
   const t = useTranslations('room');
   const [copied, setCopied] = useState(false);
 
@@ -35,7 +42,8 @@ export function RoomLobby({ snapshot, isHost, myId, onToggleReady, onStartGame, 
     [snapshot.players],
   );
 
-  const allReady = readyCount === snapshot.players.length && snapshot.players.length >= MIN_PLAYERS_PER_ROOM;
+  const allReady =
+    readyCount === snapshot.players.length && snapshot.players.length >= MIN_PLAYERS_PER_ROOM;
   const enoughPlayers = snapshot.players.length >= MIN_PLAYERS_PER_ROOM;
   const canStart = isHost && enoughPlayers;
 

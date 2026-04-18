@@ -2,6 +2,7 @@
 
 import { MidiUploadForm } from '@/components/admin/midi-upload-form';
 import { env } from '@/env';
+import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@/i18n/navigation';
 import type { MidiPhases } from '@wts/shared';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -24,6 +25,7 @@ interface CatalogEntry {
 
 export default function AdminCatalogEditPage() {
   const t = useTranslations('adminCatalog.form');
+  const { user } = useAuth();
   const params = useParams<{ id: string }>();
   const [entry, setEntry] = useState<CatalogEntry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ export default function AdminCatalogEditPage() {
     async function load() {
       try {
         const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${params.id}`, {
-          headers: { 'x-user-id': 'admin' },
+          headers: { 'x-user-id': user?.id ?? '' },
           credentials: 'include',
         });
         if (res.ok) {
@@ -45,7 +47,7 @@ export default function AdminCatalogEditPage() {
       }
     }
     load();
-  }, [params.id]);
+  }, [params.id, user?.id]);
 
   if (loading) {
     return (

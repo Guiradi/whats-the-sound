@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { env } from '@/env';
+import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { MidiCategory, MidiDifficulty } from '@wts/shared';
@@ -53,6 +54,7 @@ type SortField =
 
 export function MidiCatalogTable() {
   const t = useTranslations('adminCatalog');
+  const { user } = useAuth();
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -78,7 +80,7 @@ export function MidiCatalogTable() {
       params.set('sortDir', sortDir);
 
       const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog?${params}`, {
-        headers: { 'x-user-id': 'admin' },
+        headers: { 'x-user-id': user?.id ?? '' },
         credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed to fetch');
@@ -91,7 +93,7 @@ export function MidiCatalogTable() {
     } finally {
       setLoading(false);
     }
-  }, [search, category, difficulty, showInactive, page, sortBy, sortDir]);
+  }, [search, category, difficulty, showInactive, page, sortBy, sortDir, user?.id]);
 
   useEffect(() => {
     fetchCatalog();
@@ -111,7 +113,7 @@ export function MidiCatalogTable() {
     try {
       await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${item.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': 'admin' },
+        headers: { 'Content-Type': 'application/json', 'x-user-id': user?.id ?? '' },
         credentials: 'include',
         body: JSON.stringify({ isActive: !item.is_active }),
       });

@@ -1,8 +1,7 @@
 'use client';
 
-import { AudioVisualizer } from '@/components/audio/audio-visualizer';
 import { AudioUnlockBanner } from '@/components/audio/audio-unlock-banner';
-import { useAudioContext } from '@/lib/midi/audio-context';
+import { AudioVisualizer } from '@/components/audio/audio-visualizer';
 import { ChatInput } from '@/components/game/chat-input';
 import { GameChat } from '@/components/game/game-chat';
 import { GameTimer } from '@/components/game/game-timer';
@@ -14,6 +13,7 @@ import { RoundTransition } from '@/components/game/round-transition';
 import { Button } from '@/components/ui/button';
 import { useGameState } from '@/hooks/use-game-state';
 import { useMidiPlayer } from '@/hooks/use-midi-player';
+import { useAudioContext } from '@/lib/midi/audio-context';
 import type { ChatMessage, PhaseConfig, RoomStateSnapshot } from '@wts/shared';
 import { MessageCircle, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';

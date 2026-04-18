@@ -268,7 +268,11 @@ export function disconnectPlayer(code: string, playerId: string, onGraceExpired:
   }, PLAYER_DISCONNECT_GRACE_MS);
 }
 
-export function setPlayerReady(code: string, playerId: string, ready: boolean): ServerRoomState | undefined {
+export function setPlayerReady(
+  code: string,
+  playerId: string,
+  ready: boolean,
+): ServerRoomState | undefined {
   const room = rooms.get(code);
   if (!room) return undefined;
   const player = room.players.get(playerId);
