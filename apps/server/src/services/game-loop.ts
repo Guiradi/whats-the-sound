@@ -71,7 +71,8 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
     if (!room) return 'ROOM_NOT_FOUND';
 
     if (room.hostId !== hostId) return 'NOT_HOST';
-    if (room.status !== GameStatus.LOBBY && room.status !== GameStatus.GAME_END) return 'INVALID_STATE';
+    if (room.status !== GameStatus.LOBBY && room.status !== GameStatus.GAME_END)
+      return 'INVALID_STATE';
     if (connectedPlayerCount(room) < MIN_PLAYERS_PER_ROOM) return 'NOT_ENOUGH_PLAYERS';
 
     // Reset all player scores

@@ -69,6 +69,7 @@ function makeServerPlayer(
     connected: true,
     joinedAt: new Date().toISOString(),
     socketId: socket.id,
+    level: socket.data.isGuest ? null : (socket.data.level ?? null),
   };
 }
 

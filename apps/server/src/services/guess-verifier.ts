@@ -151,3 +151,65 @@ export function verifyGuess(
 
   return { result: GuessResult.WRONG };
 }
+
+/**
+ * Verify a guess for daily mode. Uses daily-specific thresholds:
+ * - correct: distance <= 2
+ * - almost (HOT): distance <= 3 (does NOT consume attempt)
+ * - artist_match: exact artist match
+ * - wrong: everything else
+ */
+export function verifyDailyGuess(
+  guess: string,
+  acceptedTitles: string[],
+  acceptedArtists: string[],
+): GuessVerificationResult {
+  const normalizedGuess = normalizeText(guess);
+  const thresholds = LEVENSHTEIN_THRESHOLDS.daily;
+
+  // Check titles first
+  const titleMatch = findBestMatch(normalizedGuess, acceptedTitles);
+  if (titleMatch) {
+    const scaledCorrect = scaleThreshold(
+      thresholds.correct,
+      normalizeText(titleMatch.candidate).length,
+    );
+    const scaledAlmost = scaleThreshold(
+      thresholds.almost,
+      normalizeText(titleMatch.candidate).length,
+    );
+
+    if (titleMatch.distance <= scaledCorrect) {
+      return {
+        result: GuessResult.CORRECT,
+        distance: titleMatch.distance,
+        matchedCandidate: titleMatch.candidate,
+      };
+    }
+    if (titleMatch.distance <= scaledAlmost) {
+      return {
+        result: GuessResult.HOT,
+        distance: titleMatch.distance,
+        matchedCandidate: titleMatch.candidate,
+      };
+    }
+  }
+
+  // Check artists for artist_match
+  const artistMatch = findBestMatch(normalizedGuess, acceptedArtists);
+  if (artistMatch) {
+    const scaledCorrect = scaleThreshold(
+      thresholds.correct,
+      normalizeText(artistMatch.candidate).length,
+    );
+    if (artistMatch.distance <= scaledCorrect) {
+      return {
+        result: GuessResult.ARTIST_MATCH,
+        distance: artistMatch.distance,
+        matchedCandidate: artistMatch.candidate,
+      };
+    }
+  }
+
+  return { result: GuessResult.WRONG };
+}

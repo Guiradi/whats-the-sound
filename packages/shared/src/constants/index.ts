@@ -1,3 +1,5 @@
+import type { MidiCategory } from '../enums/index.js';
+
 export const ROOM_CODE_LENGTH = 5;
 export const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -50,3 +52,54 @@ export const DAILY_BUFFER_DAYS = 100;
 export const NICKNAME_MIN = 3;
 export const NICKNAME_MAX = 20;
 export const NICKNAME_PATTERN = /^[a-zA-Z0-9_]+$/;
+
+// --- Daily Sound ---
+
+/** Day-of-week → category mapping (BRT weekday, 0=Sunday) */
+export const WEEKDAY_CATEGORY: Record<number, MidiCategory | 'random'> = {
+  0: 'classical', // Sunday
+  1: 'pop', // Monday
+  2: 'rock', // Tuesday
+  3: 'games', // Wednesday
+  4: 'mpb', // Thursday
+  5: 'random', // Friday
+  6: 'anime', // Saturday
+};
+
+export const DAILY_PHASES_TOTAL = 4;
+export const DAILY_MAX_ATTEMPTS_PER_PHASE = 1;
+
+// --- XP System ---
+
+export const XP_DAILY_CAP = 2000;
+
+export const XP_DAILY_CORRECT: Record<number, number> = {
+  1: 150,
+  2: 100,
+  3: 75,
+  4: 50,
+};
+
+export const XP_DAILY_PARTICIPATION = 15;
+
+export const XP_MULTIPLAYER_CORRECT_DIVISOR = 10;
+export const XP_MULTIPLAYER_FINISH_BASE = 50;
+
+export const XP_MULTIPLAYER_PODIUM: Record<number, number> = {
+  1: 100,
+  2: 50,
+  3: 25,
+};
+
+export const XP_STREAK_MULTIPLIER = 10;
+export const XP_STREAK_CAP = 30;
+
+/** Calculate the minimum XP required to reach a given level. */
+export function xpForLevel(level: number): number {
+  return (level - 1) ** 2 * 100;
+}
+
+/** Calculate the level for a given XP amount. */
+export function levelForXp(xp: number): number {
+  return Math.floor(Math.sqrt(xp / 100)) + 1;
+}

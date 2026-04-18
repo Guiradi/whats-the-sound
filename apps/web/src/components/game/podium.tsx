@@ -1,6 +1,7 @@
 'use client';
 
 import { UserAvatar } from '@/components/auth/user-avatar';
+import { LevelBadge } from '@/components/shared/level-badge';
 import { cn } from '@/lib/utils';
 import type { RoomPlayer } from '@wts/shared';
 import { useTranslations } from 'next-intl';
@@ -58,7 +59,8 @@ export function Podium({ players }: PodiumProps) {
               src={player.avatar}
               size={config.position === 1 ? 'lg' : 'md'}
             />
-            <span className="mt-1 text-sm font-semibold text-text-primary">{player.nickname}</span>
+            <LevelBadge level={player.level} size="md" className="mt-1" />
+            <span className="text-sm font-semibold text-text-primary">{player.nickname}</span>
             <span className="text-xs font-bold text-accent-yellow tabular-nums">
               {player.totalScore}
             </span>

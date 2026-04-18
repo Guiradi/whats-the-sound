@@ -204,10 +204,12 @@ Sprint 4 (Frontend Multi)    Sprint 5 (Daily+Polish)     Sprint 6 (Admin+Deploy)
 - [ ] Daily Sound: fluxo completo funciona (jogar → resultado → compartilhar)
 - [ ] Daily Sound: streak incrementa corretamente
 - [ ] Histórico: calendário renderiza com cores corretas
-- [ ] 100 músicas seedadas e reproduzíveis
+- [ ] 30 músicas seedadas e reproduzíveis
 - [ ] OG images renderizam corretamente
 - [ ] Landing page responsiva com CTAs funcionais
 - [ ] Lighthouse SEO ≥ 90
+
+**Pendente de smoke manual — Sprint 5 code complete, 2026-04-18.**
 
 ---
 

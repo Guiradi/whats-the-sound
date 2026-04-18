@@ -9,6 +9,7 @@ import type {
   RoomConfig,
   RoomPlayer,
   RoomStateSnapshot,
+  XpLevelUpPayload,
 } from '@wts/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -39,6 +40,7 @@ interface UseRoomReturn {
   startGame: () => void;
   leaveRoom: () => void;
   createRoom: (config: RoomConfig, onCreated: (code: string) => void) => void;
+  levelUp: XpLevelUpPayload | null;
 }
 
 const MAX_LOCAL_CHAT = 100;
@@ -51,6 +53,7 @@ export function useRoom(code: string | null): UseRoomReturn {
   const [error, setError] = useState<string | null>(null);
   const [phaseStart, setPhaseStart] = useState<PhaseStartPayload | null>(null);
   const [roundReveal, setRoundReveal] = useState<RoundRevealPayload | null>(null);
+  const [levelUp, setLevelUp] = useState<XpLevelUpPayload | null>(null);
   const socketRef = useRef<TypedSocket | null>(null);
   const versionRef = useRef(0);
 
@@ -125,6 +128,10 @@ export function useRoom(code: string | null): UseRoomReturn {
         setError(
           `Rate limited (${payload.scope}). Retry in ${Math.ceil(payload.retryAfterMs / 1000)}s`,
         );
+      });
+
+      socket.on('xp:level_up', (payload) => {
+        setLevelUp(payload);
       });
 
       socket.on('connect', () => {
@@ -233,5 +240,6 @@ export function useRoom(code: string | null): UseRoomReturn {
     startGame,
     leaveRoom,
     createRoom,
+    levelUp,
   };
 }

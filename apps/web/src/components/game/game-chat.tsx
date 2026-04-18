@@ -1,5 +1,6 @@
 'use client';
 
+import { LevelBadge } from '@/components/shared/level-badge';
 import { cn } from '@/lib/utils';
 import type { ChatMessage } from '@wts/shared';
 import { useTranslations } from 'next-intl';
@@ -9,6 +10,7 @@ interface GameChatProps {
   messages: ChatMessage[];
   myId: string | null;
   playerNames?: Map<string, string>;
+  playerLevels?: Map<string, number | null>;
 }
 
 /**
@@ -32,7 +34,7 @@ function parseBotKey(
   }
 }
 
-export function GameChat({ messages, myId, playerNames }: GameChatProps) {
+export function GameChat({ messages, myId, playerNames, playerLevels }: GameChatProps) {
   const t = useTranslations('game.chat');
   const bottomRef = useRef<HTMLDivElement>(null);
   const countRef = useRef(0);
@@ -70,6 +72,7 @@ export function GameChat({ messages, myId, playerNames }: GameChatProps) {
             <span>{renderBotText(msg.text)}</span>
           ) : (
             <span>
+              <LevelBadge level={playerLevels?.get(msg.authorId) ?? null} className="mr-1" />
               <span className="font-semibold">
                 {msg.authorId === myId
                   ? t('you')

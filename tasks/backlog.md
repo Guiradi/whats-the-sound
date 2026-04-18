@@ -109,7 +109,13 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
 
 ## Sprint 5 — Daily Sound + Polish
 
-### [ ] TASK-015: Daily Sound — Backend (3h) — specs/features/05-daily-sound.md
+_(todas as tasks concluídas — ver `tasks/completed.md`)_
+
+---
+
+## Sprint 5 (adicionais pós-auditoria)
+
+### [✓] TASK-015: Daily Sound — Backend (3h) — specs/features/05-daily-sound.md
     → Daily Selection:
       • Função selectDailyMidi(date, seed) → determinístico, sem repetição em 100 dias
       • Cron job (ou Supabase Edge Function) à meia-noite BRT:
@@ -130,7 +136,7 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
       • Streak incrementa corretamente
       • Resultado correto após acertar/errar
 
-### [ ] TASK-016: Daily Sound — Frontend (4h) — specs/features/05-daily-sound.md
+### [✓] TASK-016: Daily Sound — Frontend (4h) — specs/features/05-daily-sound.md
     → Página /daily:
       • Estado "não jogou": botão "Começar" + info do dia + categoria
       • Estado "jogando": AudioVisualizer + fase atual + input + tentativas anteriores
@@ -155,7 +161,7 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
       • Resultado persiste (voltar à página mostra resultado)
       • Share gera texto correto
 
-### [ ] TASK-017: Daily Sound — Histórico + Calendário (2h) — specs/features/05-daily-sound.md
+### [✓] TASK-017: Daily Sound — Histórico + Calendário (2h) — specs/features/05-daily-sound.md
     → Página /daily/history (logados):
       • Calendário de contribuições (estilo GitHub)
       • Cores: verde (acertou), vermelho (errou), cinza (não jogou)
@@ -171,7 +177,7 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
       • Modal mostra info do dia passado
       • Guest vê mensagem de "crie uma conta"
 
-### [ ] TASK-018: MIDI Catalog Seed (100 músicas) (4h) — specs/features/06-midi-catalog.md
+### [✓] TASK-018: MIDI Catalog Seed (100 músicas) (4h) — specs/features/06-midi-catalog.md
     → Seed Script:
       • Arquivo JSON com metadata das 100 músicas (title, artist, category, difficulty, phases)
       • Script pnpm seed:midis que:
@@ -192,7 +198,7 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
       • Categorias com contagem correta
       • accepted_titles inclui variações comuns
 
-### [ ] TASK-019: OG Images dinâmicas (2h) — specs/features/07-pwa-sharing.md
+### [✓] TASK-019: OG Images dinâmicas (2h) — specs/features/07-pwa-sharing.md
     → Next.js OG Image (Vercel OG):
       • /api/og/daily/[number] — OG image para Daily Sound #N
         - Visual: logo WTS + "Daily Sound #47" + resultado (se disponível) + fundo synthwave
@@ -206,7 +212,7 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
       • Tamanho: 1200x630px
       • Gera em < 500ms
 
-### [ ] TASK-020: Landing Page + Home (3h) — specs/features/07-pwa-sharing.md
+### [✓] TASK-020: Landing Page + Home (3h) — specs/features/07-pwa-sharing.md
     → Página / (Home):
       • Hero: logo WTS + tagline "Ouça. Adivinhe. Repita." + CTA "Jogar Agora"
       • Duas seções: "Daily Sound" (CTA) + "Multiplayer" (CTA)
@@ -327,7 +333,7 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
 
 ## Sprint 5 (adicionais pós-auditoria)
 
-### [ ] TASK-030: XP Engine — Backend (3.5h) — specs/features/08-xp-system.md
+### [✓] TASK-030: XP Engine — Backend (3.5h) — specs/features/08-xp-system.md
     → Nota: depende de TASK-015 (daily backend, para gerar eventos de daily) e TASK-010 (game loop, para eventos multiplayer). Schema (`users.xp`, `users.level`, `xp_events`) já foi criado em TASK-002. Esta task implementa apenas o serviço + integração.
     → Constants em @wts/shared:
       • Adicionar `XP_VALUES` com: `multiplayerCorrectDivisor=10`, `multiplayerFinishBase=50`, `podiumBonus={1:100,2:50,3:25}`, `dailyCorrectByPhase={1:150,2:100,3:75,4:50}`, `dailyParticipation=15`, `dailyStreakMultiplier=10`, `dailyStreakCap=30`
@@ -358,7 +364,7 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
       • Ganhar mais de 2000 XP em um dia: `xp_events` marca `capped=true`, `users.xp` para no cap
       • Cruzar threshold de level: evento socket `xp:level_up` chega ao client correto, com previous/new level
 
-### [ ] TASK-031: XP Engine — Frontend (2.5h) — specs/features/08-xp-system.md
+### [✓] TASK-031: XP Engine — Frontend (2.5h) — specs/features/08-xp-system.md
     → Nota: depende de TASK-030 (backend service e evento socket) e de TASK-013/014/016 (telas onde o badge aparece).
     → Componentes novos:
       • `components/shared/LevelBadge.tsx` — stateless, recebe `level: number | 'guest'`, decide classe por faixa (1-9 muted, 10-24 cyan, 25-49 magenta, 50+ gradient gold→magenta), exibe `[Lv.X]` ou `[Guest]`

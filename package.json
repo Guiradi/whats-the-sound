@@ -17,7 +17,8 @@
     "format:check": "biome format .",
     "db:push": "supabase db push",
     "db:diff": "supabase db diff",
-    "db:reset": "supabase db reset --linked"
+    "db:reset": "supabase db reset --linked",
+    "seed:midis": "node --experimental-strip-types scripts/seed-midis.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

@@ -47,6 +47,7 @@ function playerToWire(p: ServerPlayer): RoomPlayer {
     correctCount: p.correctCount,
     connected: p.connected,
     joinedAt: p.joinedAt,
+    level: p.level,
   };
 }
 

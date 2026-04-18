@@ -89,6 +89,14 @@ export function GameBoard({
     return map;
   }, [snapshot.players]);
 
+  const playerLevels = useMemo(() => {
+    const map = new Map<string, number | null>();
+    for (const p of snapshot.players) {
+      map.set(p.id, p.level);
+    }
+    return map;
+  }, [snapshot.players]);
+
   const handleSend = useCallback(
     (text: string) => {
       onSendChat(text);
@@ -159,7 +167,12 @@ export function GameBoard({
               title={t('chat.title')}
             >
               <div className="flex h-[50vh] flex-col">
-                <GameChat messages={chat} myId={myId} playerNames={playerNames} />
+                <GameChat
+                  messages={chat}
+                  myId={myId}
+                  playerNames={playerNames}
+                  playerLevels={playerLevels}
+                />
                 <ChatInput
                   onSend={handleSend}
                   disabled={gameState.myCorrect}
@@ -200,7 +213,12 @@ export function GameBoard({
         <h3 className="border-b border-bg-border px-3 py-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
           {t('chat.title')}
         </h3>
-        <GameChat messages={chat} myId={myId} playerNames={playerNames} />
+        <GameChat
+          messages={chat}
+          myId={myId}
+          playerNames={playerNames}
+          playerLevels={playerLevels}
+        />
         <ChatInput
           onSend={handleSend}
           disabled={gameState.myCorrect}

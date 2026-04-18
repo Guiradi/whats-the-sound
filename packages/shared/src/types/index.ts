@@ -47,6 +47,7 @@ export interface RoomPlayer {
   correctCount: number;
   connected: boolean;
   joinedAt: string;
+  level: number | null;
 }
 
 export interface RoundSnapshot {
@@ -88,6 +89,92 @@ export interface GuessVerificationResult {
   matchedCandidate?: string;
 }
 
+// --- Daily Sound Types ---
+
+export interface DailyAttempt {
+  phase: 1 | 2 | 3 | 4;
+  guess: string;
+  result: GuessResult;
+}
+
+export interface DailyState {
+  midiId: string;
+  date: string;
+  dayNumber: number;
+  category: MidiCategory;
+  currentPhase: 1 | 2 | 3 | 4;
+  attempts: DailyAttempt[];
+  completed: boolean;
+  isCorrect: boolean;
+  phaseAudioData: PhaseConfig | null;
+  midiFileUrl: string | null;
+}
+
+export interface DailyGuessResponse {
+  result: GuessResult;
+  completed: boolean;
+  isCorrect: boolean;
+  nextPhase: 1 | 2 | 3 | 4 | null;
+  nextPhaseAudioData: PhaseConfig | null;
+  /** Revealed only on completion */
+  title?: string;
+  artist?: string;
+}
+
+export interface DailyHistoryEntry {
+  date: string;
+  dayNumber: number;
+  midiId: string;
+  title: string;
+  artist: string;
+  category: MidiCategory;
+  phaseGuessed: number | null;
+  completed: boolean;
+  isCorrect: boolean;
+}
+
+// --- XP Types ---
+
+export type XpSource =
+  | 'multiplayer_correct'
+  | 'multiplayer_finish'
+  | 'daily_correct'
+  | 'daily_participation'
+  | 'daily_streak_bonus';
+
+export interface XpEvent {
+  id: string;
+  userId: string;
+  source: XpSource;
+  sourceRef: string;
+  amount: number;
+  capped: boolean;
+  context: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface XpAwardResult {
+  previousLevel: number;
+  newLevel: number;
+  xpGained: number;
+  capped: boolean;
+}
+
+export interface XpProfileData {
+  xp: number;
+  level: number;
+  nextLevelXp: number;
+  todayEarned: number;
+  todayCap: number;
+  recentEvents: XpEvent[];
+}
+
+export interface XpLevelUpPayload {
+  previousLevel: number;
+  newLevel: number;
+  xpGained: number;
+}
+
 export interface ServerToClientEvents {
   'room:state': (snapshot: RoomStateSnapshot) => void;
   'room:host_changed': (payload: { previousHostId: string; newHostId: string }) => void;
@@ -99,6 +186,7 @@ export interface ServerToClientEvents {
     midiFileUrl: string;
   }) => void;
   'round:reveal': (payload: { title: string; artist: string; correctPlayerIds: string[] }) => void;
+  'xp:level_up': (payload: XpLevelUpPayload) => void;
   'error:rate_limited': (payload: { scope: string; retryAfterMs: number }) => void;
   'error:generic': (payload: { code: string; message: string }) => void;
 }

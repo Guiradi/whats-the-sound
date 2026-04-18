@@ -9,6 +9,7 @@ declare module 'socket.io' {
     nickname: string | null;
     avatar: string | null;
     roomCode: string | null;
+    level: number | null;
   }
 }
 
@@ -36,14 +37,15 @@ export function createAuthMiddleware(supabase: SupabaseClient | null) {
         socket.data.isGuest = false;
         socket.data.roomCode = null;
 
-        // Fetch nickname and avatar from users table
+        // Fetch nickname, avatar, and level from users table
         const { data: profile } = await supabase
           .from('users')
-          .select('nickname, avatar_url')
+          .select('nickname, avatar_url, level')
           .eq('id', user.id)
           .maybeSingle();
         socket.data.nickname = profile?.nickname ?? null;
         socket.data.avatar = profile?.avatar_url ?? null;
+        socket.data.level = (profile?.level as number) ?? 1;
 
         next();
       } catch {
@@ -57,6 +59,7 @@ export function createAuthMiddleware(supabase: SupabaseClient | null) {
       socket.data.nickname = null;
       socket.data.avatar = null;
       socket.data.roomCode = null;
+      socket.data.level = null;
       next();
     }
   };

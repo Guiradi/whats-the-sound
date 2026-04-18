@@ -13,7 +13,11 @@
     "roomsTitle": "Salas — What's the Sound?",
     "roomsDescription": "Encontre ou crie uma sala para jogar com amigos.",
     "roomTitle": "Sala — What's the Sound?",
-    "roomDescription": "Sala de jogo multiplayer."
+    "roomDescription": "Sala de jogo multiplayer.",
+    "dailyTitle": "Daily Sound — What's the Sound?",
+    "dailyDescription": "Desafio musical do dia. Ouça o MIDI e adivinhe a música!",
+    "dailyHistoryTitle": "Histórico Daily — What's the Sound?",
+    "dailyHistoryDescription": "Seu histórico de desafios diários."
   },
   "common": {
     "actions": {
@@ -32,26 +36,50 @@
     }
   },
   "home": {
-    "sprintBadge": "Sprint 1 · Setup",
     "heroTagline": "Ouça. Adivinhe. Repita.",
-    "cards": {
-      "phases": {
-        "title": "4 fases",
-        "description": "Cada música revela mais camadas a cada fase.",
-        "body": "De poucas notas até a música completa."
-      },
-      "scoring": {
-        "title": "Pontuação Gartic",
-        "description": "Acertou primeiro? Mais pontos.",
-        "body": "Decay por posição em cada fase."
-      },
-      "xp": {
-        "title": "XP & Level",
-        "description": "Logue para acumular progresso.",
-        "body": "Guests podem jogar, mas não ganham XP."
+    "howItWorks": {
+      "title": "Como funciona",
+      "stepLabel": "Passo {n}",
+      "steps": {
+        "0": {
+          "title": "Ouça o MIDI",
+          "description": "A música começa com poucas notas. A cada fase, mais instrumentos são revelados."
+        },
+        "1": {
+          "title": "Adivinhe a música",
+          "description": "Digite seu palpite. Quanto antes acertar, mais pontos você ganha."
+        },
+        "2": {
+          "title": "Compita e suba de nível",
+          "description": "Jogue contra amigos ou no desafio diário. Ganhe XP e suba de nível."
+        }
       }
     },
-    "placeholderNote": "Setup placeholder · Sprint 1 · TASK-032"
+    "features": {
+      "title": "Modos de jogo",
+      "items": {
+        "0": {
+          "title": "Multiplayer",
+          "description": "Crie salas e jogue com amigos em tempo real.",
+          "body": "Pontuação estilo Gartic: o primeiro a acertar ganha mais pontos."
+        },
+        "1": {
+          "title": "Daily Sound",
+          "description": "Um novo desafio todos os dias.",
+          "body": "A mesma música para todos. Compare seu resultado e mantenha seu streak."
+        },
+        "2": {
+          "title": "MIDI Retrô",
+          "description": "Áudios MIDI com timbre único.",
+          "body": "Sem problemas de copyright. Cada música revelada em 4 fases progressivas."
+        },
+        "3": {
+          "title": "XP & Level",
+          "description": "Logue para acumular progresso.",
+          "body": "Ganhe XP por acertos, partidas e streaks. Suba de nível e mostre seu badge."
+        }
+      }
+    }
   },
   "auth": {
     "login": {
@@ -470,6 +498,82 @@
           ]
         }
       ]
+    }
+  },
+  "daily": {
+    "title": "Daily Sound",
+    "loading": "Carregando desafio do dia...",
+    "error": "Erro ao carregar o desafio do dia.",
+    "phase": "Fase {current} de {total}",
+    "phaseLabel": "F{n}",
+    "replay": "Ouvir novamente",
+    "guessPlaceholder": "Qual é a música?",
+    "guestCta": "Faça login para enviar palpites e salvar seu progresso.",
+    "nextDaily": "Próximo desafio em:",
+    "feedback": {
+      "correct": "Acertou! 🎉",
+      "almost": "Quase! Tente de novo nesta fase.",
+      "warm": "Está perto! Continue tentando.",
+      "artistMatch": "Artista correto! Mas qual é a música?",
+      "wrong": "Errado. Próxima fase..."
+    },
+    "result": {
+      "correct": "Acertou na Fase {phase}!",
+      "wrong": "Não foi desta vez..."
+    },
+    "share": {
+      "button": "Compartilhar resultado",
+      "correct": "Acertei na Fase {phase}!",
+      "wrong": "Não acertei hoje...",
+      "copied": "Resultado copiado!",
+      "error": "Erro ao compartilhar"
+    }
+  },
+  "dailyHistory": {
+    "title": "Histórico Daily",
+    "loading": "Carregando histórico...",
+    "empty": "Você ainda não jogou nenhum Daily Sound.",
+    "loginRequired": "Faça login para ver seu histórico.",
+    "stats": {
+      "title": "Estatísticas",
+      "totalPlayed": "Total jogado",
+      "accuracy": "Acertos",
+      "currentStreak": "Streak atual",
+      "maxStreak": "Maior streak"
+    },
+    "calendar": {
+      "correct": "Acertou",
+      "wrong": "Errou",
+      "notPlayed": "Não jogou"
+    },
+    "detail": {
+      "phase": "Acertou na fase {phase}",
+      "wrong": "Não acertou"
+    }
+  },
+  "xp": {
+    "levelBadge": "Nv.{level}",
+    "guest": "Convidado",
+    "levelUp": {
+      "title": "Level Up!",
+      "message": "Nível {previous} → Nível {next}",
+      "xpGained": "+{amount} XP"
+    },
+    "guestCta": "Você teria ganho +{amount} XP. Crie uma conta para acumular!",
+    "profile": {
+      "title": "XP e Nível",
+      "level": "Nível {level}",
+      "xpTotal": "{xp} XP total",
+      "todayEarned": "{earned}/{cap} XP hoje",
+      "nextLevel": "{xp} XP para o nível {level}",
+      "recentEvents": "Ganhos recentes"
+    },
+    "source": {
+      "multiplayer_correct": "Acerto em rodada",
+      "multiplayer_finish": "Partida concluída",
+      "daily_correct": "Daily Sound acertou",
+      "daily_participation": "Daily Sound participou",
+      "daily_streak_bonus": "Bônus de streak"
     }
   }
 }

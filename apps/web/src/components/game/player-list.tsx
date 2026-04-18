@@ -1,6 +1,7 @@
 'use client';
 
 import { UserAvatar } from '@/components/auth/user-avatar';
+import { LevelBadge } from '@/components/shared/level-badge';
 import { cn } from '@/lib/utils';
 import type { RoomPlayer } from '@wts/shared';
 import { Check, WifiOff } from 'lucide-react';
@@ -32,6 +33,7 @@ export function PlayerList({ players, correctPlayerIds, myId }: PlayerListProps)
         >
           <span className="w-5 text-center text-xs font-bold text-text-muted">{i + 1}</span>
           <UserAvatar nickname={player.nickname} src={player.avatar} size="sm" />
+          <LevelBadge level={player.level} />
           <span className="flex-1 truncate font-medium">{player.nickname}</span>
           {correctSet.has(player.id) && <Check className="h-4 w-4 text-accent-green" />}
           {!player.connected && <WifiOff className="h-3.5 w-3.5 text-accent-red" />}

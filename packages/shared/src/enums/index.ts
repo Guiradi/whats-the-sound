@@ -44,3 +44,12 @@ export const UserRole = {
   ADMIN: 'admin',
 } as const;
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
+export const XpSourceEnum = {
+  MULTIPLAYER_CORRECT: 'multiplayer_correct',
+  MULTIPLAYER_FINISH: 'multiplayer_finish',
+  DAILY_CORRECT: 'daily_correct',
+  DAILY_PARTICIPATION: 'daily_participation',
+  DAILY_STREAK_BONUS: 'daily_streak_bonus',
+} as const;
+export type XpSourceEnum = (typeof XpSourceEnum)[keyof typeof XpSourceEnum];

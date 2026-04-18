@@ -1,0 +1,696 @@
+[
+  {
+    "id": "midi-001",
+    "title": "Ode to Joy",
+    "artist": "Ludwig van Beethoven",
+    "category": "classical",
+    "difficulty": "easy",
+    "year": 1824,
+    "filename": "ode-to-joy.mid",
+    "acceptedTitles": ["Ode to Joy", "Ode a Alegria", "Beethoven's Ninth", "Symphony No 9"],
+    "acceptedArtists": ["Beethoven", "Ludwig van Beethoven"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Main melody" },
+      "phase2": {
+        "tracks": [0, 1],
+        "startBeat": 0,
+        "endBeat": 32,
+        "description": "Melody + harmony"
+      },
+      "phase3": {
+        "tracks": [0, 1, 2],
+        "startBeat": 0,
+        "endBeat": 48,
+        "description": "Most voices"
+      },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full arrangement"
+      }
+    }
+  },
+  {
+    "id": "midi-002",
+    "title": "Fur Elise",
+    "artist": "Ludwig van Beethoven",
+    "category": "classical",
+    "difficulty": "easy",
+    "year": 1810,
+    "filename": "fur-elise.mid",
+    "acceptedTitles": ["Fur Elise", "Fuer Elise", "Para Elisa", "Bagatelle No 25"],
+    "acceptedArtists": ["Beethoven", "Ludwig van Beethoven"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Opening motif" },
+      "phase2": { "tracks": [0], "startBeat": 0, "endBeat": 32, "description": "Extended melody" },
+      "phase3": { "tracks": [0, 1], "startBeat": 0, "endBeat": 48, "description": "With bass" },
+      "phase4": { "tracks": [0, 1], "startBeat": 0, "endBeat": 64, "description": "Full piece" }
+    }
+  },
+  {
+    "id": "midi-003",
+    "title": "Bohemian Rhapsody",
+    "artist": "Queen",
+    "category": "rock",
+    "difficulty": "medium",
+    "year": 1975,
+    "filename": "bohemian-rhapsody.mid",
+    "acceptedTitles": ["Bohemian Rhapsody", "Bohemian Rapsody"],
+    "acceptedArtists": ["Queen", "Freddie Mercury"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Piano intro" },
+      "phase2": {
+        "tracks": [0, 1],
+        "startBeat": 0,
+        "endBeat": 32,
+        "description": "Vocals + piano"
+      },
+      "phase3": {
+        "tracks": [0, 1, 2],
+        "startBeat": 0,
+        "endBeat": 48,
+        "description": "Guitar joins"
+      },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full band"
+      }
+    }
+  },
+  {
+    "id": "midi-004",
+    "title": "Smells Like Teen Spirit",
+    "artist": "Nirvana",
+    "category": "rock",
+    "difficulty": "medium",
+    "year": 1991,
+    "filename": "smells-like-teen-spirit.mid",
+    "acceptedTitles": ["Smells Like Teen Spirit", "Teen Spirit"],
+    "acceptedArtists": ["Nirvana", "Kurt Cobain"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Guitar riff" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "Guitar + bass" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add drums" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full band"
+      }
+    }
+  },
+  {
+    "id": "midi-005",
+    "title": "Hotel California",
+    "artist": "Eagles",
+    "category": "rock",
+    "difficulty": "medium",
+    "year": 1977,
+    "filename": "hotel-california.mid",
+    "acceptedTitles": ["Hotel California"],
+    "acceptedArtists": ["Eagles", "The Eagles"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Guitar intro" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "Twin guitars" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "With bass" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full arrangement"
+      }
+    }
+  },
+  {
+    "id": "midi-006",
+    "title": "Sweet Child O Mine",
+    "artist": "Guns N Roses",
+    "category": "rock",
+    "difficulty": "easy",
+    "year": 1987,
+    "filename": "sweet-child-o-mine.mid",
+    "acceptedTitles": ["Sweet Child O Mine", "Sweet Child of Mine"],
+    "acceptedArtists": ["Guns N Roses", "GNR", "Guns and Roses"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Iconic riff" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "Riff + rhythm" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "With bass" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full band"
+      }
+    }
+  },
+  {
+    "id": "midi-007",
+    "title": "Stairway to Heaven",
+    "artist": "Led Zeppelin",
+    "category": "rock",
+    "difficulty": "hard",
+    "year": 1971,
+    "filename": "stairway-to-heaven.mid",
+    "acceptedTitles": ["Stairway to Heaven"],
+    "acceptedArtists": ["Led Zeppelin"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Acoustic intro" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "Guitar layers" },
+      "phase3": {
+        "tracks": [0, 1, 2],
+        "startBeat": 0,
+        "endBeat": 48,
+        "description": "Building up"
+      },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full band"
+      }
+    }
+  },
+  {
+    "id": "midi-008",
+    "title": "Billie Jean",
+    "artist": "Michael Jackson",
+    "category": "pop",
+    "difficulty": "easy",
+    "year": 1982,
+    "filename": "billie-jean.mid",
+    "acceptedTitles": ["Billie Jean", "Billy Jean"],
+    "acceptedArtists": ["Michael Jackson", "MJ"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Bass line" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "Bass + drums" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add synth" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full track"
+      }
+    }
+  },
+  {
+    "id": "midi-009",
+    "title": "Take On Me",
+    "artist": "a-ha",
+    "category": "pop",
+    "difficulty": "easy",
+    "year": 1985,
+    "filename": "take-on-me.mid",
+    "acceptedTitles": ["Take On Me", "Take on Me"],
+    "acceptedArtists": ["a-ha", "aha", "A-ha"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Synth riff" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "Synth + bass" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add drums" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full arrangement"
+      }
+    }
+  },
+  {
+    "id": "midi-010",
+    "title": "Shape of You",
+    "artist": "Ed Sheeran",
+    "category": "pop",
+    "difficulty": "easy",
+    "year": 2017,
+    "filename": "shape-of-you.mid",
+    "acceptedTitles": ["Shape of You"],
+    "acceptedArtists": ["Ed Sheeran"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Marimba riff" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "Riff + beat" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add bass" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full track"
+      }
+    }
+  },
+  {
+    "id": "midi-011",
+    "title": "Imagine",
+    "artist": "John Lennon",
+    "category": "pop",
+    "difficulty": "easy",
+    "year": 1971,
+    "filename": "imagine.mid",
+    "acceptedTitles": ["Imagine"],
+    "acceptedArtists": ["John Lennon", "Lennon"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Piano intro" },
+      "phase2": { "tracks": [0], "startBeat": 0, "endBeat": 32, "description": "Extended piano" },
+      "phase3": {
+        "tracks": [0, 1],
+        "startBeat": 0,
+        "endBeat": 48,
+        "description": "Piano + strings"
+      },
+      "phase4": {
+        "tracks": [0, 1, 2],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full arrangement"
+      }
+    }
+  },
+  {
+    "id": "midi-012",
+    "title": "Yesterday",
+    "artist": "The Beatles",
+    "category": "pop",
+    "difficulty": "medium",
+    "year": 1965,
+    "filename": "yesterday.mid",
+    "acceptedTitles": ["Yesterday"],
+    "acceptedArtists": ["The Beatles", "Beatles", "Paul McCartney"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Guitar melody" },
+      "phase2": { "tracks": [0], "startBeat": 0, "endBeat": 32, "description": "Extended melody" },
+      "phase3": { "tracks": [0, 1], "startBeat": 0, "endBeat": 48, "description": "With strings" },
+      "phase4": {
+        "tracks": [0, 1, 2],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full arrangement"
+      }
+    }
+  },
+  {
+    "id": "midi-013",
+    "title": "Garota de Ipanema",
+    "artist": "Tom Jobim",
+    "category": "mpb",
+    "difficulty": "medium",
+    "year": 1962,
+    "filename": "garota-de-ipanema.mid",
+    "acceptedTitles": ["Garota de Ipanema", "Girl from Ipanema", "The Girl from Ipanema"],
+    "acceptedArtists": ["Tom Jobim", "Antonio Carlos Jobim", "Jobim"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Piano melody" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "Piano + bass" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add drums" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full bossa"
+      }
+    }
+  },
+  {
+    "id": "midi-014",
+    "title": "Aquarela",
+    "artist": "Toquinho",
+    "category": "mpb",
+    "difficulty": "easy",
+    "year": 1983,
+    "filename": "aquarela.mid",
+    "acceptedTitles": ["Aquarela"],
+    "acceptedArtists": ["Toquinho", "Toquinho e Vinicius"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Guitar melody" },
+      "phase2": { "tracks": [0], "startBeat": 0, "endBeat": 32, "description": "Extended melody" },
+      "phase3": { "tracks": [0, 1], "startBeat": 0, "endBeat": 48, "description": "With strings" },
+      "phase4": {
+        "tracks": [0, 1, 2],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full arrangement"
+      }
+    }
+  },
+  {
+    "id": "midi-015",
+    "title": "Evidencias",
+    "artist": "Chitaozinho e Xororo",
+    "category": "sertanejo",
+    "difficulty": "medium",
+    "year": 1990,
+    "filename": "evidencias.mid",
+    "acceptedTitles": ["Evidencias", "Evidências"],
+    "acceptedArtists": ["Chitaozinho e Xororo", "Chitãozinho e Xororó"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Keyboard intro" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "Keys + guitar" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add bass" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full band"
+      }
+    }
+  },
+  {
+    "id": "midi-016",
+    "title": "Ai Se Eu Te Pego",
+    "artist": "Michel Telo",
+    "category": "sertanejo",
+    "difficulty": "easy",
+    "year": 2011,
+    "filename": "ai-se-eu-te-pego.mid",
+    "acceptedTitles": ["Ai Se Eu Te Pego", "Nossa Nossa"],
+    "acceptedArtists": ["Michel Telo", "Michel Teló"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Accordion melody" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With bass" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add drums" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full track"
+      }
+    }
+  },
+  {
+    "id": "midi-017",
+    "title": "Pais e Filhos",
+    "artist": "Legiao Urbana",
+    "category": "mpb",
+    "difficulty": "medium",
+    "year": 1989,
+    "filename": "pais-e-filhos.mid",
+    "acceptedTitles": ["Pais e Filhos"],
+    "acceptedArtists": ["Legiao Urbana", "Legião Urbana", "Renato Russo"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Guitar arpeggio" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "Guitar + bass" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add drums" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full band"
+      }
+    }
+  },
+  {
+    "id": "midi-018",
+    "title": "Sertanejo de Verdade",
+    "artist": "Victor e Leo",
+    "category": "sertanejo",
+    "difficulty": "hard",
+    "year": 2007,
+    "filename": "sertanejo-de-verdade.mid",
+    "acceptedTitles": ["Sertanejo de Verdade"],
+    "acceptedArtists": ["Victor e Leo"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Acoustic guitar" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With harmony" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add bass" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full arrangement"
+      }
+    }
+  },
+  {
+    "id": "midi-019",
+    "title": "Zelda Main Theme",
+    "artist": "Koji Kondo",
+    "category": "games",
+    "difficulty": "medium",
+    "year": 1986,
+    "filename": "zelda-theme.mid",
+    "acceptedTitles": ["Zelda Theme", "Legend of Zelda", "Zelda Main Theme", "Overworld Theme"],
+    "acceptedArtists": ["Koji Kondo", "Nintendo"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Trumpet melody" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With harmony" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add bass" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full orchestration"
+      }
+    }
+  },
+  {
+    "id": "midi-020",
+    "title": "Super Mario Bros Theme",
+    "artist": "Koji Kondo",
+    "category": "games",
+    "difficulty": "easy",
+    "year": 1985,
+    "filename": "mario-theme.mid",
+    "acceptedTitles": ["Mario Theme", "Super Mario Bros Theme", "Super Mario", "Mario Bros"],
+    "acceptedArtists": ["Koji Kondo", "Nintendo"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Main melody" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "Melody + bass" },
+      "phase3": {
+        "tracks": [0, 1, 2],
+        "startBeat": 0,
+        "endBeat": 48,
+        "description": "Add percussion"
+      },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full track"
+      }
+    }
+  },
+  {
+    "id": "midi-021",
+    "title": "Tetris Theme",
+    "artist": "Traditional",
+    "category": "games",
+    "difficulty": "easy",
+    "year": 1989,
+    "filename": "tetris-theme.mid",
+    "acceptedTitles": ["Tetris Theme", "Korobeiniki", "Tetris"],
+    "acceptedArtists": ["Traditional", "Hirokazu Tanaka"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Main melody" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With bass" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add drums" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full arrangement"
+      }
+    }
+  },
+  {
+    "id": "midi-022",
+    "title": "Megalovania",
+    "artist": "Toby Fox",
+    "category": "games",
+    "difficulty": "medium",
+    "year": 2015,
+    "filename": "megalovania.mid",
+    "acceptedTitles": ["Megalovania"],
+    "acceptedArtists": ["Toby Fox", "Undertale"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Lead synth" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With bass" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add drums" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full track"
+      }
+    }
+  },
+  {
+    "id": "midi-023",
+    "title": "Still Alive",
+    "artist": "Jonathan Coulton",
+    "category": "games",
+    "difficulty": "hard",
+    "year": 2007,
+    "filename": "still-alive.mid",
+    "acceptedTitles": ["Still Alive", "Portal Still Alive"],
+    "acceptedArtists": ["Jonathan Coulton", "GLaDOS", "Portal"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Vocal melody" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With synth" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add bass" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full track"
+      }
+    }
+  },
+  {
+    "id": "midi-024",
+    "title": "Cruel Angel Thesis",
+    "artist": "Yoko Takahashi",
+    "category": "anime",
+    "difficulty": "medium",
+    "year": 1995,
+    "filename": "cruel-angel-thesis.mid",
+    "acceptedTitles": [
+      "Cruel Angel Thesis",
+      "Zankoku na Tenshi no Thesis",
+      "A Cruel Angel's Thesis"
+    ],
+    "acceptedArtists": ["Yoko Takahashi", "Evangelion"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Opening melody" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With synth" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add bass" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full arrangement"
+      }
+    }
+  },
+  {
+    "id": "midi-025",
+    "title": "Blue Bird",
+    "artist": "Ikimono Gakari",
+    "category": "anime",
+    "difficulty": "medium",
+    "year": 2008,
+    "filename": "blue-bird.mid",
+    "acceptedTitles": ["Blue Bird", "Bluebird"],
+    "acceptedArtists": ["Ikimono Gakari", "Ikimonogakari", "Naruto"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Guitar intro" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With bass" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add drums" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full band"
+      }
+    }
+  },
+  {
+    "id": "midi-026",
+    "title": "Unravel",
+    "artist": "TK from Ling Tosite Sigure",
+    "category": "anime",
+    "difficulty": "hard",
+    "year": 2014,
+    "filename": "unravel.mid",
+    "acceptedTitles": ["Unravel", "Tokyo Ghoul Opening"],
+    "acceptedArtists": ["TK", "TK from Ling Tosite Sigure", "Tokyo Ghoul"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Guitar arpeggio" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With melody" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add bass" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full band"
+      }
+    }
+  },
+  {
+    "id": "midi-027",
+    "title": "Sandstorm",
+    "artist": "Darude",
+    "category": "electronic",
+    "difficulty": "easy",
+    "year": 1999,
+    "filename": "sandstorm.mid",
+    "acceptedTitles": ["Sandstorm", "Darude Sandstorm"],
+    "acceptedArtists": ["Darude"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Synth lead" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With bass" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add drums" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full track"
+      }
+    }
+  },
+  {
+    "id": "midi-028",
+    "title": "Around the World",
+    "artist": "Daft Punk",
+    "category": "electronic",
+    "difficulty": "medium",
+    "year": 1997,
+    "filename": "around-the-world.mid",
+    "acceptedTitles": ["Around the World"],
+    "acceptedArtists": ["Daft Punk"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Bass riff" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With synth" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add drums" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full track"
+      }
+    }
+  },
+  {
+    "id": "midi-029",
+    "title": "Lose Yourself",
+    "artist": "Eminem",
+    "category": "hiphop",
+    "difficulty": "medium",
+    "year": 2002,
+    "filename": "lose-yourself.mid",
+    "acceptedTitles": ["Lose Yourself"],
+    "acceptedArtists": ["Eminem"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Guitar riff" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With drums" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add bass" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full track"
+      }
+    }
+  },
+  {
+    "id": "midi-030",
+    "title": "Juicy",
+    "artist": "The Notorious B.I.G.",
+    "category": "hiphop",
+    "difficulty": "hard",
+    "year": 1994,
+    "filename": "juicy.mid",
+    "acceptedTitles": ["Juicy"],
+    "acceptedArtists": ["The Notorious B.I.G.", "Notorious BIG", "Biggie", "Biggie Smalls"],
+    "phases": {
+      "phase1": { "tracks": [0], "startBeat": 0, "endBeat": 16, "description": "Sample melody" },
+      "phase2": { "tracks": [0, 1], "startBeat": 0, "endBeat": 32, "description": "With bass" },
+      "phase3": { "tracks": [0, 1, 2], "startBeat": 0, "endBeat": 48, "description": "Add drums" },
+      "phase4": {
+        "tracks": [0, 1, 2, 3],
+        "startBeat": 0,
+        "endBeat": 64,
+        "description": "Full track"
+      }
+    }
+  }
+]

@@ -13,7 +13,11 @@
     "roomsTitle": "Rooms — What's the Sound?",
     "roomsDescription": "Find or create a room to play with friends.",
     "roomTitle": "Room — What's the Sound?",
-    "roomDescription": "Multiplayer game room."
+    "roomDescription": "Multiplayer game room.",
+    "dailyTitle": "Daily Sound — What's the Sound?",
+    "dailyDescription": "Today's music challenge. Listen to the MIDI and guess the song!",
+    "dailyHistoryTitle": "Daily History — What's the Sound?",
+    "dailyHistoryDescription": "Your daily challenge history."
   },
   "common": {
     "actions": {
@@ -32,26 +36,50 @@
     }
   },
   "home": {
-    "sprintBadge": "Sprint 1 · Setup",
     "heroTagline": "Listen. Guess. Repeat.",
-    "cards": {
-      "phases": {
-        "title": "4 phases",
-        "description": "Each song reveals more layers as phases progress.",
-        "body": "From a few notes to the full track."
-      },
-      "scoring": {
-        "title": "Gartic-style scoring",
-        "description": "First to get it? More points.",
-        "body": "Decay based on your answer position in each phase."
-      },
-      "xp": {
-        "title": "XP & Level",
-        "description": "Sign in to build up progress.",
-        "body": "Guests can play, but don't earn XP."
+    "howItWorks": {
+      "title": "How it works",
+      "stepLabel": "Step {n}",
+      "steps": {
+        "0": {
+          "title": "Listen to the MIDI",
+          "description": "The song starts with just a few notes. Each phase reveals more instruments."
+        },
+        "1": {
+          "title": "Guess the song",
+          "description": "Type your guess. The sooner you get it right, the more points you earn."
+        },
+        "2": {
+          "title": "Compete and level up",
+          "description": "Play against friends or take the daily challenge. Earn XP and level up."
+        }
       }
     },
-    "placeholderNote": "Setup placeholder · Sprint 1 · TASK-032"
+    "features": {
+      "title": "Game modes",
+      "items": {
+        "0": {
+          "title": "Multiplayer",
+          "description": "Create rooms and play with friends in real time.",
+          "body": "Gartic-style scoring: first to get it right earns the most points."
+        },
+        "1": {
+          "title": "Daily Sound",
+          "description": "A new challenge every day.",
+          "body": "Same song for everyone. Compare your result and keep your streak going."
+        },
+        "2": {
+          "title": "Retro MIDI",
+          "description": "MIDI audio with a unique vibe.",
+          "body": "No copyright issues. Each song revealed in 4 progressive phases."
+        },
+        "3": {
+          "title": "XP & Level",
+          "description": "Sign in to track your progress.",
+          "body": "Earn XP for correct guesses, games, and streaks. Level up and show off your badge."
+        }
+      }
+    }
   },
   "auth": {
     "login": {
@@ -468,6 +496,82 @@
           "body": ["Contact for any matter related to personal data: contato@whatsthesound.io."]
         }
       ]
+    }
+  },
+  "daily": {
+    "title": "Daily Sound",
+    "loading": "Loading today's challenge...",
+    "error": "Failed to load today's challenge.",
+    "phase": "Phase {current} of {total}",
+    "phaseLabel": "P{n}",
+    "replay": "Listen again",
+    "guessPlaceholder": "What's the song?",
+    "guestCta": "Sign in to submit guesses and save your progress.",
+    "nextDaily": "Next challenge in:",
+    "feedback": {
+      "correct": "Correct! 🎉",
+      "almost": "Almost! Try again on this phase.",
+      "warm": "Getting close! Keep trying.",
+      "artistMatch": "Right artist! But what's the song?",
+      "wrong": "Wrong. Next phase..."
+    },
+    "result": {
+      "correct": "Got it in Phase {phase}!",
+      "wrong": "Better luck next time..."
+    },
+    "share": {
+      "button": "Share result",
+      "correct": "Got it in Phase {phase}!",
+      "wrong": "Didn't get it today...",
+      "copied": "Result copied!",
+      "error": "Failed to share"
+    }
+  },
+  "dailyHistory": {
+    "title": "Daily History",
+    "loading": "Loading history...",
+    "empty": "You haven't played any Daily Sound yet.",
+    "loginRequired": "Sign in to view your history.",
+    "stats": {
+      "title": "Statistics",
+      "totalPlayed": "Total played",
+      "accuracy": "Accuracy",
+      "currentStreak": "Current streak",
+      "maxStreak": "Max streak"
+    },
+    "calendar": {
+      "correct": "Correct",
+      "wrong": "Wrong",
+      "notPlayed": "Not played"
+    },
+    "detail": {
+      "phase": "Got it in phase {phase}",
+      "wrong": "Didn't get it"
+    }
+  },
+  "xp": {
+    "levelBadge": "Lv.{level}",
+    "guest": "Guest",
+    "levelUp": {
+      "title": "Level Up!",
+      "message": "Level {previous} → Level {next}",
+      "xpGained": "+{amount} XP"
+    },
+    "guestCta": "You would have earned +{amount} XP. Create an account to keep track!",
+    "profile": {
+      "title": "XP & Level",
+      "level": "Level {level}",
+      "xpTotal": "{xp} XP total",
+      "todayEarned": "{earned}/{cap} XP today",
+      "nextLevel": "{xp} XP to level {level}",
+      "recentEvents": "Recent earnings"
+    },
+    "source": {
+      "multiplayer_correct": "Round correct",
+      "multiplayer_finish": "Game finished",
+      "daily_correct": "Daily Sound correct",
+      "daily_participation": "Daily Sound played",
+      "daily_streak_bonus": "Streak bonus"
     }
   }
 }

@@ -6,6 +6,7 @@ import { getSupabaseAdmin } from '../lib/supabase.js';
 import { SocketRateLimiter } from '../middleware/rate-limiter.js';
 import { createGameLoop } from '../services/game-loop.js';
 import { StubMidiProvider } from '../services/midi-provider.js';
+import { SupabaseMidiProvider } from '../services/supabase-midi-provider.js';
 import { createAuthMiddleware } from './auth-middleware.js';
 import { registerGameEvents } from './game-events.js';
 import { registerRoomEvents } from './room-events.js';
@@ -37,8 +38,8 @@ export function initSocketServer(server: FastifyInstance): TypedServer {
 
   io.use(createAuthMiddleware(getSupabase()));
 
-  // TODO: Replace StubMidiProvider with Supabase-backed provider in TASK-018
-  const midiProvider = new StubMidiProvider();
+  const supabase = getSupabase();
+  const midiProvider = supabase ? new SupabaseMidiProvider(supabase) : new StubMidiProvider();
   const gameLoop = createGameLoop(io, midiProvider);
   const rateLimiter = new SocketRateLimiter();
 
