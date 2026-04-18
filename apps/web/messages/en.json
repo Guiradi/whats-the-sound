@@ -201,7 +201,21 @@
       "maxDailyStreak": "Best streak",
       "pointsTotal": "Points",
       "level": "Level",
-      "xp": "XP"
+      "xp": "XP",
+      "loginStreak": "Login streak",
+      "maxLoginStreak": "Best login streak"
+    },
+    "invite": {
+      "title": "Invite friends",
+      "description": "Earn +{amount} XP for every friend who signs up with your link and plays their first match.",
+      "linkLabel": "Your invite link",
+      "copy": "Copy",
+      "copied": "Link copied!",
+      "copyError": "Could not copy.",
+      "counter": "{completed} of {invited} friends played",
+      "noneYet": "No one has joined through your link yet. Share it!",
+      "shareSubject": "Come play What's the Sound?",
+      "shareText": "Wanna guess songs with me on What's the Sound? Join here:"
     },
     "signOut": "Sign out",
     "signOutSuccess": "Signed out.",
@@ -574,9 +588,17 @@
     "source": {
       "multiplayer_correct": "Round correct",
       "multiplayer_finish": "Game finished",
+      "multiplayer_round_played": "Round played",
       "daily_correct": "Daily Sound correct",
       "daily_participation": "Daily Sound played",
-      "daily_streak_bonus": "Streak bonus"
+      "daily_streak_bonus": "Streak bonus",
+      "daily_login": "Daily login",
+      "login_streak_bonus": "Login streak",
+      "first_match_of_day": "First match of day",
+      "referral_bonus": "Invited friend played"
+    },
+    "toast": {
+      "awarded": "+{amount} XP · {source}"
     }
   },
   "admin": {

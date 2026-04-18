@@ -1,5 +1,6 @@
 import { AuthMenu } from '@/components/auth/auth-menu';
 import { GuestEmptyState } from '@/components/profile/guest-empty-state';
+import { InviteCard } from '@/components/profile/invite-card';
 import { LogoutButton } from '@/components/profile/logout-button';
 import { ProfileCard } from '@/components/profile/profile-card';
 import { type ProfileStats, StatGrid } from '@/components/profile/stat-grid';
@@ -42,7 +43,7 @@ async function fetchProfile(): Promise<ProfileRow | null> {
   const { data } = await supabase
     .from('users')
     .select(
-      'nickname, avatar_url, created_at, total_games, total_wins, total_correct, daily_streak, max_daily_streak, points_total, level, xp',
+      'nickname, avatar_url, created_at, total_games, total_wins, total_correct, daily_streak, max_daily_streak, points_total, level, xp, login_streak, max_login_streak',
     )
     .eq('id', user.id)
     .maybeSingle();
@@ -57,6 +58,11 @@ async function fetchProfile(): Promise<ProfileRow | null> {
   const nickname =
     sanitized.length >= 3 ? sanitized : `player_${user.id.replace(/-/g, '').slice(0, 8)}`;
 
+  // referral_code is NOT NULL in the DB; for the rare self-heal path we pick a random
+  // 6-char code here. The DB UNIQUE constraint will reject collisions and the user
+  // can try again, but collisions are ~1 in 2B so this is effectively safe.
+  const referralCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+
   const { data: created } = await supabase
     .from('users')
     .insert({
@@ -64,9 +70,10 @@ async function fetchProfile(): Promise<ProfileRow | null> {
       email: user.email ?? '',
       nickname,
       avatar_url: (meta.avatar_url ?? meta.picture ?? null) as string | null,
+      referral_code: referralCode,
     })
     .select(
-      'nickname, avatar_url, created_at, total_games, total_wins, total_correct, daily_streak, max_daily_streak, points_total, level, xp',
+      'nickname, avatar_url, created_at, total_games, total_wins, total_correct, daily_streak, max_daily_streak, points_total, level, xp, login_streak, max_login_streak',
     )
     .single();
 
@@ -106,6 +113,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
               createdAt={profile.created_at}
             />
             <StatGrid stats={profile} locale={locale} />
+            <InviteCard />
           </div>
         ) : (
           <GuestEmptyState />

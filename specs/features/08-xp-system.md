@@ -21,18 +21,44 @@ XP é emitido pelo backend em cada evento-fonte. Todo ganho é persistido em `xp
 |---|---|---|
 | `multiplayer_correct` | Jogador acerta em uma rodada MP (qualquer fase) | `floor(roundPoints / 10)` (ex: 1000 pts = +100 XP) |
 | `multiplayer_finish` | Partida MP encerra (`GAME_END`) e jogador estava conectado ao final | +50 base + pódio: 1º=+100, 2º=+50, 3º=+25 |
+| `multiplayer_round_played` | Rodada MP termina e jogador estava conectado | +5 (recompensa participação) |
 | `daily_correct` | Jogador acerta o Daily Sound | Fase 1=+150, Fase 2=+100, Fase 3=+75, Fase 4=+50 |
 | `daily_participation` | Jogador submete Daily sem acertar | +15 |
 | `daily_streak_bonus` | `daily_streak` de `users` cruza um incremento ≥ 2 | `+10 × min(newStreak, 30)` (cap em +300) |
+| `daily_login` | Primeiro `touch-login` do dia (BRT) | +25 |
+| `login_streak_bonus` | Login streak ≥ 2 dias consecutivos | `+5 × min(newStreak, 7)` (cap em +35) |
+| `first_match_of_day` | Primeira partida concluída do dia (MP ou Daily) | +30 |
+| `referral_bonus` | Amigo convidado completa sua primeira partida | +100 (ao referrer) |
 
 Todos os valores são **constantes em `@wts/shared/constants`** para fácil rebalanceamento sem code change por arquivo.
 
 ### Regras
 
-- **Guests NUNCA ganham XP.** Rounds e daily submissions de guest são ignoradas pelo XP service. Guard duplo: `user_id IS NOT NULL` E `is_guest = false`.
-- **Idempotência:** cada evento tem `source_ref` único (ex: `round_score_id`, `daily_result_id`). Reinserir o mesmo `source_ref` é no-op (UNIQUE constraint).
-- **Cap anti-farm:** máximo **2000 XP por dia** por user. Eventos que excederiam o cap ainda são persistidos em `xp_events` com `capped: true` em contexto, mas não incrementam `users.xp`. Resetado em `users` via consulta por data + janela BRT.
+- **Guests NUNCA ganham XP.** Rounds e daily submissions de guest são ignoradas pelo XP service. Guard via prefix `guest:` no `userId`.
+- **Idempotência:** cada evento tem `source_ref` único (ex: `mp_correct_<gameSession>_<round>_<player>`, `login_<dateISO>_<userId>`, `referral_<invitedUserId>`). Reinserir o mesmo `source_ref` é no-op (UNIQUE constraint).
+- **Sem cap artificial:** a curva quadrática de level já faz o pacing — cada nível exige esforço crescente. Existe apenas um **cap de segurança anti-bot de 50.000 XP/dia** (`XP_DAILY_SAFETY_CAP`) para conter scripts automatizados; jogadores humanos reais nunca chegam perto.
 - **Retroatividade:** XP só começa a contar a partir do deploy do sistema — não há backfill de partidas antigas.
+
+### Login streak
+
+`users.last_login_date` + `users.login_streak` + `users.max_login_streak` (migration `20260419120000_login_tracking.sql`).
+
+Fluxo: frontend chama `POST /api/me/touch-login` 1× por sessão/dia (idempotência por `sessionStorage`). Server calcula:
+
+- `last_login_date === hoje` → no-op.
+- `last_login_date === hoje - 1` → `streak += 1`.
+- Qualquer outro caso → `streak = 1`.
+
+`max_login_streak` acompanha o pico. XP de `daily_login` sempre dispara; `login_streak_bonus` só quando `streak >= 2`.
+
+### Referral
+
+`users.referral_code` (6 chars, único, auto-gerado no trigger `handle_new_user`), `users.referred_by_user_id`, `users.referred_at`, `users.referral_completed_at` (migration `20260419120001_referrals.sql`).
+
+Fluxo:
+1. **Captura:** `ReferralCapture` no layout salva `?ref=XXX` em `localStorage` (TTL 30 dias).
+2. **Aplicação:** quando user autentica, `POST /api/me/apply-referral { code }` grava `referred_by_user_id`. Idempotente — só sucede se a coluna ainda está `NULL` e `code != self.referral_code`.
+3. **Recompensa:** quando o convidado completa sua primeira partida (MP ou Daily), `referral-service.maybeRewardReferrer()` marca `referral_completed_at` e dispara `awardXp('referral_bonus', referral_<invitedUserId>, +100)` para o referrer.
 
 ### Curva de Nível
 

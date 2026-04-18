@@ -5,7 +5,9 @@ import { env } from '../env.js';
 import { getSupabaseAdmin } from '../lib/supabase.js';
 import { SocketRateLimiter } from '../middleware/rate-limiter.js';
 import { createGameLoop } from '../services/game-loop.js';
+import type { ReferralService } from '../services/referral-service.js';
 import { SupabaseMidiProvider } from '../services/supabase-midi-provider.js';
+import type { XpService } from '../services/xp-service.js';
 import { createAuthMiddleware } from './auth-middleware.js';
 import { registerGameEvents } from './game-events.js';
 import { registerRoomEvents } from './room-events.js';
@@ -25,7 +27,11 @@ function getSupabase(): import('@supabase/supabase-js').SupabaseClient | null {
  * Initialize Socket.io server and attach to Fastify's underlying HTTP server.
  * Returns the typed Socket.io server instance for use by game services.
  */
-export function initSocketServer(server: FastifyInstance): TypedServer {
+export function initSocketServer(
+  server: FastifyInstance,
+  xpService?: XpService,
+  referralService?: ReferralService,
+): TypedServer {
   const io: TypedServer = new Server(server.server, {
     cors: {
       origin: env.CORS_ORIGINS,
@@ -44,11 +50,18 @@ export function initSocketServer(server: FastifyInstance): TypedServer {
     );
   }
   const midiProvider = new SupabaseMidiProvider(supabase);
-  const gameLoop = createGameLoop(io, midiProvider);
+  const gameLoop = createGameLoop(io, midiProvider, xpService, referralService);
   const rateLimiter = new SocketRateLimiter();
 
   io.on('connection', (socket) => {
     server.log.info({ socketId: socket.id, userId: socket.data.userId }, 'socket connected');
+
+    // Join a per-user room so server-side services (e.g. xp-service) can emit targeted
+    // notifications (xp:awarded, xp:level_up) regardless of which game room the user is in.
+    // Guests still earn no XP, so we only join real authenticated users.
+    if (!socket.data.isGuest && socket.data.userId) {
+      socket.join(`user:${socket.data.userId}`);
+    }
 
     registerRoomEvents(socket, io, rateLimiter);
     registerGameEvents(socket, io, gameLoop, rateLimiter);

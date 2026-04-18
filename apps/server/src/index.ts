@@ -9,10 +9,13 @@ import { createAdminRoutes } from './routes/admin.js';
 import { createCatalogRoutes } from './routes/catalog.js';
 import { createDailyRoutes } from './routes/daily.js';
 import { healthRoutes } from './routes/health.js';
+import { createMeRoutes } from './routes/me.js';
 import { roomsRoutes } from './routes/rooms.js';
 import { createXpRoutes } from './routes/xp.js';
 import { startDailyCron } from './services/daily-cron.js';
 import { createDailyService } from './services/daily-service.js';
+import { createLoginService } from './services/login-service.js';
+import { createReferralService } from './services/referral-service.js';
 import { createXpService } from './services/xp-service.js';
 import { initSocketServer } from './socket/index.js';
 import type { TypedServer } from './socket/index.js';
@@ -48,10 +51,15 @@ async function main() {
   await server.register(roomsRoutes);
 
   // Daily Sound routes + cron (only when Supabase is configured)
+  let xpServiceRef: ReturnType<typeof createXpService> | null = null;
+  let referralServiceRef: ReturnType<typeof createReferralService> | null = null;
   if (env.SUPABASE_URL && env.SUPABASE_SECRET_KEY && env.DAILY_SEED) {
     const supabase = getSupabaseAdmin();
     const xpService = createXpService(supabase);
-    const dailyService = createDailyService(supabase, env.DAILY_SEED, xpService);
+    xpServiceRef = xpService;
+    const referralService = createReferralService(supabase, xpService);
+    referralServiceRef = referralService;
+    const dailyService = createDailyService(supabase, env.DAILY_SEED, xpService, referralService);
     await server.register(createDailyRoutes(dailyService));
     startDailyCron(dailyService, server.log);
     server.log.info('Daily Sound routes and cron registered');
@@ -59,6 +67,11 @@ async function main() {
     // XP routes (requires Supabase)
     await server.register(createXpRoutes(supabase));
     server.log.info('XP routes registered');
+
+    // Engagement routes: daily login + referral
+    const loginService = createLoginService(supabase, xpService);
+    await server.register(createMeRoutes(supabase, loginService));
+    server.log.info('Me routes (login + referral) registered');
 
     // Catalog admin routes (requires Supabase)
     await server.register(createCatalogRoutes(supabase));
@@ -74,7 +87,18 @@ async function main() {
   }
 
   // Initialize Socket.io — must be after routes are registered
-  const io: TypedServer = initSocketServer(server);
+  const io: TypedServer = initSocketServer(
+    server,
+    xpServiceRef ?? undefined,
+    referralServiceRef ?? undefined,
+  );
+
+  // Wire the socket server back into xp-service so awardXp() can emit xp:awarded and
+  // xp:level_up to per-user rooms. The service is created before socket init, so we
+  // set the reference afterwards via setIo().
+  if (xpServiceRef) {
+    xpServiceRef.setIo(io);
+  }
 
   const shutdown = async (signal: string) => {
     server.log.info({ signal }, 'shutting down');

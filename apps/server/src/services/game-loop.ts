@@ -9,6 +9,13 @@ import {
   verifyGuess,
 } from '@wts/shared';
 import type { ChatMessage } from '@wts/shared';
+import {
+  XP_FIRST_MATCH_OF_DAY,
+  XP_MULTIPLAYER_CORRECT_DIVISOR,
+  XP_MULTIPLAYER_FINISH_BASE,
+  XP_MULTIPLAYER_PODIUM,
+  XP_MULTIPLAYER_ROUND_PLAYED,
+} from '@wts/shared/constants';
 import type { TypedServer } from '../socket/index.js';
 import type {
   ArtistMatchAnswer,
@@ -17,7 +24,18 @@ import type {
   ServerRoundState,
 } from '../types/room.js';
 import type { MidiProvider } from './midi-provider.js';
+import type { ReferralService } from './referral-service.js';
 import * as roomManager from './room-manager.js';
+import type { XpService } from './xp-service.js';
+
+function getBRTToday(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
 
 const ROUND_START_COUNTDOWN_MS = 3000;
 const ROUND_END_DISPLAY_MS = 12000;
@@ -74,7 +92,45 @@ export interface GameLoop {
   handleChat(roomCode: string, playerId: string, text: string): void;
 }
 
-export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): GameLoop {
+export function createGameLoop(
+  io: TypedServer,
+  midiProvider: MidiProvider,
+  xpService?: XpService,
+  referralService?: ReferralService,
+): GameLoop {
+  /** Fire XP awards without blocking the game loop. Guests are filtered inside the service. */
+  function awardXpAsync(
+    userId: string,
+    source: Parameters<XpService['awardXp']>[0]['source'],
+    sourceRef: string,
+    amount: number,
+    context: Record<string, unknown>,
+  ): void {
+    if (!xpService || !userId || userId.startsWith('guest:') || amount <= 0) return;
+    setImmediate(() => {
+      xpService.awardXp({ userId, source, sourceRef, amount, context }).catch(() => {
+        // Swallow — XP is best-effort and never blocks gameplay.
+      });
+    });
+  }
+
+  /** First MP/Daily completion of the day grants a one-off bonus; idempotent by date+user. */
+  function awardFirstMatchOfDay(userId: string, matchSource: 'mp' | 'daily'): void {
+    if (!xpService || !userId || userId.startsWith('guest:')) return;
+    const dateISO = getBRTToday();
+    setImmediate(() => {
+      xpService
+        .awardXp({
+          userId,
+          source: 'first_match_of_day',
+          sourceRef: `first_match_${dateISO}_${userId}`,
+          amount: XP_FIRST_MATCH_OF_DAY,
+          context: { date: dateISO, matchSource },
+        })
+        .catch(() => {});
+    });
+  }
+
   // ─── Start Game ────────────────────────────────────────────
 
   function startGame(roomCode: string, hostId: string): string | null {
@@ -94,6 +150,7 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
     }
 
     room.currentRoundIndex = 0;
+    room.gameSessionId = randomUUID();
     room.version++;
 
     // Load MIDIs asynchronously then start rounds
@@ -260,6 +317,19 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
       correctPlayerIds: round.correctAnswers.map((a) => a.playerId),
     });
 
+    // Award participation XP to every connected player — rewards showing up and trying,
+    // not just winning. Idempotent per (gameSession, round, player).
+    for (const player of room.players.values()) {
+      if (!player.connected) continue;
+      awardXpAsync(
+        player.id,
+        'multiplayer_round_played',
+        `mp_played_${room.gameSessionId}_${room.currentRoundIndex}_${player.id}`,
+        XP_MULTIPLAYER_ROUND_PLAYED,
+        { roomCode, roundIndex: room.currentRoundIndex },
+      );
+    }
+
     broadcastState(io, room);
 
     // Wait then advance
@@ -289,6 +359,32 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
     room.status = GameStatus.GAME_END;
     room.round = null;
     room.version++;
+
+    // Final ranking drives both podium bonus XP and first-match-of-day detection.
+    const ranking = Array.from(room.players.values())
+      .filter((p) => p.connected)
+      .sort((a, b) => b.totalScore - a.totalScore);
+
+    ranking.forEach((player, idx) => {
+      const position = idx + 1;
+      const podiumBonus = XP_MULTIPLAYER_PODIUM[position] ?? 0;
+      const amount = XP_MULTIPLAYER_FINISH_BASE + podiumBonus;
+      awardXpAsync(
+        player.id,
+        'multiplayer_finish',
+        `mp_finish_${room.gameSessionId}_${player.id}`,
+        amount,
+        { finalPosition: position, totalPlayers: ranking.length, roomCode },
+      );
+      awardFirstMatchOfDay(player.id, 'mp');
+
+      // Referral reward — fires once per invitee when they finish their first MP match.
+      if (referralService && !player.id.startsWith('guest:')) {
+        setImmediate(() => {
+          referralService.maybeRewardReferrer(player.id).catch(() => {});
+        });
+      }
+    });
 
     const msg = makeBotMessage('bot.gameOver');
     roomManager.addChatMessage(roomCode, msg);
@@ -343,6 +439,17 @@ export function createGameLoop(io: TypedServer, midiProvider: MidiProvider): Gam
         player.totalScore += score;
         player.correctCount++;
         room.version++;
+
+        // Award XP for the correct guess. source_ref is tied to this game session + round
+        // + player so repeated plays or reconnects never double-award.
+        const xpAmount = Math.floor(score / XP_MULTIPLAYER_CORRECT_DIVISOR);
+        awardXpAsync(
+          playerId,
+          'multiplayer_correct',
+          `mp_correct_${room.gameSessionId}_${room.currentRoundIndex}_${playerId}`,
+          xpAmount,
+          { phase: round.phase, position, roomCode, score },
+        );
 
         const msg = makeBotMessage(
           `bot.guessedCorrectly:${JSON.stringify({ nickname: player.nickname, score })}`,

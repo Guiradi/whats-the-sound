@@ -5,6 +5,25 @@
 
 ---
 
+### [✓] TASK-044: XP Engagement Loop — MP wire-up + login streak + toast ao vivo — 2026-04-18
+    → Entregue:
+      • Wire-up do XP em game-loop.ts: multiplayer_correct (pts/10), multiplayer_finish (base+pódio), multiplayer_round_played (+5/rodada), first_match_of_day (+30). Idempotência por gameSessionId gerado em startGame.
+      • Migration 20260419120000_login_tracking.sql: colunas last_login_date, login_streak, max_login_streak; valores novos em xp_source.
+      • login-service.ts + rota POST /api/me/touch-login com streak compute, idempotente por BRT.
+      • xp-service emite xp:awarded e xp:level_up para user:${userId}; socket join no handshake de users auth.
+      • Frontend: useTouchLogin + TouchLoginBridge; useXpNotifications + XpNotificationBridge (toast Sonner + level-up queue). Socket auto-conecta para users auth fora de rooms.
+      • XP_DAILY_CAP=2000 removido — substituído por XP_DAILY_SAFETY_CAP=50000 (anti-bot). Curva quadrática faz pacing.
+      • StatGrid: login_streak + max_login_streak. i18n pt-BR/en em paralelo.
+
+### [✓] TASK-045: Referral System — Convite com recompensa XP — 2026-04-18
+    → Entregue:
+      • Migration 20260419120001_referrals.sql: referral_code (UNIQUE NOT NULL 6 chars), referred_by_user_id, referred_at, referral_completed_at; backfill; handle_new_user estendido.
+      • referral-service.ts com maybeRewardReferrer idempotente (+100 XP ao referrer). Chamado no daily-service e game-loop.
+      • Rotas em routes/me.ts: POST /api/me/apply-referral, GET /api/me/referrals.
+      • Frontend: ReferralCapture (localStorage TTL 30d, aplica após auth); InviteCard no /profile com link + copy + share + contador.
+
+---
+
 ### [✓] TASK-001: Setup do Monorepo com Turborepo — 2026-04-17
     Concluída em Sprint 1.
     → Entregue:

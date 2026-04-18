@@ -1,5 +1,15 @@
 import { cn } from '@/lib/utils';
-import { Award, CheckCircle2, Coins, Flame, Gamepad2, Sparkles, Trophy } from 'lucide-react';
+import {
+  Award,
+  CalendarCheck,
+  CalendarHeart,
+  CheckCircle2,
+  Coins,
+  Flame,
+  Gamepad2,
+  Sparkles,
+  Trophy,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import type { ComponentType, SVGProps } from 'react';
 
@@ -12,6 +22,8 @@ export interface ProfileStats {
   points_total: number;
   level: number;
   xp: number;
+  login_streak: number;
+  max_login_streak: number;
 }
 
 type Accent = 'cyan' | 'magenta' | 'yellow' | 'green' | 'orange';
@@ -32,6 +44,8 @@ const labelMap = {
   pointsTotal: 'pointsTotal',
   level: 'level',
   xp: 'xp',
+  loginStreak: 'loginStreak',
+  maxLoginStreak: 'maxLoginStreak',
 } as const;
 
 const accentClass: Record<Accent, string> = {
@@ -50,6 +64,8 @@ const stats: StatDef[] = [
   { key: 'total_correct', labelKey: 'totalCorrect', icon: CheckCircle2, accent: 'green' },
   { key: 'daily_streak', labelKey: 'dailyStreak', icon: Flame, accent: 'orange' },
   { key: 'max_daily_streak', labelKey: 'maxDailyStreak', icon: Flame, accent: 'orange' },
+  { key: 'login_streak', labelKey: 'loginStreak', icon: CalendarCheck, accent: 'cyan' },
+  { key: 'max_login_streak', labelKey: 'maxLoginStreak', icon: CalendarHeart, accent: 'cyan' },
   { key: 'points_total', labelKey: 'pointsTotal', icon: Coins, accent: 'yellow' },
 ];
 

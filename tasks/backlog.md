@@ -388,3 +388,27 @@ _(todas as tasks concluídas — ver `tasks/completed.md`)_
       • Logado: badge `[Lv.X]` com cor correta por faixa; testar em 4 valores (Lv.5, Lv.15, Lv.30, Lv.60)
       • Level up mid-game: modal aparece, badge atualiza em tempo real para todos da sala
       • Perfil exibe XP/level/progresso corretos; refresh mantém consistência com backend
+
+### [✓] TASK-044: XP Engagement Loop — Retroação MP + login streak + toast ao vivo — 2026-04-18
+    → Entregue:
+      • Wire-up do XP em `apps/server/src/services/game-loop.ts` — `multiplayer_correct` (pts/10) no acerto, `multiplayer_finish` (base+pódio) no GAME_END, `multiplayer_round_played` (+5) por rodada finalizada, `first_match_of_day` (+30) na primeira conclusão. Idempotência via `gameSessionId` gerado em startGame.
+      • Migration `20260419120000_login_tracking.sql`: colunas `last_login_date`, `login_streak`, `max_login_streak`; valores adicionais no enum `xp_source`.
+      • `apps/server/src/services/login-service.ts` + rota `POST /api/me/touch-login` com streak compute (reset se pular dia), idempotente por BRT day.
+      • Emissão de `xp:awarded` e `xp:level_up` em `xp-service.ts` para `user:${userId}` room; socket join no handshake para auth users.
+      • Frontend: `use-touch-login` + `TouchLoginBridge` chamam endpoint 1×/dia; `useXpNotifications` + `XpNotificationBridge` fazem toast Sonner "+XP · source" e enfileiram level-up modal. Socket auto-conecta para users autenticados (fora de rooms).
+      • Remoção do `XP_DAILY_CAP = 2000` — substituído por `XP_DAILY_SAFETY_CAP = 50000` (só anti-bot). Curva quadrática mantém pacing natural.
+      • StatGrid expande com `login_streak` + `max_login_streak`. i18n (pt-BR/en) atualizado em paralelo.
+    → Validação:
+      • Partida MP de 2+ players: `xp_events` contém 1× `multiplayer_finish`, N× `multiplayer_correct`, M× `multiplayer_round_played`, 1× `first_match_of_day` por player.
+      • Login consecutivo 2+ dias: streak acumula, `login_streak_bonus` dispara com `+5 × streak`.
+      • Toast "+N XP · source" aparece em tempo real ao acertar round ou logar.
+
+### [✓] TASK-045: Referral System — Convite com recompensa XP — 2026-04-18
+    → Entregue:
+      • Migration `20260419120001_referrals.sql`: colunas `referral_code` (UNIQUE NOT NULL, 6 chars), `referred_by_user_id`, `referred_at`, `referral_completed_at`; backfill para users existentes; trigger `handle_new_user` estendido para gerar código novo a cada signup.
+      • `apps/server/src/services/referral-service.ts` com `maybeRewardReferrer(invitedUserId)` — stamp idempotente de `referral_completed_at` + awardXp `referral_bonus` +100 ao referrer. Chamado em daily-service (após `justCompleted`) e game-loop (após `GAME_END`).
+      • Rotas em `apps/server/src/routes/me.ts`: `POST /api/me/apply-referral` (valida, bloqueia self-referral e duplicata), `GET /api/me/referrals` (code + contadores).
+      • Frontend: `ReferralCapture` (layout) salva `?ref=` em localStorage com TTL 30d e aplica via endpoint após auth. `InviteCard` no `/profile` com link, copy, share (Web Share API + fallback), contador de convidados que jogaram.
+    → Validação:
+      • User A copia link do profile; User B novo acessa, signup OAuth, completa 1 daily → A ganha +100 XP (toast ao vivo se online), `referral_completed_at` stampado. Segunda partida de B não gera XP extra.
+      • Self-referral bloqueado; código inválido retorna `invalid_code`; duplicata retorna `already_referred`.

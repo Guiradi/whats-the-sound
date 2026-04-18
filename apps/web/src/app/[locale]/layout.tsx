@@ -1,3 +1,6 @@
+import { ReferralCapture } from '@/components/shared/referral-capture';
+import { TouchLoginBridge } from '@/components/shared/touch-login-bridge';
+import { XpNotificationBridge } from '@/components/shared/xp-notification-bridge';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth';
 import { type Locale, locales } from '@/i18n/config';
@@ -92,7 +95,12 @@ export default async function LocaleLayout({
     >
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <AuthProvider initialUser={initialUser}>{children}</AuthProvider>
+          <AuthProvider initialUser={initialUser}>
+            <ReferralCapture />
+            <TouchLoginBridge />
+            <XpNotificationBridge />
+            {children}
+          </AuthProvider>
         </NextIntlClientProvider>
         <Toaster />
       </body>

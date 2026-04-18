@@ -145,6 +145,7 @@ export function createRoom(
     cleanupTimer: null,
     playlist: [],
     currentRoundIndex: 0,
+    gameSessionId: null,
   };
 
   room.players.set(hostId, { ...hostPlayer, disconnectTimer: null });

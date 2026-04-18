@@ -51,4 +51,7 @@ export interface ServerRoomState {
   cleanupTimer: ReturnType<typeof setTimeout> | null;
   playlist: MidiEntry[];
   currentRoundIndex: number;
+  /** Unique id per full game session (regenerated on each startGame). Used as source_ref
+   *  prefix for XP events to keep them idempotent across repeated plays in the same room. */
+  gameSessionId: string | null;
 }

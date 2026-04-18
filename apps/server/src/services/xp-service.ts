@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { XP_DAILY_CAP, levelForXp } from '@wts/shared/constants';
+import { XP_DAILY_SAFETY_CAP, levelForXp } from '@wts/shared/constants';
 import type { XpAwardResult, XpSource } from '@wts/shared/types';
+import type { TypedServer } from '../socket/index.js';
 
 interface AwardXpParams {
   userId: string;
@@ -33,6 +34,22 @@ function getBRTDateRange(): { start: string; end: string } {
 }
 
 export function createXpService(supabase: SupabaseClient) {
+  let io: TypedServer | null = null;
+
+  function setIo(server: TypedServer): void {
+    io = server;
+  }
+
+  function emitToUser(userId: string, event: 'xp:awarded' | 'xp:level_up', payload: unknown) {
+    if (!io) return;
+    try {
+      // biome-ignore lint/suspicious/noExplicitAny: socket.io's emit is dynamically typed here
+      (io.to(`user:${userId}`).emit as any)(event, payload);
+    } catch {
+      // Fire-and-forget: never let socket emission failures break XP persistence.
+    }
+  }
+
   async function awardXp(params: AwardXpParams): Promise<XpAwardResult> {
     const { userId, source, sourceRef, amount, context } = params;
 
@@ -77,7 +94,7 @@ export function createXpService(supabase: SupabaseClient) {
       0,
     );
 
-    if (earnedToday >= XP_DAILY_CAP) {
+    if (earnedToday >= XP_DAILY_SAFETY_CAP) {
       // Insert capped event for record-keeping
       await supabase.from('xp_events').insert({
         user_id: userId,
@@ -159,6 +176,24 @@ export function createXpService(supabase: SupabaseClient) {
     const previousLevel = levelForXp(previousXp);
     const newLevel = levelForXp(newXp);
 
+    // Fire socket notifications for live UI feedback (toast + level-up modal).
+    // Uses per-user room joined at handshake; only reaches connected authenticated users.
+    if (amount > 0) {
+      emitToUser(userId, 'xp:awarded', {
+        amount,
+        source,
+        newTotal: newXp,
+        newLevel,
+      });
+    }
+    if (newLevel > previousLevel) {
+      emitToUser(userId, 'xp:level_up', {
+        previousLevel,
+        newLevel,
+        xpGained: amount,
+      });
+    }
+
     return {
       previousLevel,
       newLevel,
@@ -167,7 +202,7 @@ export function createXpService(supabase: SupabaseClient) {
     };
   }
 
-  return { awardXp };
+  return { awardXp, setIo };
 }
 
 export type XpService = ReturnType<typeof createXpService>;

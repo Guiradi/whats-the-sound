@@ -74,7 +74,12 @@ export const DAILY_MAX_ATTEMPTS_PER_PHASE = 1;
 
 // --- XP System ---
 
-export const XP_DAILY_CAP = 2000;
+/**
+ * Anti-abuse safety cap. Real players never approach this — the level curve is quadratic,
+ * so the game naturally paces progression. This only exists to stop scripted bots from
+ * inflating XP beyond any plausible human session.
+ */
+export const XP_DAILY_SAFETY_CAP = 50_000;
 
 export const XP_DAILY_CORRECT: Record<number, number> = {
   1: 150,
@@ -87,6 +92,7 @@ export const XP_DAILY_PARTICIPATION = 15;
 
 export const XP_MULTIPLAYER_CORRECT_DIVISOR = 10;
 export const XP_MULTIPLAYER_FINISH_BASE = 50;
+export const XP_MULTIPLAYER_ROUND_PLAYED = 5;
 
 export const XP_MULTIPLAYER_PODIUM: Record<number, number> = {
   1: 100,
@@ -96,6 +102,14 @@ export const XP_MULTIPLAYER_PODIUM: Record<number, number> = {
 
 export const XP_STREAK_MULTIPLIER = 10;
 export const XP_STREAK_CAP = 30;
+
+export const XP_DAILY_LOGIN = 25;
+export const XP_LOGIN_STREAK_MULTIPLIER = 5;
+export const XP_LOGIN_STREAK_CAP = 7;
+
+export const XP_FIRST_MATCH_OF_DAY = 30;
+
+export const XP_REFERRAL_BONUS = 100;
 
 /** Calculate the minimum XP required to reach a given level. */
 export function xpForLevel(level: number): number {

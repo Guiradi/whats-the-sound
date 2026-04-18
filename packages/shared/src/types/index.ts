@@ -138,9 +138,14 @@ export interface DailyHistoryEntry {
 export type XpSource =
   | 'multiplayer_correct'
   | 'multiplayer_finish'
+  | 'multiplayer_round_played'
   | 'daily_correct'
   | 'daily_participation'
-  | 'daily_streak_bonus';
+  | 'daily_streak_bonus'
+  | 'daily_login'
+  | 'login_streak_bonus'
+  | 'first_match_of_day'
+  | 'referral_bonus';
 
 export interface XpEvent {
   id: string;
@@ -175,6 +180,13 @@ export interface XpLevelUpPayload {
   xpGained: number;
 }
 
+export interface XpAwardedPayload {
+  amount: number;
+  source: XpSource;
+  newTotal: number;
+  newLevel: number;
+}
+
 export interface ServerToClientEvents {
   'room:state': (snapshot: RoomStateSnapshot) => void;
   'room:host_changed': (payload: { previousHostId: string; newHostId: string }) => void;
@@ -187,6 +199,7 @@ export interface ServerToClientEvents {
   }) => void;
   'round:reveal': (payload: { title: string; artist: string; correctPlayerIds: string[] }) => void;
   'xp:level_up': (payload: XpLevelUpPayload) => void;
+  'xp:awarded': (payload: XpAwardedPayload) => void;
   'error:rate_limited': (payload: { scope: string; retryAfterMs: number }) => void;
   'error:generic': (payload: { code: string; message: string }) => void;
 }

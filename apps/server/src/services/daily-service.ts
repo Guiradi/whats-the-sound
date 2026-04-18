@@ -13,10 +13,12 @@ import {
   WEEKDAY_CATEGORY,
   XP_DAILY_CORRECT,
   XP_DAILY_PARTICIPATION,
+  XP_FIRST_MATCH_OF_DAY,
   XP_STREAK_CAP,
   XP_STREAK_MULTIPLIER,
   verifyDailyGuess,
 } from '@wts/shared';
+import type { ReferralService } from './referral-service.js';
 import { SupabaseMidiProvider } from './supabase-midi-provider.js';
 import type { XpService } from './xp-service.js';
 
@@ -55,6 +57,7 @@ export function createDailyService(
   supabase: SupabaseClient,
   dailySeed: string,
   xpService?: XpService,
+  referralService?: ReferralService,
 ) {
   const midiProvider = new SupabaseMidiProvider(supabase);
 
@@ -331,6 +334,17 @@ export function createDailyService(
             context: { date: dateISO },
           });
         }
+
+        // First match of the day bonus — fires once per user per BRT day regardless of
+        // whether they came in via daily or MP. Idempotent via source_ref, so subsequent
+        // completions are no-ops.
+        await xpService.awardXp({
+          userId,
+          source: 'first_match_of_day',
+          sourceRef: `first_match_${dateISO}_${userId}`,
+          amount: XP_FIRST_MATCH_OF_DAY,
+          context: { date: dateISO, matchSource: 'daily' },
+        });
       }
 
       // Streak bonus: only fires on the first attempt of the day, when the INSERT
@@ -353,6 +367,14 @@ export function createDailyService(
           });
         }
       }
+    }
+
+    // Referral reward: if this user was referred, this completion triggers the bonus
+    // to the referrer. Idempotent — only fires on the invitee's first successful match.
+    if (referralService && justCompleted) {
+      referralService.maybeRewardReferrer(userId).catch(() => {
+        // Best-effort; never break the guess response because of a referral failure.
+      });
     }
 
     // Get next phase audio data

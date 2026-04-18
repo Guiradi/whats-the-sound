@@ -201,7 +201,21 @@
       "maxDailyStreak": "Maior streak",
       "pointsTotal": "Pontos",
       "level": "Level",
-      "xp": "XP"
+      "xp": "XP",
+      "loginStreak": "Login streak",
+      "maxLoginStreak": "Maior login streak"
+    },
+    "invite": {
+      "title": "Convide amigos",
+      "description": "Ganhe +{amount} XP para cada amigo que se cadastra pelo seu link e joga a primeira partida.",
+      "linkLabel": "Seu link de convite",
+      "copy": "Copiar",
+      "copied": "Link copiado!",
+      "copyError": "Não foi possível copiar.",
+      "counter": "{completed} de {invited} amigos jogaram",
+      "noneYet": "Ninguém aceitou seu convite ainda. Compartilhe!",
+      "shareSubject": "Vem jogar What's the Sound?",
+      "shareText": "Topa adivinhar músicas comigo no What's the Sound? Entra por aqui:"
     },
     "signOut": "Sair",
     "signOutSuccess": "Sessão encerrada.",
@@ -576,9 +590,17 @@
     "source": {
       "multiplayer_correct": "Acerto em rodada",
       "multiplayer_finish": "Partida concluída",
+      "multiplayer_round_played": "Rodada jogada",
       "daily_correct": "Daily Sound acertou",
       "daily_participation": "Daily Sound participou",
-      "daily_streak_bonus": "Bônus de streak"
+      "daily_streak_bonus": "Bônus de streak",
+      "daily_login": "Login diário",
+      "login_streak_bonus": "Bônus de login",
+      "first_match_of_day": "Primeira partida do dia",
+      "referral_bonus": "Amigo convidado jogou"
+    },
+    "toast": {
+      "awarded": "+{amount} XP · {source}"
     }
   },
   "admin": {

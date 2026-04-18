@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { XP_DAILY_CAP, xpForLevel } from '@wts/shared/constants';
+import { XP_DAILY_SAFETY_CAP, xpForLevel } from '@wts/shared/constants';
 import type { XpEvent, XpProfileData } from '@wts/shared/types';
 import type { FastifyInstance } from 'fastify';
 
@@ -111,7 +111,7 @@ export function createXpRoutes(supabase: SupabaseClient) {
           level,
           nextLevelXp,
           todayEarned,
-          todayCap: XP_DAILY_CAP,
+          todayCap: XP_DAILY_SAFETY_CAP,
           recentEvents,
         };
 
