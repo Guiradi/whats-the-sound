@@ -22,7 +22,9 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
       "Bash(grep:*)",
       "Bash(ls:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:wtsserver-production.up.railway.app)"
     ]
   }
 }
