@@ -102,7 +102,10 @@ function TestPlaySandboxInner({ catalogId }: TestPlaySandboxProps) {
     midiPlayer.loadMidi(entry.midi_file_url).catch(() => {
       // Errors are non-fatal — UI still usable for verification
     });
-  }, [entry, midiPlayer]);
+    // midiPlayer.loadMidi is a stable useCallback ref — safe to use directly.
+    // Using the whole midiPlayer object would cause an infinite loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry, midiPlayer.loadMidi]);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
