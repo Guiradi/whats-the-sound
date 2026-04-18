@@ -200,10 +200,11 @@ whats-the-sound/
 | `docs/ux-principles.md`         | Princípios UX, tom de voz, acessibilidade   |
 | `tasks/backlog.md`              | Todas as tasks com spec inline              |
 | `tasks/execution-plan.md`       | Sprints organizadas com dependências        |
+| `tasks/v1-checklists.md`       | Checklists: pré-deploy, deploy, testes prod |
 
 ## Testing
 
-- **MVP:** Testes manuais conforme checklists das tasks
+- **v1.0 (MVP):** Testes manuais conforme `tasks/v1-checklists.md` — 3 seções: pré-deploy (~45 min), deploy step-by-step, testes em produção (~20 min)
 - **Futuro (Fase 2+):**
   - Unit tests: Vitest para services (guess-verifier, scoring, daily-selector)
   - Integration tests: Playwright para fluxos críticos (login, jogo completo, daily)

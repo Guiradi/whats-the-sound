@@ -209,7 +209,7 @@ Sprint 4 (Frontend Multi)    Sprint 5 (Daily+Polish)     Sprint 6 (Admin+Deploy)
 - [ ] Landing page responsiva com CTAs funcionais
 - [ ] Lighthouse SEO ≥ 90
 
-**Pendente de smoke manual — Sprint 5 code complete, 2026-04-18.**
+**✅ Sprint 5 code complete, 2026-04-18. Smoke test coberto em TASK-022 (Sprint 6).**
 
 ---
 

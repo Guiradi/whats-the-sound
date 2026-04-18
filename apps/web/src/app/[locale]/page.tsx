@@ -38,6 +38,7 @@ function HomeContent() {
           {tCommon('footer.privacy')}
         </Link>
         <LocaleSwitcher />
+        <span className="text-text-muted/50">v1.0.0</span>
       </footer>
     </div>
   );

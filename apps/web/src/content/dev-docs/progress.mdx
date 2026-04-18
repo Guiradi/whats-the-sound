@@ -1,8 +1,8 @@
 ---
 title: Progresso (por TASK)
 description: Índice narrativo das tasks concluídas. Complementa tasks/completed.md.
-lastTask: Sprint 2 Smoke Test
-lastUpdated: 2026-04-17
+lastTask: TASK-023 — Deploy Production
+lastUpdated: 2026-04-18
 ---
 
 ## Sprint 1 — Fundação (8 tasks, ~18h)
@@ -40,6 +40,36 @@ Migrations adicionadas: `20260417120008_fix_handle_new_user.sql`, `2026041712000
 
 Cross-browser (Firefox, Safari, mobile) deferido para TASK-022 QA pass.
 
-## Pendente
+## Sprint 3 — Multiplayer Core (4 tasks, ~15h)
 
-Ver `tasks/backlog.md` pra Sprint 3+ (Socket.io, game loop, multiplayer UI, daily sound, admin catalog, QA, deploy).
+- **TASK-009** Socket.io Server + Room Management — Socket.io init, auth middleware (JWT + guest), in-memory room state, room:create/join/leave events, host migration, auto-cleanup
+- **TASK-010** Game Loop Engine — FSM (LOBBY → PHASE_1-4 → ROUND_END → GAME_END), scoring engine com decay, timer server-side, phase audio data broadcast
+- **TASK-011** Guess Verification — Levenshtein distance, normalize (diacritics, articles), thresholds (correct/hot/warm/artist_match), anti-cheat (server timestamps)
+- **TASK-027** Rate Limiting — Socket.io sliding window (guess 1/s, chat 5/10s, room create 3/10min), @fastify/rate-limit 60 req/min REST
+
+## Sprint 4 — Frontend Multiplayer (3 tasks, ~15h)
+
+- **TASK-012** Tela de Salas + Lobby — useRoom hook (Socket.io), /rooms page (join by code, create dialog, public room list), /room/[code] (lobby → game → results)
+- **TASK-013** Game Board — 3-column desktop / mobile drawer, useMidiPlayer integration, PlayerList, GameChat, GameTimer, PhaseIndicator, RoundTransition, RoundReveal (canvas-confetti)
+- **TASK-014** Resultado + Compartilhamento — Podium (animated top-3), FinalRanking, MatchStats, ShareResultButton (Web Share API + clipboard fallback), Play Again
+
+## Sprint 5 — Daily Sound + XP + Polish (8 tasks, ~24h)
+
+- **TASK-015** Daily Sound Backend — deterministic selection (seed + date), cron BRT, REST API (/api/daily, /api/daily/guess, /api/daily/result, /api/daily/history), streak logic
+- **TASK-016** Daily Sound Frontend — /daily page (não jogou / jogando / completou), DailyChallenge, DailyResult card, ShareButton (emoji grid), DailyCountdown
+- **TASK-017** Histórico + Calendário — /daily/history (GitHub-style contribution calendar), DayDetailModal, DailyStats
+- **TASK-018** MIDI Catalog Seed — seed script (pnpm seed:midis), 100 músicas com metadata + phase configs, upload to Supabase Storage
+- **TASK-030** XP Engine Backend — awardXp service (idempotent via source_ref UNIQUE), daily cap 2000, level formula √(xp/100)+1, integrations with scoring/game-loop/daily
+- **TASK-031** XP Engine Frontend — LevelBadge, LevelUpModal, useLevelUp hook, extended PlayerList/GameChat/Podium/DailyResult/Profile with XP info
+- **TASK-019** OG Images — /api/og/daily/[number] + /api/og/room/[code], 1200x630px, synthwave style
+- **TASK-020** Landing Page — HeroSection + HowItWorks + FeatureHighlights, sitemap.xml, robots.txt, Schema.org markup
+
+## Sprint 6 — Admin + QA + Deploy (3 tasks, ~11h)
+
+- **TASK-021** Admin Panel — 6 REST endpoints (catalog CRUD + upload), /admin/catalog table (sort, filter, pagination), /admin/catalog/new (5-step wizard), /admin/catalog/[id]/edit
+- **TASK-022** QA Pass — removed dev/audio route + HashDebugLogger + console.logs, fixed all lint errors (zero errors/warnings monorepo-wide)
+- **TASK-023** Deploy Production — vercel.json + railway.json configs, production start script, deploy checklists
+
+## v1.0.0 — MVP Complete (2026-04-18)
+
+32 tasks across 6 sprints. All gates green: lint 0 errors, type-check 4/4, build 3/3, docs-check 11/11.

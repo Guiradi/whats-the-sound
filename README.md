@@ -172,26 +172,53 @@ O projeto segue o modelo **Spec-Driven Development** — toda feature tem uma es
 | `tasks/execution-plan.md` | 6 sprints com dependências e checklists |
 | `tasks/completed.md` | Tasks concluídas, com resumo do que foi entregue |
 
-### Progresso
+### Progresso — v1.0.0
 
 | Sprint | Status | Tasks |
 |---|---|---|
-| 1 — Fundação | ✅ Completa | 001, 002, 003, 004, 024, 026, 028, 032 |
-| 2 — MIDI Engine + Auth + Infra Interna | ⬜ | 005, 006, 007, 008, 025, 029 |
-| 3 — Multiplayer Core | ⬜ | 009, 010, 011, 027 |
-| 4 — Frontend Multiplayer | ⬜ | 012, 013, 014 |
-| 5 — Daily Sound + XP + Polish | ⬜ | 015, 016, 017, 018, 019, 020, 030, 031 |
-| 6 — Admin + QA + Deploy | ⬜ | 021, 022, 023 |
+| 1 — Fundação | ✅ | 001, 002, 003, 004, 024, 026, 028, 032 |
+| 2 — MIDI Engine + Auth + Infra Interna | ✅ | 005, 006, 007, 008, 025, 029 |
+| 3 — Multiplayer Core | ✅ | 009, 010, 011, 027 |
+| 4 — Frontend Multiplayer | ✅ | 012, 013, 014 |
+| 5 — Daily Sound + XP + Polish | ✅ | 015, 016, 017, 018, 019, 020, 030, 031 |
+| 6 — Admin + QA + Deploy | ✅ | 021, 022, 023 |
 
-Total: **32 tasks / ~110h / critical path ~38h**.
+**32 tasks / ~110h / 6 sprints — MVP completo.**
 
 ## Deploy
 
-| Serviço | Plataforma |
-|---------|-----------|
-| Frontend | [Vercel](https://vercel.com) |
-| Backend | [Railway](https://railway.app) |
-| Database & Auth | [Supabase](https://supabase.com) |
+| Serviço | Plataforma | Config |
+|---------|-----------|--------|
+| Frontend | [Vercel](https://vercel.com) | `vercel.json` na raiz |
+| Backend | [Railway](https://railway.app) | `apps/server/railway.json` |
+| Database & Auth | [Supabase](https://supabase.com) | `supabase/` migrations |
+
+### Variáveis de ambiente (produção)
+
+**Vercel (frontend):**
+
+| Variável | Exemplo |
+|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxx.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_...` |
+| `NEXT_PUBLIC_SERVER_URL` | `https://wts-server.up.railway.app` |
+| `NEXT_PUBLIC_APP_URL` | `https://whatsthesound.io` |
+
+**Railway (backend):**
+
+| Variável | Exemplo |
+|----------|---------|
+| `NODE_ENV` | `production` |
+| `PORT` | `3001` |
+| `SUPABASE_URL` | `https://xxx.supabase.co` |
+| `SUPABASE_SECRET_KEY` | `sb_secret_...` |
+| `DATABASE_URL` | `postgresql://...` |
+| `DAILY_SEED` | `random-seed-string-8chars+` |
+| `CORS_ORIGINS` | `https://whatsthesound.io` |
+
+### Deploy step-by-step
+
+Ver `tasks/v1-checklists.md` para o checklist completo de deploy e testes.
 
 ## Licença
 
