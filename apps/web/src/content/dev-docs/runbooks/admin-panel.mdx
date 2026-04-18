@@ -1,0 +1,79 @@
+---
+title: Admin Panel — Guide
+description: Dashboard, catalog management, category controls, and navigation.
+lastTask: TASK-034
+lastUpdated: 2026-04-18
+---
+
+## Overview
+
+The admin panel lives at `/admin` and is gated by `users.role = 'admin'` (returns 404 for non-admins). In dev, set `ALLOW_ADMIN_WITHOUT_ROLE=true` in `.env.local` to bypass.
+
+## Sections
+
+### Dashboard (`/admin`)
+
+Main landing page with:
+
+- **Stats cards** — Players (total, registered, guests, admins), Games (total, active, finished, waiting), Daily Sound (played, completed), Catalog (total, active, inactive, by difficulty)
+- **Category Manager** — Grid of all 9 categories with song counts and enable/disable toggles
+
+Stats are fetched from `GET /api/admin/stats`. Categories from `GET /api/admin/categories`.
+
+### Catalog (`/admin/catalog`)
+
+CRUD for the MIDI catalog:
+
+- **List view** — sortable table with search, category/difficulty filters, pagination (20/page), active/inactive toggle
+- **New song** (`/admin/catalog/new`) — 5-step wizard: Upload MIDI → Metadata → Phase config → Accepted answers → Review
+- **Edit song** (`/admin/catalog/[id]/edit`) — same wizard, pre-filled
+
+API: `GET/POST /api/catalog`, `PATCH/DELETE /api/catalog/:id`, `POST /api/catalog/upload`
+
+### Docs (`/admin/docs`)
+
+MDX-powered developer documentation portal. See the sidebar for all available pages.
+
+## Category Management
+
+Categories are a Postgres enum (`midi_category`): rock, pop, mpb, sertanejo, games, anime, classical, electronic, hiphop.
+
+Since enums are hard to extend at runtime, category **availability** is managed via soft-disable:
+
+- `admin_config` table stores a `disabled_categories` JSONB array
+- `PATCH /api/admin/categories/:category/disable` — adds to the list
+- `PATCH /api/admin/categories/:category/enable` — removes from the list
+- Categories with 0 active songs show a yellow warning icon
+
+Disabled categories should be filtered out when creating rooms (not yet enforced — future task).
+
+## API Endpoints
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/admin/stats` | Dashboard statistics |
+| GET | `/api/admin/categories` | Category list with counts |
+| PATCH | `/api/admin/categories/:cat/disable` | Disable category |
+| PATCH | `/api/admin/categories/:cat/enable` | Enable category |
+| GET | `/api/catalog` | List catalog (filters, sort, pagination) |
+| GET | `/api/catalog/:id` | Single catalog entry |
+| POST | `/api/catalog` | Create entry |
+| PATCH | `/api/catalog/:id` | Update entry |
+| DELETE | `/api/catalog/:id` | Soft-delete (deactivate) |
+| POST | `/api/catalog/upload` | Upload MIDI file |
+
+All admin endpoints require `x-user-id` header with a valid admin user ID.
+
+## Database
+
+New table added for admin configuration:
+
+```sql
+admin_config (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ DEFAULT now()
+)
+```
+
+RLS: public SELECT, admin-only INSERT/UPDATE. Seeded with `disabled_categories: []`.

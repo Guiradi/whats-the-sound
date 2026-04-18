@@ -136,7 +136,8 @@
       "troubleshooting": "Troubleshooting",
       "progress": "Progresso (por TASK)",
       "runbooks": "Runbooks",
-      "supabaseAdmin": "Supabase — Primeiro admin"
+      "supabaseAdmin": "Supabase — Primeiro admin",
+      "adminPanel": "Painel Admin"
     },
     "notFound": "Página de docs não encontrada."
   },
@@ -550,6 +551,48 @@
       "daily_correct": "Daily Sound acertou",
       "daily_participation": "Daily Sound participou",
       "daily_streak_bonus": "Bônus de streak"
+    }
+  },
+  "admin": {
+    "heading": "Admin",
+    "nav": {
+      "dashboard": "Dashboard",
+      "catalog": "Catálogo",
+      "docs": "Docs"
+    },
+    "stats": {
+      "players": "Jogadores",
+      "registered": "Registrados",
+      "guests": "Convidados",
+      "admins": "Admins",
+      "games": "Partidas",
+      "gamesActive": "Ativas",
+      "gamesFinished": "Finalizadas",
+      "gamesWaiting": "Aguardando",
+      "daily": "Daily Sound",
+      "dailyPlayed": "Total jogado",
+      "dailyCompleted": "Completados",
+      "catalog": "Catálogo",
+      "totalSongs": "Total de músicas",
+      "activeSongs": "Ativas",
+      "inactiveSongs": "Inativas",
+      "easy": "Fácil",
+      "medium": "Médio",
+      "hard": "Difícil",
+      "loading": "Carregando estatísticas...",
+      "error": "Erro ao carregar estatísticas."
+    },
+    "categories": {
+      "title": "Categorias",
+      "description": "Gerencie a disponibilidade das categorias. Desative categorias sem músicas.",
+      "songs": "{count} músicas",
+      "activeSongs": "{count} ativas",
+      "noSongs": "Sem músicas",
+      "enabled": "Ativa",
+      "disabled": "Desativada",
+      "enable": "Ativar",
+      "disable": "Desativar",
+      "warning": "Sem músicas ativas nesta categoria"
     }
   },
   "adminCatalog": {

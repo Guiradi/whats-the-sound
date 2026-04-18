@@ -30,7 +30,10 @@ const NAV: NavItem[] = [
   {
     slugKey: 'sidebar.runbooks',
     path: '/admin/docs/runbooks/supabase-admin',
-    children: [{ slugKey: 'sidebar.supabaseAdmin', path: '/admin/docs/runbooks/supabase-admin' }],
+    children: [
+      { slugKey: 'sidebar.supabaseAdmin', path: '/admin/docs/runbooks/supabase-admin' },
+      { slugKey: 'sidebar.adminPanel', path: '/admin/docs/runbooks/admin-panel' },
+    ],
   },
 ];
 

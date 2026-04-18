@@ -1,8 +1,8 @@
 ---
 title: Arquitetura — Overview
 description: Stack, apps, fluxo de request, decisões-chave.
-lastTask: TASK-029
-lastUpdated: 2026-04-17
+lastTask: TASK-034
+lastUpdated: 2026-04-18
 ---
 
 ## Stack (resumo)
@@ -19,8 +19,8 @@ lastUpdated: 2026-04-17
 
 ## Apps
 
-- **`apps/web`** — Next.js. SSR + SSG onde possível; rotas autenticadas são dinâmicas. PWA via Serwist.
-- **`apps/server`** — Fastify. Socket.io (Sprint 3) + REST endpoints para ações que exigem service role ou bidirecional real-time.
+- **`apps/web`** — Next.js. SSR + SSG onde possível; rotas autenticadas são dinâmicas. PWA via Serwist. Admin panel em `/admin` (dashboard, catálogo, docs) gated por `users.role = 'admin'`.
+- **`apps/server`** — Fastify. Socket.io (Sprint 3) + REST endpoints para ações que exigem service role ou bidirecional real-time. Inclui `/api/admin/*` para stats e gerenciamento de categorias.
 - **`packages/shared`** — types + constants + env helper compartilhados (consumidos como source via `transpilePackages`).
 
 ## Fluxo de request (typical)

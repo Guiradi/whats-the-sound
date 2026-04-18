@@ -136,7 +136,8 @@
       "troubleshooting": "Troubleshooting",
       "progress": "Progress (by TASK)",
       "runbooks": "Runbooks",
-      "supabaseAdmin": "Supabase — First admin"
+      "supabaseAdmin": "Supabase — First admin",
+      "adminPanel": "Admin Panel"
     },
     "notFound": "Docs page not found."
   },
@@ -548,6 +549,48 @@
       "daily_correct": "Daily Sound correct",
       "daily_participation": "Daily Sound played",
       "daily_streak_bonus": "Streak bonus"
+    }
+  },
+  "admin": {
+    "heading": "Admin",
+    "nav": {
+      "dashboard": "Dashboard",
+      "catalog": "Catalog",
+      "docs": "Docs"
+    },
+    "stats": {
+      "players": "Players",
+      "registered": "Registered",
+      "guests": "Guests",
+      "admins": "Admins",
+      "games": "Games",
+      "gamesActive": "Active",
+      "gamesFinished": "Finished",
+      "gamesWaiting": "Waiting",
+      "daily": "Daily Sound",
+      "dailyPlayed": "Total played",
+      "dailyCompleted": "Completed",
+      "catalog": "Catalog",
+      "totalSongs": "Total songs",
+      "activeSongs": "Active",
+      "inactiveSongs": "Inactive",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "loading": "Loading stats...",
+      "error": "Failed to load stats."
+    },
+    "categories": {
+      "title": "Categories",
+      "description": "Manage category availability. Disable categories that lack songs.",
+      "songs": "{count} songs",
+      "activeSongs": "{count} active",
+      "noSongs": "No songs",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "enable": "Enable",
+      "disable": "Disable",
+      "warning": "No active songs in this category"
     }
   },
   "adminCatalog": {
