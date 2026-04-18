@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build",
+    "prebuild": "cd ../.. && pnpm --filter @wts/shared run build",
+    "build": "bash -c 'next build'",
     "start": "next start -p 3000",
     "lint": "biome check src",
     "type-check": "tsc --noEmit",
