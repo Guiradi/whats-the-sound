@@ -11,7 +11,7 @@ import { useDaily } from '@/hooks/use-daily';
 import { useMidiPlayer } from '@/hooks/use-midi-player';
 import { cn } from '@/lib/utils';
 import { GuessResult } from '@wts/shared';
-import { Loader2, Music, Send } from 'lucide-react';
+import { Loader2, Music, Play, Send } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -27,6 +27,7 @@ export function DailyChallenge() {
   const [lastFeedback, setLastFeedback] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [midiLoaded, setMidiLoaded] = useState(false);
+  const [ready, setReady] = useState(false);
   const autoPlayedRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -39,13 +40,14 @@ export function DailyChallenge() {
     });
   }, [state, player, midiLoaded]);
 
-  // Auto-play current phase ONCE when MIDI is first loaded
+  // Auto-play current phase ONCE when player is ready
   useEffect(() => {
-    if (!midiLoaded || !state?.phaseAudioData || state.completed || autoPlayedRef.current) return;
+    if (!ready || !midiLoaded || !state?.phaseAudioData || state.completed || autoPlayedRef.current)
+      return;
 
     autoPlayedRef.current = true;
     player.play(state.phaseAudioData);
-  }, [midiLoaded, state, player]);
+  }, [ready, midiLoaded, state, player]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -129,6 +131,36 @@ export function DailyChallenge() {
         title={revealedTitle}
         artist={revealedArtist}
       />
+    );
+  }
+
+  // Ready screen — wait for player to click before starting
+  if (!ready) {
+    return (
+      <div className="mx-auto flex max-w-lg flex-col items-center gap-6 p-4 pt-24">
+        <div className="text-center">
+          <div className="mb-1 flex items-center justify-center gap-2">
+            <Music className="h-5 w-5 text-accent-cyan" />
+            <h1 className="font-display text-xl font-bold">
+              {t('title')} #{state.dayNumber}
+            </h1>
+          </div>
+          <p className="text-sm text-text-muted">{t('readyHint')}</p>
+        </div>
+        <Button size="lg" onClick={() => setReady(true)} disabled={!midiLoaded}>
+          {midiLoaded ? (
+            <>
+              <Play className="mr-2 h-5 w-5" />
+              {t('ready')}
+            </>
+          ) : (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              {t('loading')}
+            </>
+          )}
+        </Button>
+      </div>
     );
   }
 

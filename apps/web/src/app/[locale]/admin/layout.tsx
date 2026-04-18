@@ -1,7 +1,6 @@
+import { AdminBackLink } from '@/components/admin/admin-back-link';
 import { AdminNav } from '@/components/admin/admin-nav';
 import type { Locale } from '@/i18n/config';
-import { Link } from '@/i18n/navigation';
-import { ArrowLeft } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { ReactNode } from 'react';
 
@@ -21,13 +20,7 @@ export default async function AdminLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="flex items-center gap-4 border-b border-bg-border px-6 py-4">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-xs text-text-muted transition-colors hover:text-accent-cyan"
-        >
-          <ArrowLeft className="h-3 w-3" />
-          WTS
-        </Link>
+        <AdminBackLink />
         <span className="text-text-muted">/</span>
         <h1 className="font-[family-name:var(--font-display)] text-lg font-semibold text-text-primary">
           {t('heading')}

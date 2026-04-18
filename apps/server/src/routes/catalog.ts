@@ -292,6 +292,11 @@ export function createCatalogRoutes(supabase: SupabaseClient) {
             .eq('id', id)
             .single();
 
+          // Delete dependent rows that reference this MIDI entry
+          await supabase.from('daily_results').delete().eq('midi_id', id);
+          await supabase.from('daily_schedule').delete().eq('midi_id', id);
+          await supabase.from('round_scores').delete().eq('midi_id', id);
+
           // Hard-delete from DB
           const { error } = await supabase.from('midi_catalog').delete().eq('id', id);
 

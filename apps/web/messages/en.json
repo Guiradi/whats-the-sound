@@ -494,6 +494,8 @@
     "error": "Failed to load today's challenge.",
     "phase": "Phase {current} of {total}",
     "phaseLabel": "P{n}",
+    "ready": "Play",
+    "readyHint": "When you're ready, the music starts!",
     "replay": "Listen again",
     "guessPlaceholder": "What's the song?",
     "guestCta": "Sign in to submit guesses and save your progress.",

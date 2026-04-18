@@ -496,6 +496,8 @@
     "error": "Erro ao carregar o desafio do dia.",
     "phase": "Fase {current} de {total}",
     "phaseLabel": "F{n}",
+    "ready": "Jogar",
+    "readyHint": "Quando estiver pronto, a música começa!",
     "replay": "Ouvir novamente",
     "guessPlaceholder": "Qual é a música?",
     "guestCta": "Faça login para enviar palpites e salvar seu progresso.",
