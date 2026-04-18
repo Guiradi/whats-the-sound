@@ -3,14 +3,29 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./types": "./src/types/index.ts",
-    "./constants": "./src/constants/index.ts",
-    "./enums": "./src/enums/index.ts",
-    "./env": "./src/env/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/types/index.js"
+    },
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "default": "./dist/constants/index.js"
+    },
+    "./enums": {
+      "types": "./dist/enums/index.d.ts",
+      "default": "./dist/enums/index.js"
+    },
+    "./env": {
+      "types": "./dist/env/index.d.ts",
+      "default": "./dist/env/index.js"
+    }
   },
   "dependencies": {
     "zod": "^3.24.1"
@@ -21,6 +36,6 @@
   "scripts": {
     "lint": "biome check src",
     "type-check": "tsc --noEmit",
-    "build": "echo 'shared is consumed as source; no build'"
+    "build": "tsc -p tsconfig.json"
   }
 }
