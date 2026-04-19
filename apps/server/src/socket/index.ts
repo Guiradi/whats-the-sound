@@ -65,8 +65,8 @@ export function initSocketServer(
       socket.join(`user:${socket.data.userId}`);
     }
 
-    registerRoomEvents(socket, io, rateLimiter);
-    registerGameEvents(socket, io, gameLoop, rateLimiter);
+    registerRoomEvents(socket, io, rateLimiter, server.log);
+    registerGameEvents(socket, io, gameLoop, rateLimiter, server.log);
 
     socket.on('disconnect', (reason) => {
       server.log.info({ socketId: socket.id, reason }, 'socket disconnected');

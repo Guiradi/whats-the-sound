@@ -1,0 +1,71 @@
+---
+title: Arquitetura — Autenticação
+description: Fluxo JWT do Supabase, authFetch no client, authResolver no server.
+lastTask: v1-audit-r2
+lastUpdated: 2026-04-19
+---
+
+## Origem do token
+
+O navegador obtém o JWT via Supabase OAuth (Google ou Discord). O token vive na sessão do `createBrowserClient` e é renovado automaticamente.
+
+## Client — `authFetch`
+
+`apps/web/src/lib/api-client.ts` exporta:
+
+```ts
+authFetch(path, init?) // GET/POST/PATCH/... para ${NEXT_PUBLIC_SERVER_URL}${path}
+```
+
+Toda requisição passa por aqui. O helper:
+1. Lê `supabase.auth.getSession()` do browser client (shared em `lib/supabase/browser.ts`).
+2. Se houver `access_token`, adiciona `Authorization: Bearer <token>`.
+3. Inclui `credentials: 'include'` por padrão.
+
+Consumidores (hooks e componentes) nunca anexam `Authorization` manualmente. O padrão anterior com header `x-user-id` foi removido em v1.0 cleanup.
+
+## Hooks de dados
+
+`hooks/use-api-data.ts` compõe `authFetch` + parse Zod:
+
+```ts
+useApiData<T>({ path, schema, enabled?, deps? })
+// → { data, isLoading, error, refetch }
+```
+
+Os hooks de admin (`hooks/admin/*`) são wrappers finos sobre `useApiData` com o schema correto do response.
+
+## Server — `AuthResolver`
+
+`apps/server/src/middleware/auth.ts` cria o resolver:
+
+```ts
+createAuthResolver(supabase)
+// → { resolveUserId(request): Promise<string | null>, requireAuthenticatedUser(request, reply) }
+```
+
+`resolveUserId` lê `Authorization: Bearer <token>` e chama `supabase.auth.getUser(token)`. Retorna `userId` (string) em sucesso ou `null`; loga `warn` com contexto em todos os caminhos de falha.
+
+Rotas de usuário (`me`, `daily`, `xp`) chamam `resolveUserId` diretamente e retornam 401 se nulo. Rotas admin (`admin`, `catalog`) usam o **preHandler compartilhado** `middleware/admin-guard.ts::createAdminPreHandler`, que valida o JWT e checa `users.role = 'admin'`; falha retorna **404** (não 403) para evitar vazamento de existência de rota.
+
+## Socket.io
+
+Mesma lógica em `socket/auth-middleware.ts`: `supabase.auth.getUser(handshake.auth.token)`. Conexões sem token viram guest (`userId = guest:<id>`). Server emite eventos individuais (XP, achievements) numa room `user:<userId>` que o socket entra no handshake.
+
+## Tabela de decisões
+
+| Recurso | Acesso anônimo | Guest | OAuth |
+|---|---|---|---|
+| `/daily` GET (challenge) | ✓ sem progresso | ✓ sem progresso | ✓ com progresso |
+| `/daily/guess` POST | ✗ 401 | ✗ 401 | ✓ |
+| `/me/*` | ✗ 401 | ✗ 401 | ✓ |
+| `/catalog/*` | ✗ 404 | ✗ 404 | apenas admins |
+| Socket.io | permitido (guest) | permitido | permitido |
+
+## Referências
+
+- `apps/web/src/lib/api-client.ts` — `authFetch`.
+- `apps/web/src/hooks/use-api-data.ts` — hook genérico.
+- `apps/server/src/middleware/auth.ts` — resolver.
+- `apps/server/src/middleware/admin-guard.ts` — preHandler admin.
+- `apps/server/src/socket/auth-middleware.ts` — auth no handshake.

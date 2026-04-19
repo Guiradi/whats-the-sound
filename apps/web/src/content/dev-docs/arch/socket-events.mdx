@@ -1,0 +1,69 @@
+---
+title: Arquitetura — Socket.io Events
+description: Eventos cliente↔servidor, rate limits, encoding de mensagens de bot.
+lastTask: v1-audit-r2
+lastUpdated: 2026-04-19
+---
+
+## Visão geral
+
+O multiplayer usa Socket.io com tipos compartilhados em `packages/shared/src/types/index.ts` (`ClientToServerEvents`, `ServerToClientEvents`). Toda a cadência de fase é **server-autoritativa** — o cliente apenas consome eventos e renderiza.
+
+## Handshake e autenticação
+
+`apps/server/src/socket/auth-middleware.ts` valida o JWT Supabase recebido em `socket.handshake.auth.token`. Se válido, preenche `socket.data.userId`, `nickname`, `avatar`, `level`. Conexões sem token caem em `isGuest: true` com `userId = guest:<socketId ou guestId estável>`.
+
+## Eventos — client → server
+
+| Evento | Payload | Rate limit |
+|---|---|---|
+| `room:create` | `RoomConfig, ack({ code })` | 3 por 10 min/user |
+| `room:join` | `{ code, nickname? }` | — |
+| `room:leave` | — | — |
+| `player:ready` | `boolean` | — |
+| `chat:send` | `string` | 5 por 10s/user |
+| `game:guess` | `string` | 1/s/user |
+| `game:start` | — | — |
+
+Limites em `apps/server/src/middleware/rate-limiter.ts` (sliding window in-memory). Quando excedem, o server responde com `error:rate_limited`.
+
+## Eventos — server → client
+
+| Evento | Payload | Quando |
+|---|---|---|
+| `room:state` | `RoomStateSnapshot` | Qualquer mudança de estado; ignore snapshots com `version` menor que o último. |
+| `room:host_changed` | `{ previousHostId, newHostId }` | Host sai e outro jogador assume. |
+| `chat:message` | `ChatMessage` | Mensagem de jogador ou bot. |
+| `phase:start` | `{ phase, endsAt, audioData, midiFileUrl, hints }` | Início de fase MP. Cliente agenda a cadência: countdown 3s → play → countdown 2s → play → janela de palpites. |
+| `round:reveal` | `{ title, artist, correctPlayerIds }` | Fim de round — revela a música. |
+| `xp:awarded` / `xp:level_up` | ver `types/index.ts` | Na room `user:<userId>`. |
+| `achievement:unlocked` | `AchievementUnlockedPayload` | Idem. |
+| `error:generic` | `{ code, message }` | Falha de validação ou lógica. Sempre logado no server via `emitSocketError`. |
+| `error:rate_limited` | `{ scope, retryAfterMs }` | Limite excedido. Logado via `emitSocketRateLimited`. |
+
+## Mensagens de bot (encoding)
+
+`packages/shared/src/chat/bot-messages.ts` padroniza a serialização. `ChatMessage.text` para mensagens de bot tem a forma:
+
+```
+bot.<key>
+bot.<key>:{"param":"value"}
+```
+
+- `encodeBotEvent('guessedCorrectly', { nickname, score })` produz `"bot.guessedCorrectly:{...}"`.
+- `decodeBotEvent(text)` retorna `{ key, params } | null`.
+
+O server usa `broadcastBotEvent(io, roomCode, key, params?)` em `services/bot-broadcaster.ts`; o client traduz a key via `game.chat.bot.*` em `messages/pt-BR.json` e `en.json`.
+
+## Observabilidade
+
+Todos os erros emitidos via socket passam por `socket/emit-error.ts`, que loga `warn` com `socketId`, `userId`, `code`, `message` e contexto adicional antes de emitir para o cliente. Conexão/desconexão também são logadas em `socket/index.ts`.
+
+## Referências
+
+- `apps/server/src/socket/index.ts` — inicialização.
+- `apps/server/src/socket/auth-middleware.ts` — auth handshake.
+- `apps/server/src/socket/room-events.ts` — room lifecycle.
+- `apps/server/src/socket/game-events.ts` — game actions.
+- `apps/server/src/services/round-orchestrator.ts` — cadência de fase.
+- `packages/shared/src/types/index.ts` — tipos de evento.

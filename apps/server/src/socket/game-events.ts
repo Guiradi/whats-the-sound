@@ -1,7 +1,9 @@
 import type { ClientToServerEvents, ServerToClientEvents } from '@wts/shared';
+import type { FastifyBaseLogger } from 'fastify';
 import type { Server, Socket } from 'socket.io';
 import type { SocketRateLimiter } from '../middleware/rate-limiter.js';
 import type { GameLoop } from '../services/game-loop.js';
+import { emitSocketError, emitSocketRateLimited } from './emit-error.js';
 
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
@@ -11,13 +13,14 @@ export function registerGameEvents(
   _io: TypedServer,
   gameLoop: GameLoop,
   rateLimiter: SocketRateLimiter,
+  logger: FastifyBaseLogger,
 ): void {
   socket.on('game:start', () => {
     const roomCode = socket.data.roomCode;
     if (!roomCode) return;
     const error = gameLoop.startGame(roomCode, socket.data.userId);
     if (error) {
-      socket.emit('error:generic', { code: error, message: error });
+      emitSocketError(socket, logger, error, error, { roomCode });
     }
   });
 
@@ -28,10 +31,7 @@ export function registerGameEvents(
 
     const rateCheck = rateLimiter.checkGuess(socket.data.userId);
     if (!rateCheck.allowed) {
-      socket.emit('error:rate_limited', {
-        scope: 'game:guess',
-        retryAfterMs: rateCheck.retryAfterMs,
-      });
+      emitSocketRateLimited(socket, logger, 'game:guess', rateCheck.retryAfterMs);
       return;
     }
 
@@ -45,10 +45,7 @@ export function registerGameEvents(
 
     const rateCheck = rateLimiter.checkMessage(socket.data.userId);
     if (!rateCheck.allowed) {
-      socket.emit('error:rate_limited', {
-        scope: 'chat:send',
-        retryAfterMs: rateCheck.retryAfterMs,
-      });
+      emitSocketRateLimited(socket, logger, 'chat:send', rateCheck.retryAfterMs);
       return;
     }
 

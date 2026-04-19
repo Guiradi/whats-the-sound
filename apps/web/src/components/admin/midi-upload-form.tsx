@@ -9,7 +9,7 @@ import { useAdminCategories } from '@/hooks/admin/use-admin-categories';
 import { useRouter } from '@/i18n/navigation';
 import { authFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
-import { type CategoryInfo, MidiDifficulty } from '@wts/shared';
+import { type CategoryInfo, MidiDifficulty, generateAcceptedVariations } from '@wts/shared';
 import type { MidiPhases } from '@wts/shared';
 import { Check, ChevronLeft, ChevronRight, Loader2, Upload, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -17,80 +17,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 const DIFFICULTIES = Object.values(MidiDifficulty);
-
-const LEADING_ARTICLES = /^(the|o|a|os|as|um|uma)\s+/i;
-
-/**
- * Generate unique accepted-answer variations from an original string.
- * Produces: original, lowercase, no-diacritics, no-apostrophes/hyphens,
- * without leading articles, and combinations thereof.
- */
-function generateAcceptedVariations(original: string): string[] {
-  if (!original.trim()) return [''];
-
-  const seen = new Set<string>();
-  const results: string[] = [];
-
-  function add(s: string) {
-    const trimmed = s.replace(/\s+/g, ' ').trim();
-    if (trimmed && !seen.has(trimmed)) {
-      seen.add(trimmed);
-      results.push(trimmed);
-    }
-  }
-
-  // 1. Original as-is
-  add(original);
-
-  // 2. Lowercase
-  const lower = original.toLowerCase();
-  add(lower);
-
-  // 3. No diacritics (é→e, ã→a, ñ→n, etc.)
-  const noDiacritics = lower.normalize('NFD').replace(/\p{Mn}/gu, '');
-  add(noDiacritics);
-
-  // 4. No apostrophes (don't → dont, it's → its)
-  const noApostrophe = noDiacritics.replace(/[''`]/g, '');
-  add(noApostrophe);
-
-  // 5. No hyphens (rock-n-roll → rock n roll)
-  const noHyphens = noApostrophe.replace(/-/g, ' ').replace(/\s+/g, ' ');
-  add(noHyphens);
-
-  // 6. Strip all non-alphanumeric (keep spaces)
-  const alphanumOnly = noHyphens
-    .replace(/[^a-z0-9\s]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  add(alphanumOnly);
-
-  // 7. Without leading articles
-  const noArticle = alphanumOnly.replace(LEADING_ARTICLES, '').trim();
-  if (noArticle !== alphanumOnly) {
-    add(noArticle);
-  }
-
-  // 8. If has "&", also add "and" / "e" variants
-  if (original.includes('&')) {
-    add(alphanumOnly.replace(/&/g, 'and'));
-    add(alphanumOnly.replace(/&/g, 'e'));
-  }
-  if (lower.includes(' and ')) {
-    add(alphanumOnly.replace(/\band\b/g, 'e'));
-  }
-  if (lower.includes(' e ')) {
-    add(alphanumOnly.replace(/\be\b/g, 'and'));
-  }
-
-  // 9. "feat." / "ft." variations: strip them entirely
-  const featPattern = /\s*(feat\.?|ft\.?|featuring)\s+.+$/i;
-  if (featPattern.test(original)) {
-    add(alphanumOnly.replace(/\s*(feat\.?|ft\.?|featuring)\s+.+$/i, '').trim());
-  }
-
-  return results;
-}
 
 const STEPS = ['upload', 'metadata', 'answers', 'review'] as const;
 type Step = (typeof STEPS)[number];

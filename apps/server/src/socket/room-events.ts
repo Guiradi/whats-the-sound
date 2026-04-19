@@ -9,11 +9,13 @@ import {
   NICKNAME_PATTERN,
 } from '@wts/shared';
 import type { ClientToServerEvents, RoomConfig, ServerToClientEvents } from '@wts/shared';
+import type { FastifyBaseLogger } from 'fastify';
 import type { Server, Socket } from 'socket.io';
 import { z } from 'zod';
 import type { SocketRateLimiter } from '../middleware/rate-limiter.js';
 import * as roomManager from '../services/room-manager.js';
 import type { ServerPlayer } from '../types/room.js';
+import { emitSocketError, emitSocketRateLimited } from './emit-error.js';
 
 type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
@@ -74,25 +76,17 @@ function makeServerPlayer(
   };
 }
 
-function emitError(socket: TypedSocket, code: string, message: string): void {
-  socket.emit('error:generic', { code, message });
-}
-
-// ─── Event registration ────────────────────────────────────────
-
 export function registerRoomEvents(
   socket: TypedSocket,
   io: TypedServer,
   rateLimiter: SocketRateLimiter,
+  logger: FastifyBaseLogger,
 ): void {
   socket.on('room:create', (rawConfig, ack) => {
     try {
       const rateCheck = rateLimiter.checkRoomCreation(socket.data.userId);
       if (!rateCheck.allowed) {
-        socket.emit('error:rate_limited', {
-          scope: 'room:create',
-          retryAfterMs: rateCheck.retryAfterMs,
-        });
+        emitSocketRateLimited(socket, logger, 'room:create', rateCheck.retryAfterMs);
         return;
       }
       const config = roomConfigSchema.parse(rawConfig) as RoomConfig;
@@ -108,8 +102,9 @@ export function registerRoomEvents(
 
       io.to(`room:${room.code}`).emit('room:state', roomManager.toSnapshot(room));
     } catch (err) {
-      emitError(
+      emitSocketError(
         socket,
+        logger,
         'INVALID_CONFIG',
         err instanceof Error ? err.message : 'Invalid room config',
       );
@@ -160,7 +155,12 @@ export function registerRoomEvents(
 
       io.to(`room:${code}`).emit('room:state', roomManager.toSnapshot(room));
     } catch (err) {
-      emitError(socket, 'JOIN_FAILED', err instanceof Error ? err.message : 'Failed to join room');
+      emitSocketError(
+        socket,
+        logger,
+        'JOIN_FAILED',
+        err instanceof Error ? err.message : 'Failed to join room',
+      );
     }
   });
 

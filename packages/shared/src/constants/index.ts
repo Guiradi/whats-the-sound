@@ -30,6 +30,7 @@ export const SIMULTANEOUS_ANSWER_WINDOW_MS = 50;
 /** Ratio of phase score awarded for guessing the artist (remaining goes to title). */
 export const ARTIST_MATCH_SCORE_RATIO = 0.5;
 
+/** Levenshtein edit distance thresholds (number of character edits). */
 export const LEVENSHTEIN_THRESHOLDS = {
   multiplayer: {
     correct: 1,
