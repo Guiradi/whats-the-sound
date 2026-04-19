@@ -1,7 +1,7 @@
 'use client';
 
-import { env } from '@/env';
 import { useAuth } from '@/hooks/use-auth';
+import { authFetch } from '@/lib/api-client';
 import { useEffect } from 'react';
 
 const STORAGE_KEY = 'wts:pending-referral';
@@ -76,11 +76,10 @@ export function ReferralCapture(): null {
     if (!code) return;
 
     const controller = new AbortController();
-    fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/me/apply-referral`, {
+    authFetch('/api/me/apply-referral', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-user-id': user.id,
       },
       body: JSON.stringify({ code }),
       signal: controller.signal,

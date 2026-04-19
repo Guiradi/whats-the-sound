@@ -11,8 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { env } from '@/env';
 import { useAuth } from '@/hooks/use-auth';
+import { authFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { AlertTriangle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -40,10 +40,7 @@ export function CategoryManager() {
   const fetchCategories = useCallback(async () => {
     if (!user) return;
     try {
-      const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/admin/categories`, {
-        headers: { 'x-user-id': user.id },
-        credentials: 'include',
-      });
+      const res = await authFetch('/api/admin/categories');
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setCategories(data.categories);
@@ -63,14 +60,9 @@ export function CategoryManager() {
     setTogglingCategory(category);
     try {
       const action = currentlyDisabled ? 'enable' : 'disable';
-      const res = await fetch(
-        `${env.NEXT_PUBLIC_SERVER_URL}/api/admin/categories/${category}/${action}`,
-        {
-          method: 'PATCH',
-          headers: { 'x-user-id': user.id },
-          credentials: 'include',
-        },
-      );
+      const res = await authFetch(`/api/admin/categories/${category}/${action}`, {
+        method: 'PATCH',
+      });
       if (res.ok) {
         setCategories((prev) =>
           prev.map((c) => (c.name === category ? { ...c, isDisabled: !currentlyDisabled } : c)),

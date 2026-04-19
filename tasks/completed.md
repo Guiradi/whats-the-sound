@@ -5,6 +5,20 @@
 
 ---
 
+### [✓] v1.0.0 Cleanup — Code quality sweep — 2026-04-18
+    → Entregue:
+      • DRY em `@wts/shared`: `packages/shared/src/utils/brt.ts` (`getTodayBRT`, `getBRTDateRange`, `getBRTWeekday`, `diffBRTDays`) + `utils/xp.ts` (`sumXpEvents`) + `utils/game-status.ts` (`ACTIVE_PHASES`, `isActivePhase`). 6 cópias removidas de server services/routes e web hook.
+      • `packages/shared/src/chat/bot-messages.ts` com `encodeBotEvent` / `decodeBotEvent`. Game-loop (server) e game-chat (client) usam a mesma serialização.
+      • Zod schemas para rows do Supabase em `apps/server/src/types/db-rows.ts` (`userXpRowSchema`, `userGuestRowSchema`, `xpEventRowSchema`, `dailyHistoryRowSchema`). Elimina casts `as { ... }` fracos em routes/xp, xp-service, daily-service.
+      • `useRoom` de 251 → 178 linhas. Helpers puros em `apps/web/src/hooks/room/`: `apply-socket-auth.ts` e `register-room-listeners.ts` removendo duplicação entre `useRoom` e `createRoom`.
+      • `submitGuess` em daily-service quebrado: `evaluateNextPhase` (pura) e `awardDailyXp` (closure XP) extraídos. Função principal vira orquestrador.
+      • Comentários: sweep "o que" redundante removido em daily-service, game-loop, xp-service, midi-analyzer. Constantes `CHORD_WINDOW_SEC` / `PHASE_END_BUFFER_SEC` nomeadas. `awardXpAsync` → `fireAndForgetXp`.
+      • Specs: novas `specs/features/11-achievements.md` (TASK-046) e `specs/features/12-admin-dashboard.md` (TASK-034). Dev docs: frontmatter `lastTask` atualizado em `progress.mdx` e `arch/database.mdx`.
+      • Admin auth endurecida: substituído `x-user-id` por extração de JWT Supabase. Novo `apps/server/src/middleware/auth.ts` com `AuthResolver`; aplicado em `admin.ts`, `catalog.ts`, `daily.ts`, `me.ts`, `xp.ts`. No frontend: `apps/web/src/lib/api-client.ts::authFetch` anexa `Authorization: Bearer` automaticamente — 23 callsites em 14 arquivos migrados.
+      • Gates: `pnpm lint` ✓, `pnpm type-check` ✓ em 4 workspaces, `pnpm build` ✓ em 3 apps. `pnpm docs:check` 12/12 OK.
+
+---
+
 ### [✓] TASK-046: Achievements System — 8 conquistas MVP + unlock modal + profile card — 2026-04-18
     → Entregue:
       • Migration 20260420120000_achievements.sql: tabela user_achievements (UNIQUE user_id+achievement_id), RLS, índice; valor 'achievement_unlocked' no enum xp_source.

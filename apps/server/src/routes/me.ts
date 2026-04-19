@@ -3,6 +3,7 @@ import { ACHIEVEMENTS } from '@wts/shared/achievements';
 import { XP_REFERRAL_BONUS } from '@wts/shared/constants';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { AuthResolver } from '../middleware/auth.js';
 import type { AchievementService } from '../services/achievement-service.js';
 import type { LoginService } from '../services/login-service.js';
 
@@ -18,7 +19,8 @@ const applyReferralSchema = z.object({
 export function createMeRoutes(
   supabase: SupabaseClient,
   loginService: LoginService,
-  achievementService?: AchievementService,
+  achievementService: AchievementService | undefined,
+  auth: AuthResolver,
 ) {
   return async function meRoutes(server: FastifyInstance) {
     /**
@@ -27,7 +29,7 @@ export function createMeRoutes(
      * Idempotent per BRT day; safe to call on every app load.
      */
     server.post('/api/me/touch-login', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
+      const userId = await auth.resolveUserId(request);
       if (!userId) {
         return reply.status(401).send({
           error: { code: 'UNAUTHORIZED', message: 'Login required' },
@@ -51,7 +53,7 @@ export function createMeRoutes(
      * their first match (see daily-service and game-loop for the reward side).
      */
     server.post('/api/me/apply-referral', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
+      const userId = await auth.resolveUserId(request);
       if (!userId) {
         return reply.status(401).send({
           error: { code: 'UNAUTHORIZED', message: 'Login required' },
@@ -140,7 +142,7 @@ export function createMeRoutes(
      * Returns their code, total invited, and how many have completed a first match.
      */
     server.get('/api/me/referrals', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
+      const userId = await auth.resolveUserId(request);
       if (!userId) {
         return reply.status(401).send({
           error: { code: 'UNAUTHORIZED', message: 'Login required' },
@@ -186,7 +188,7 @@ export function createMeRoutes(
      * and locked ones muted.
      */
     server.get('/api/me/achievements', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
+      const userId = await auth.resolveUserId(request);
       if (!userId) {
         return reply.status(401).send({
           error: { code: 'UNAUTHORIZED', message: 'Login required' },

@@ -1,23 +1,19 @@
+import { getTodayBRT } from '@wts/shared';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { AuthResolver } from '../middleware/auth.js';
 import type { DailyService } from '../services/daily-service.js';
-import { getTodayBRT } from '../services/daily-service.js';
 
 const guessSchema = z.object({
   guess: z.string().min(1).max(200),
   phase: z.number().int().min(1).max(4) as z.ZodType<1 | 2 | 3 | 4>,
 });
 
-export function createDailyRoutes(dailyService: DailyService) {
+export function createDailyRoutes(dailyService: DailyService, auth: AuthResolver) {
   return async function dailyRoutes(server: FastifyInstance) {
-    /**
-     * GET /api/daily — Get today's daily challenge.
-     * Returns MIDI ID, category, day number, current phase audio data.
-     * NEVER returns title or artist before completion.
-     */
     server.get('/api/daily', async (request, reply) => {
       const today = getTodayBRT();
-      const userId = (request.headers['x-user-id'] as string) ?? null;
+      const userId = await auth.resolveUserId(request);
 
       try {
         const state = await dailyService.getDailyForUser(userId, today);
@@ -30,12 +26,8 @@ export function createDailyRoutes(dailyService: DailyService) {
       }
     });
 
-    /**
-     * POST /api/daily/guess — Submit a guess for the daily challenge.
-     * Requires authenticated user (x-user-id header from auth middleware).
-     */
     server.post('/api/daily/guess', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
+      const userId = await auth.resolveUserId(request);
       if (!userId) {
         return reply.status(401).send({
           error: { code: 'UNAUTHORIZED', message: 'Login required to submit daily guesses' },
@@ -66,11 +58,8 @@ export function createDailyRoutes(dailyService: DailyService) {
       }
     });
 
-    /**
-     * GET /api/daily/result — Get user's result for today.
-     */
     server.get('/api/daily/result', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
+      const userId = await auth.resolveUserId(request);
       if (!userId) {
         return reply.status(401).send({
           error: { code: 'UNAUTHORIZED', message: 'Login required' },
@@ -97,11 +86,8 @@ export function createDailyRoutes(dailyService: DailyService) {
       }
     });
 
-    /**
-     * GET /api/daily/history — Paginated history for logged-in user.
-     */
     server.get('/api/daily/history', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
+      const userId = await auth.resolveUserId(request);
       if (!userId) {
         return reply.status(401).send({
           error: { code: 'UNAUTHORIZED', message: 'Login required to view history' },

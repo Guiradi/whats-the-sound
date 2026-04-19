@@ -1,7 +1,6 @@
-import { DAILY_RESET_CRON_UTC } from '@wts/shared';
+import { DAILY_RESET_CRON_UTC, getTodayBRT } from '@wts/shared';
 import { schedule } from 'node-cron';
 import type { DailyService } from './daily-service.js';
-import { getTodayBRT } from './daily-service.js';
 
 /**
  * Start the daily MIDI selection cron job.

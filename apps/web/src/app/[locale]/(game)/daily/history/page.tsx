@@ -4,15 +4,13 @@ import { DailyCalendar } from '@/components/daily/daily-calendar';
 import { DailyStats } from '@/components/daily/daily-stats';
 import { DayDetailModal } from '@/components/daily/day-detail-modal';
 import { Button } from '@/components/ui/button';
-import { env } from '@/env';
 import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@/i18n/navigation';
+import { authFetch } from '@/lib/api-client';
 import type { DailyHistoryEntry } from '@wts/shared';
 import { ArrowLeft, Calendar, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
-
-const API_BASE = env.NEXT_PUBLIC_SERVER_URL;
 
 export default function DailyHistoryPage() {
   const t = useTranslations('dailyHistory');
@@ -28,9 +26,7 @@ export default function DailyHistoryPage() {
 
     async function loadHistory() {
       try {
-        const res = await fetch(`${API_BASE}/api/daily/history`, {
-          headers: { 'x-user-id': user?.id ?? '' },
-        });
+        const res = await authFetch('/api/daily/history');
         if (!res.ok) throw new Error('Failed to load history');
         const data = (await res.json()) as {
           entries: DailyHistoryEntry[];

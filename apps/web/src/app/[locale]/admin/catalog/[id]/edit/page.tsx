@@ -1,9 +1,8 @@
 'use client';
 
 import { MidiUploadForm } from '@/components/admin/midi-upload-form';
-import { env } from '@/env';
-import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@/i18n/navigation';
+import { authFetch } from '@/lib/api-client';
 import type { MidiPhases } from '@wts/shared';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -25,7 +24,6 @@ interface CatalogEntry {
 
 export default function AdminCatalogEditPage() {
   const t = useTranslations('adminCatalog');
-  const { user } = useAuth();
   const params = useParams<{ id: string }>();
   const [entry, setEntry] = useState<CatalogEntry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,10 +31,7 @@ export default function AdminCatalogEditPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${params.id}`, {
-          headers: { 'x-user-id': user?.id ?? '' },
-          credentials: 'include',
-        });
+        const res = await authFetch(`/api/catalog/${params.id}`);
         if (res.ok) {
           setEntry((await res.json()) as CatalogEntry);
         }
@@ -47,7 +42,7 @@ export default function AdminCatalogEditPage() {
       }
     }
     load();
-  }, [params.id, user?.id]);
+  }, [params.id]);
 
   if (loading) {
     return (

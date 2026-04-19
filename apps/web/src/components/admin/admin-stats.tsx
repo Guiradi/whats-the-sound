@@ -1,8 +1,8 @@
 'use client';
 
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { env } from '@/env';
 import { useAuth } from '@/hooks/use-auth';
+import { authFetch } from '@/lib/api-client';
 import { Calendar, Gamepad2, Music, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
@@ -43,10 +43,7 @@ export function AdminStats() {
   const fetchStats = useCallback(async () => {
     if (!user) return;
     try {
-      const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/admin/stats`, {
-        headers: { 'x-user-id': user.id },
-        credentials: 'include',
-      });
+      const res = await authFetch('/api/admin/stats');
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
       setStats(data);

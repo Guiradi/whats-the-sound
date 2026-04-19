@@ -4,9 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { env } from '@/env';
-import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from '@/i18n/navigation';
+import { authFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { MidiDifficulty } from '@wts/shared';
 import type { MidiPhases } from '@wts/shared';
@@ -145,7 +144,6 @@ interface MidiUploadFormProps {
 export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormProps) {
   const t = useTranslations('adminCatalog.form');
   const tCatalog = useTranslations('adminCatalog');
-  const { user } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState<Step>(mode === 'edit' ? 'metadata' : 'upload');
   const [form, setForm] = useState<FormData>(() => ({ ...defaultFormData, ...initialData }));
@@ -165,10 +163,7 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
   useEffect(() => {
     async function loadCategories() {
       try {
-        const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/admin/categories`, {
-          headers: { 'x-user-id': user?.id ?? '' },
-          credentials: 'include',
-        });
+        const res = await authFetch('/api/admin/categories');
         if (res.ok) {
           const data = (await res.json()) as { categories: CategoryInfo[] };
           setCategories(data.categories);
@@ -184,7 +179,7 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
       }
     }
     loadCategories();
-  }, [user?.id, mode, updateForm]);
+  }, [mode, updateForm]);
 
   const handleFileUpload = async (file: File) => {
     setUploading(true);
@@ -193,10 +188,9 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
       const base64 = btoa(
         new Uint8Array(arrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), ''),
       );
-      const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/upload`, {
+      const res = await authFetch('/api/catalog/upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': user?.id ?? '' },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileName: file.name, fileBase64: base64 }),
       });
       if (!res.ok) {
@@ -245,14 +239,11 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
       };
 
       const url =
-        mode === 'edit' && initialData?.id
-          ? `${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${initialData.id}`
-          : `${env.NEXT_PUBLIC_SERVER_URL}/api/catalog`;
+        mode === 'edit' && initialData?.id ? `/api/catalog/${initialData.id}` : '/api/catalog';
 
-      const res = await fetch(url, {
+      const res = await authFetch(url, {
         method: mode === 'edit' ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': user?.id ?? '' },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
 

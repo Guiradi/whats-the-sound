@@ -1,10 +1,8 @@
 'use client';
 
-import { env } from '@/env';
+import { authFetch } from '@/lib/api-client';
 import type { DailyAttempt, DailyGuessResponse, DailyState } from '@wts/shared';
 import { useCallback, useEffect, useRef, useState } from 'react';
-
-const API_BASE = env.NEXT_PUBLIC_SERVER_URL;
 
 interface UseDailyOptions {
   userId: string | null;
@@ -40,9 +38,7 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
   const fetchResult = useCallback(async () => {
     if (!userId) return;
     try {
-      const res = await fetch(`${API_BASE}/api/daily/result`, {
-        headers: { 'x-user-id': userId },
-      });
+      const res = await authFetch('/api/daily/result');
       if (!res.ok) return;
       const data = (await res.json()) as {
         title?: string;
@@ -65,12 +61,8 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
     async function load() {
       try {
         setIsLoading(true);
-        const headers: Record<string, string> = {};
-        if (userId) {
-          headers['x-user-id'] = userId;
-        }
 
-        const res = await fetch(`${API_BASE}/api/daily`, { headers });
+        const res = await authFetch('/api/daily');
         if (!res.ok) {
           throw new Error(`Failed to load daily: ${res.status}`);
         }
@@ -97,11 +89,10 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
       if (!state || !userId) return null;
 
       try {
-        const res = await fetch(`${API_BASE}/api/daily/guess`, {
+        const res = await authFetch('/api/daily/guess', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-user-id': userId,
           },
           body: JSON.stringify({
             guess,

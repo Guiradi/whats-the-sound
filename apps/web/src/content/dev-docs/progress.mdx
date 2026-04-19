@@ -1,7 +1,7 @@
 ---
 title: Progresso (por TASK)
 description: Índice narrativo das tasks concluídas. Complementa tasks/completed.md.
-lastTask: post-mvp-nav-dashboard
+lastTask: v1-cleanup
 lastUpdated: 2026-04-18
 ---
 
@@ -96,3 +96,13 @@ Cross-browser (Firefox, Safari, mobile) deferido para TASK-022 QA pass.
 ## v1.0.0 — MVP Complete (2026-04-18)
 
 32 tasks across 6 sprints. All gates green: lint 0 errors, type-check 4/4, build 3/3, docs-check 11/11.
+
+## v1.0.0 Cleanup — Code quality sweep (2026-04-18)
+
+- **DRY em `@wts/shared`** — helpers BRT (`getTodayBRT`, `getBRTDateRange`, `getBRTWeekday`, `diffBRTDays`) centralizados em `packages/shared/src/utils/brt.ts`. Removidas 6 cópias espalhadas (server services/routes e web hook). `ACTIVE_PHASES` + `isActivePhase` também migrados. `sumXpEvents` extraído em `utils/xp.ts`.
+- **Bot chat encoding** — `packages/shared/src/chat/bot-messages.ts` com `encodeBotEvent` / `decodeBotEvent`. Server (`game-loop`) e client (`game-chat`) agora usam a mesma serialização.
+- **Zod schemas para rows do Supabase** — `apps/server/src/types/db-rows.ts` com `userXpRowSchema`, `userGuestRowSchema`, `xpEventRowSchema`, `dailyHistoryRowSchema`. Remove `as { ... }` cast fraco em routes/xp, services/xp-service e services/daily-service.
+- **`useRoom` enxuto** — 251 → 178 linhas. Helpers puros `applySocketAuth` e `registerRoomListeners` em `hooks/room/`, eliminando duplicação entre `useRoom` e `createRoom`.
+- **`submitGuess` coeso** — `evaluateNextPhase` (pura) e `awardDailyXp` (escopo XP) extraídos de `daily-service.ts`. Função principal vira orquestrador.
+- **Comentários** — sweep removendo ruído "o que" em `daily-service`, `game-loop`, `xp-service`, `midi-analyzer`. Constantes `CHORD_WINDOW_SEC` / `PHASE_END_BUFFER_SEC` nomeadas. `awardXpAsync` → `fireAndForgetXp`.
+- **Specs** — criadas `specs/features/11-achievements.md` (TASK-046) e `specs/features/12-admin-dashboard.md` (TASK-034).

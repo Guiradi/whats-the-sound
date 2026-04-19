@@ -3,13 +3,10 @@ import ToneMidi from '@tonejs/midi';
 const { Midi } = ToneMidi;
 import type { MidiPhases } from '@wts/shared';
 
-/**
- * Number of distinct note-onset times per phase.
- * Phase 1 reveals the first 4 note events, phase 4 reveals 32.
- * Notes starting at the same time (chords) count as one event.
- */
 const PHASE_NOTE_EVENTS = [4, 8, 16, 32] as const;
 const MIN_NOTE_EVENTS = 32;
+const CHORD_WINDOW_SEC = 0.02;
+const PHASE_END_BUFFER_SEC = 0.05;
 
 export interface MidiAnalysis {
   totalNotes: number;
@@ -28,10 +25,6 @@ export type AnalysisResult =
   | { ok: true; analysis: MidiAnalysis; buffer: Buffer }
   | { ok: false; error: AnalysisError };
 
-/**
- * Analyze a MIDI buffer: trim leading silence, compute note-count-based phases.
- * Returns the (possibly trimmed) buffer and analysis metadata.
- */
 export function analyzeMidi(buffer: Buffer): AnalysisResult {
   let midi: InstanceType<typeof Midi>;
   try {
@@ -43,7 +36,6 @@ export function analyzeMidi(buffer: Buffer): AnalysisResult {
     };
   }
 
-  // Collect all notes across all tracks
   const allNotes: { time: number; duration: number }[] = [];
   for (const track of midi.tracks) {
     for (const note of track.notes) {
@@ -58,11 +50,8 @@ export function analyzeMidi(buffer: Buffer): AnalysisResult {
     };
   }
 
-  // Sort by time
   allNotes.sort((a, b) => a.time - b.time);
 
-  // Get distinct note-onset times (chords = single event)
-  const CHORD_WINDOW_SEC = 0.02; // 20ms — notes within this window count as one event
   const distinctOnsets: number[] = [];
   let lastOnset = Number.NEGATIVE_INFINITY;
   for (const note of allNotes) {
@@ -82,24 +71,20 @@ export function analyzeMidi(buffer: Buffer): AnalysisResult {
     };
   }
 
-  // Detect leading silence
   const firstNoteTime = allNotes[0]?.time ?? 0;
 
-  // Get tempo
   const bpm = midi.header.tempos[0]?.bpm ?? 120;
   const timeSig = midi.header.timeSignatures[0];
   const beatsPerMeasure = timeSig?.timeSignature[0] ?? 4;
   const secondsPerBeat = 60 / bpm;
   const secondsPerMeasure = secondsPerBeat * beatsPerMeasure;
 
-  // Trim: snap to the start of the measure containing the first note
   const firstNoteMeasure = Math.floor(firstNoteTime / secondsPerMeasure);
   const trimSeconds = firstNoteMeasure * secondsPerMeasure;
 
   const lastNoteEnd = Math.max(...allNotes.map((n) => n.time + n.duration));
   const effectiveDuration = lastNoteEnd - trimSeconds;
 
-  // Trim: shift all notes backward by trimSeconds
   let outputBuffer = buffer;
   if (trimSeconds > 0) {
     const trimmedMidi = new Midi();
@@ -141,19 +126,15 @@ export function analyzeMidi(buffer: Buffer): AnalysisResult {
 
     outputBuffer = Buffer.from(trimmedMidi.toArray());
 
-    // Recompute onsets relative to trimmed file
     for (let i = 0; i < distinctOnsets.length; i++) {
       distinctOnsets[i] = (distinctOnsets[i] ?? 0) - trimSeconds;
     }
   }
 
-  // Compute phases based on note-event count.
-  // Each phase's endBeat = beat position just after the Nth distinct note onset.
   function noteEventToBeat(noteEventCount: number): number {
     const idx = Math.min(noteEventCount, distinctOnsets.length) - 1;
     const onsetSec = distinctOnsets[idx] ?? 0;
-    // Include the note + a small buffer so the note isn't cut off at the boundary
-    const endSec = onsetSec + CHORD_WINDOW_SEC + 0.05;
+    const endSec = onsetSec + CHORD_WINDOW_SEC + PHASE_END_BUFFER_SEC;
     return Math.ceil(endSec / secondsPerBeat);
   }
 

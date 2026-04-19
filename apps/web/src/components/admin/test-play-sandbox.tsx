@@ -12,10 +12,9 @@ import { AudioVisualizer } from '@/components/audio/audio-visualizer';
 import { GameTimer } from '@/components/game/game-timer';
 import { PhaseIndicator } from '@/components/game/phase-indicator';
 import { Button } from '@/components/ui/button';
-import { env } from '@/env';
-import { useAuth } from '@/hooks/use-auth';
 import { useMidiPlayer } from '@/hooks/use-midi-player';
 import { Link } from '@/i18n/navigation';
+import { authFetch } from '@/lib/api-client';
 import { AudioContextProvider, useAudioContext } from '@/lib/midi/audio-context';
 import { cn } from '@/lib/utils';
 import {
@@ -57,7 +56,6 @@ export function TestPlaySandbox({ catalogId }: TestPlaySandboxProps) {
 
 function TestPlaySandboxInner({ catalogId }: TestPlaySandboxProps) {
   const t = useTranslations('adminCatalog.testPlay');
-  const { user } = useAuth();
   const { isReady: audioReady } = useAudioContext();
   const midiPlayer = useMidiPlayer();
 
@@ -79,10 +77,7 @@ function TestPlaySandboxInner({ catalogId }: TestPlaySandboxProps) {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${catalogId}`, {
-          headers: { 'x-user-id': user?.id ?? '' },
-          credentials: 'include',
-        });
+        const res = await authFetch(`/api/catalog/${catalogId}`);
         if (!res.ok) {
           setLoadError(true);
           return;
@@ -95,7 +90,7 @@ function TestPlaySandboxInner({ catalogId }: TestPlaySandboxProps) {
       }
     }
     load();
-  }, [catalogId, user?.id]);
+  }, [catalogId]);
 
   useEffect(() => {
     if (!entry) return;

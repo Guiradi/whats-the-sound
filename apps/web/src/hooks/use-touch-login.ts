@@ -1,19 +1,10 @@
 'use client';
 
-import { env } from '@/env';
+import { authFetch } from '@/lib/api-client';
+import { getTodayBRT } from '@wts/shared';
 import { useEffect } from 'react';
 
-const API_BASE = env.NEXT_PUBLIC_SERVER_URL;
 const STORAGE_KEY = 'wts:touched-login-date';
-
-function getTodayBRT(): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
-}
 
 /**
  * Pings POST /api/me/touch-login once per BRT day per authenticated user, to award
@@ -30,11 +21,10 @@ export function useTouchLogin(userId: string | null): void {
     if (last === today) return;
 
     const controller = new AbortController();
-    fetch(`${API_BASE}/api/me/touch-login`, {
+    authFetch('/api/me/touch-login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-user-id': userId,
       },
       signal: controller.signal,
     })

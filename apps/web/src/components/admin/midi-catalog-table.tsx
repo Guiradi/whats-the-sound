@@ -3,9 +3,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { env } from '@/env';
-import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@/i18n/navigation';
+import { authFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { MidiDifficulty } from '@wts/shared';
 import {
@@ -63,7 +62,6 @@ type SortField =
 
 export function MidiCatalogTable() {
   const t = useTranslations('adminCatalog');
-  const { user } = useAuth();
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -79,10 +77,7 @@ export function MidiCatalogTable() {
   useEffect(() => {
     async function loadCategories() {
       try {
-        const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/admin/categories`, {
-          headers: { 'x-user-id': user?.id ?? '' },
-          credentials: 'include',
-        });
+        const res = await authFetch('/api/admin/categories');
         if (res.ok) {
           const data = (await res.json()) as { categories: CategoryInfo[] };
           setCategories(data.categories);
@@ -92,7 +87,7 @@ export function MidiCatalogTable() {
       }
     }
     loadCategories();
-  }, [user?.id]);
+  }, []);
 
   const fetchCatalog = useCallback(async () => {
     setLoading(true);
@@ -107,10 +102,7 @@ export function MidiCatalogTable() {
       params.set('sortBy', sortBy);
       params.set('sortDir', sortDir);
 
-      const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog?${params}`, {
-        headers: { 'x-user-id': user?.id ?? '' },
-        credentials: 'include',
-      });
+      const res = await authFetch(`/api/catalog?${params}`);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = (await res.json()) as CatalogResponse;
       setItems(data.items);
@@ -121,7 +113,7 @@ export function MidiCatalogTable() {
     } finally {
       setLoading(false);
     }
-  }, [search, category, difficulty, showInactive, page, sortBy, sortDir, user?.id]);
+  }, [search, category, difficulty, showInactive, page, sortBy, sortDir]);
 
   useEffect(() => {
     fetchCatalog();
@@ -146,10 +138,9 @@ export function MidiCatalogTable() {
     if (!toggleTarget) return;
     setTogglingId(toggleTarget.id);
     try {
-      const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${toggleTarget.id}`, {
+      const res = await authFetch(`/api/catalog/${toggleTarget.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': user?.id ?? '' },
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !toggleTarget.is_active }),
       });
       if (res.ok) {
@@ -170,14 +161,9 @@ export function MidiCatalogTable() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      const res = await fetch(
-        `${env.NEXT_PUBLIC_SERVER_URL}/api/catalog/${deleteTarget.id}?permanent=true`,
-        {
-          method: 'DELETE',
-          headers: { 'x-user-id': user?.id ?? '' },
-          credentials: 'include',
-        },
-      );
+      const res = await authFetch(`/api/catalog/${deleteTarget.id}?permanent=true`, {
+        method: 'DELETE',
+      });
       if (res.ok) {
         toast.success(t('deleted'));
         fetchCatalog();

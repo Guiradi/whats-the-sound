@@ -4,6 +4,7 @@ import { EnvValidationError } from '@wts/shared/env';
 import Fastify from 'fastify';
 import { env } from './env.js';
 import { getSupabaseAdmin } from './lib/supabase.js';
+import { createAuthResolver } from './middleware/auth.js';
 import { registerErrorHandlers } from './middleware/error-handler.js';
 import { createAdminRoutes } from './routes/admin.js';
 import { createCatalogRoutes } from './routes/catalog.js';
@@ -57,6 +58,7 @@ async function main() {
   let achievementServiceRef: ReturnType<typeof createAchievementService> | null = null;
   if (env.SUPABASE_URL && env.SUPABASE_SECRET_KEY && env.DAILY_SEED) {
     const supabase = getSupabaseAdmin();
+    const authResolver = createAuthResolver(supabase);
     const xpService = createXpService(supabase);
     xpServiceRef = xpService;
     const achievementService = createAchievementService(supabase, xpService);
@@ -70,25 +72,25 @@ async function main() {
       referralService,
       achievementService,
     );
-    await server.register(createDailyRoutes(dailyService));
+    await server.register(createDailyRoutes(dailyService, authResolver));
     startDailyCron(dailyService, server.log);
     server.log.info('Daily Sound routes and cron registered');
 
     // XP routes (requires Supabase)
-    await server.register(createXpRoutes(supabase));
+    await server.register(createXpRoutes(supabase, authResolver));
     server.log.info('XP routes registered');
 
     // Engagement routes: daily login + referral + achievements
     const loginService = createLoginService(supabase, xpService, achievementService);
-    await server.register(createMeRoutes(supabase, loginService, achievementService));
+    await server.register(createMeRoutes(supabase, loginService, achievementService, authResolver));
     server.log.info('Me routes (login + referral + achievements) registered');
 
     // Catalog admin routes (requires Supabase)
-    await server.register(createCatalogRoutes(supabase));
+    await server.register(createCatalogRoutes(supabase, authResolver));
     server.log.info('Catalog admin routes registered');
 
     // Admin dashboard routes (requires Supabase)
-    await server.register(createAdminRoutes(supabase));
+    await server.register(createAdminRoutes(supabase, authResolver));
     server.log.info('Admin dashboard routes registered');
   } else {
     server.log.warn(

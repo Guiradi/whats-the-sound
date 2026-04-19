@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { diffBRTDays, getTodayBRT } from '@wts/shared';
 import {
   XP_DAILY_LOGIN,
   XP_LOGIN_STREAK_CAP,
@@ -12,22 +13,6 @@ export interface TouchLoginResult {
   streak: number;
   maxStreak: number;
   xpAwarded: number;
-}
-
-/** Get today's date string in BRT (YYYY-MM-DD). */
-function getTodayBRT(): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
-}
-
-function diffDays(laterISO: string, earlierISO: string): number {
-  const later = new Date(`${laterISO}T12:00:00-03:00`).getTime();
-  const earlier = new Date(`${earlierISO}T12:00:00-03:00`).getTime();
-  return Math.round((later - earlier) / (24 * 60 * 60 * 1000));
 }
 
 export function createLoginService(
@@ -78,7 +63,7 @@ export function createLoginService(
     // Compute new streak: +1 if the last login was exactly yesterday, else reset to 1.
     let newStreak = 1;
     if (row.last_login_date) {
-      const delta = diffDays(today, row.last_login_date);
+      const delta = diffBRTDays(today, row.last_login_date);
       if (delta === 1) {
         newStreak = row.login_streak + 1;
       }

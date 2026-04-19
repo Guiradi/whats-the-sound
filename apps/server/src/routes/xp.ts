@@ -1,31 +1,18 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { getBRTDateRange, sumXpEvents } from '@wts/shared';
 import { XP_DAILY_SAFETY_CAP, xpForLevel } from '@wts/shared/constants';
 import type { XpEvent, XpProfileData } from '@wts/shared/types';
 import type { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+import type { AuthResolver } from '../middleware/auth.js';
+import { userXpRowSchema, xpEventRowSchema } from '../types/db-rows.js';
 
-function getBRTDateRange(): { start: string; end: string } {
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-  const todayBRT = formatter.format(now);
-  return {
-    start: `${todayBRT}T00:00:00-03:00`,
-    end: `${todayBRT}T23:59:59-03:00`,
-  };
-}
+const xpEventListSchema = z.array(xpEventRowSchema);
 
-export function createXpRoutes(supabase: SupabaseClient) {
+export function createXpRoutes(supabase: SupabaseClient, auth: AuthResolver) {
   return async function xpRoutes(server: FastifyInstance) {
-    /**
-     * GET /api/me/xp — Get XP profile for the authenticated user.
-     * Returns current XP, level, progress, today's earned XP, and recent events.
-     */
     server.get('/api/me/xp', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
+      const userId = await auth.resolveUserId(request);
       if (!userId) {
         return reply.status(401).send({
           error: { code: 'UNAUTHORIZED', message: 'Login required' },
@@ -33,7 +20,6 @@ export function createXpRoutes(supabase: SupabaseClient) {
       }
 
       try {
-        // Fetch user XP and level
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('xp, level')
@@ -46,9 +32,10 @@ export function createXpRoutes(supabase: SupabaseClient) {
           });
         }
 
-        const { xp, level } = userData as { xp: number; level: number };
+        const profileRow = userXpRowSchema.parse(userData);
+        const xp = profileRow.xp;
+        const level = profileRow.level ?? 0;
 
-        // Fetch today's earned XP
         const { start, end } = getBRTDateRange();
         const { data: todayEvents, error: todayError } = await supabase
           .from('xp_events')
@@ -62,12 +49,8 @@ export function createXpRoutes(supabase: SupabaseClient) {
           request.log.error(todayError, 'Failed to fetch today XP events');
         }
 
-        const todayEarned = (todayEvents ?? []).reduce(
-          (acc: number, row: { amount: number }) => acc + row.amount,
-          0,
-        );
+        const todayEarned = sumXpEvents(todayEvents);
 
-        // Fetch last 10 XP events
         const { data: recentData, error: recentError } = await supabase
           .from('xp_events')
           .select('id, user_id, source, source_ref, amount, capped, context, created_at')
@@ -79,30 +62,19 @@ export function createXpRoutes(supabase: SupabaseClient) {
           request.log.error(recentError, 'Failed to fetch recent XP events');
         }
 
-        const recentEvents: XpEvent[] =
-          (
-            recentData as
-              | {
-                  id: string;
-                  user_id: string;
-                  source: string;
-                  source_ref: string;
-                  amount: number;
-                  capped: boolean;
-                  context: Record<string, unknown>;
-                  created_at: string;
-                }[]
-              | null
-          )?.map((row) => ({
-            id: row.id,
-            userId: row.user_id,
-            source: row.source as XpEvent['source'],
-            sourceRef: row.source_ref,
-            amount: row.amount,
-            capped: row.capped,
-            context: row.context,
-            createdAt: row.created_at,
-          })) ?? [];
+        const parsedRecent = xpEventListSchema.safeParse(recentData ?? []);
+        const recentEvents: XpEvent[] = parsedRecent.success
+          ? parsedRecent.data.map((row) => ({
+              id: row.id,
+              userId: row.user_id,
+              source: row.source as XpEvent['source'],
+              sourceRef: row.source_ref,
+              amount: row.amount,
+              capped: row.capped,
+              context: row.context ?? {},
+              createdAt: row.created_at,
+            }))
+          : [];
 
         const nextLevelXp = xpForLevel(level + 1);
 

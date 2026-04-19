@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { MidiCategory } from '@wts/shared';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
+import type { AuthResolver } from '../middleware/auth.js';
 
 const midiCategoryValues = Object.values(MidiCategory) as [string, ...string[]];
 
@@ -9,16 +10,24 @@ const categoryActionSchema = z.object({
   category: z.enum(midiCategoryValues),
 });
 
-async function requireAdminRole(
-  supabase: SupabaseClient,
-  userId: string | undefined,
-): Promise<boolean> {
-  if (!userId) return false;
+async function isAdminUser(supabase: SupabaseClient, userId: string): Promise<boolean> {
   const { data } = await supabase.from('users').select('role').eq('id', userId).maybeSingle();
   return data?.role === 'admin';
 }
 
-export function createAdminRoutes(supabase: SupabaseClient) {
+export function createAdminRoutes(supabase: SupabaseClient, auth: AuthResolver) {
+  async function resolveAdminOrReject(
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ): Promise<string | null> {
+    const userId = await auth.resolveUserId(request);
+    if (!userId || !(await isAdminUser(supabase, userId))) {
+      reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
+      return null;
+    }
+    return userId;
+  }
+
   return async function adminRoutes(server: FastifyInstance) {
     /**
      * GET /api/admin/disabled-categories — Public endpoint returning disabled category slugs.
@@ -46,10 +55,7 @@ export function createAdminRoutes(supabase: SupabaseClient) {
      * Admin-only.
      */
     server.get('/api/admin/stats', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      if (!(await requireAdminRole(supabase, userId))) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      }
+      if (!(await resolveAdminOrReject(request, reply))) return;
 
       try {
         // Run all queries in parallel
@@ -161,10 +167,7 @@ export function createAdminRoutes(supabase: SupabaseClient) {
      * Admin-only.
      */
     server.get('/api/admin/categories', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      if (!(await requireAdminRole(supabase, userId))) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      }
+      if (!(await resolveAdminOrReject(request, reply))) return;
 
       try {
         const [catalogResult, configResult] = await Promise.all([
@@ -203,10 +206,7 @@ export function createAdminRoutes(supabase: SupabaseClient) {
      * Admin-only.
      */
     server.patch('/api/admin/categories/:category/disable', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      if (!(await requireAdminRole(supabase, userId))) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      }
+      if (!(await resolveAdminOrReject(request, reply))) return;
 
       const parsed = categoryActionSchema.safeParse(request.params);
       if (!parsed.success) {
@@ -256,10 +256,7 @@ export function createAdminRoutes(supabase: SupabaseClient) {
      * Admin-only.
      */
     server.patch('/api/admin/categories/:category/enable', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      if (!(await requireAdminRole(supabase, userId))) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      }
+      if (!(await resolveAdminOrReject(request, reply))) return;
 
       const parsed = categoryActionSchema.safeParse(request.params);
       if (!parsed.success) {

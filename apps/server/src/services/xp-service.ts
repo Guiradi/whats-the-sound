@@ -1,7 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { getBRTDateRange, sumXpEvents } from '@wts/shared';
 import { XP_DAILY_SAFETY_CAP, levelForXp } from '@wts/shared/constants';
 import type { XpAwardResult, XpSource } from '@wts/shared/types';
 import type { TypedServer } from '../socket/index.js';
+import { userGuestRowSchema, userXpRowSchema } from '../types/db-rows.js';
 
 interface AwardXpParams {
   userId: string;
@@ -17,21 +19,6 @@ const NOOP_RESULT: XpAwardResult = {
   xpGained: 0,
   capped: false,
 };
-
-function getBRTDateRange(): { start: string; end: string } {
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-  const todayBRT = formatter.format(now);
-  return {
-    start: `${todayBRT}T00:00:00-03:00`,
-    end: `${todayBRT}T23:59:59-03:00`,
-  };
-}
 
 export function createXpService(supabase: SupabaseClient) {
   let io: TypedServer | null = null;
@@ -58,7 +45,6 @@ export function createXpService(supabase: SupabaseClient) {
       return NOOP_RESULT;
     }
 
-    // Check if user is a guest in the database
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('is_guest, xp')
@@ -69,13 +55,13 @@ export function createXpService(supabase: SupabaseClient) {
       return NOOP_RESULT;
     }
 
-    if (userData.is_guest === true) {
+    const parsedUser = userGuestRowSchema.safeParse(userData);
+    if (!parsedUser.success || parsedUser.data.is_guest === true) {
       return NOOP_RESULT;
     }
 
-    const previousXp = (userData as { xp: number }).xp ?? 0;
+    const previousXp = parsedUser.data.xp ?? 0;
 
-    // Check daily XP cap
     const { start, end } = getBRTDateRange();
     const { data: todaySum, error: sumError } = await supabase
       .from('xp_events')
@@ -89,10 +75,7 @@ export function createXpService(supabase: SupabaseClient) {
       return NOOP_RESULT;
     }
 
-    const earnedToday = (todaySum ?? []).reduce(
-      (acc: number, row: { amount: number }) => acc + row.amount,
-      0,
-    );
+    const earnedToday = sumXpEvents(todaySum);
 
     if (earnedToday >= XP_DAILY_SAFETY_CAP) {
       // Insert capped event for record-keeping
@@ -151,7 +134,6 @@ export function createXpService(supabase: SupabaseClient) {
       };
     }
 
-    // Update user XP
     const { data: updatedUser, error: updateError } = await supabase
       .rpc('increment_user_xp', { user_id_param: userId, amount_param: amount })
       .maybeSingle();
@@ -167,10 +149,13 @@ export function createXpService(supabase: SupabaseClient) {
         .single();
 
       if (manualUpdate) {
-        newXp = (manualUpdate as { xp: number }).xp;
+        const parsed = userXpRowSchema.safeParse(manualUpdate);
+        if (parsed.success) newXp = parsed.data.xp;
       }
     } else if (updatedUser) {
-      newXp = (updatedUser as { xp: number }).xp ?? previousXp + amount;
+      const parsed = userXpRowSchema.safeParse(updatedUser);
+      if (parsed.success) newXp = parsed.data.xp;
+      else newXp = previousXp + amount;
     }
 
     const previousLevel = levelForXp(previousXp);

@@ -1,8 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { env } from '@/env';
 import { useAuth } from '@/hooks/use-auth';
+import { authFetch } from '@/lib/api-client';
 import { Copy, Share2, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
@@ -29,9 +29,7 @@ export function InviteCard() {
   useEffect(() => {
     if (!user || isGuest) return;
     let cancelled = false;
-    fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/me/referrals`, {
-      headers: { 'x-user-id': user.id },
-    })
+    authFetch('/api/me/referrals')
       .then((res) => (res.ok ? res.json() : null))
       .then((body) => {
         if (!cancelled && body) setData(body as ReferralData);

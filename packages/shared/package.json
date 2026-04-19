@@ -29,6 +29,14 @@
     "./achievements": {
       "types": "./dist/achievements/index.d.ts",
       "default": "./dist/achievements/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "default": "./dist/utils/index.js"
+    },
+    "./chat": {
+      "types": "./dist/chat/index.d.ts",
+      "default": "./dist/chat/index.js"
     }
   },
   "dependencies": {

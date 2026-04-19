@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { MidiCategory, MidiDifficulty } from '@wts/shared';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
+import type { AuthResolver } from '../middleware/auth.js';
 import { analyzeMidi } from '../services/midi-analyzer.js';
 
 const phaseConfigSchema = z.object({
@@ -53,26 +54,31 @@ const listQuerySchema = z.object({
   sortDir: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
-async function requireAdminRole(
-  supabase: SupabaseClient,
-  userId: string | undefined,
-): Promise<boolean> {
-  if (!userId) return false;
+async function isAdminUser(supabase: SupabaseClient, userId: string): Promise<boolean> {
   const { data } = await supabase.from('users').select('role').eq('id', userId).maybeSingle();
   return data?.role === 'admin';
 }
 
-export function createCatalogRoutes(supabase: SupabaseClient) {
+export function createCatalogRoutes(supabase: SupabaseClient, auth: AuthResolver) {
+  async function resolveAdminOrReject(
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ): Promise<boolean> {
+    const userId = await auth.resolveUserId(request);
+    if (!userId || !(await isAdminUser(supabase, userId))) {
+      reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
+      return false;
+    }
+    return true;
+  }
+
   return async function catalogRoutes(server: FastifyInstance) {
     /**
      * GET /api/catalog — List MIDI catalog entries with filters.
      * Admin-only.
      */
     server.get('/api/catalog', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      if (!(await requireAdminRole(supabase, userId))) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      }
+      if (!(await resolveAdminOrReject(request, reply))) return;
 
       const parsed = listQuerySchema.safeParse(request.query);
       if (!parsed.success) {
@@ -129,10 +135,7 @@ export function createCatalogRoutes(supabase: SupabaseClient) {
      * Admin-only.
      */
     server.get('/api/catalog/:id', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      if (!(await requireAdminRole(supabase, userId))) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      }
+      if (!(await resolveAdminOrReject(request, reply))) return;
 
       const { id } = request.params as { id: string };
 
@@ -169,10 +172,7 @@ export function createCatalogRoutes(supabase: SupabaseClient) {
      * Admin-only.
      */
     server.post('/api/catalog', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      if (!(await requireAdminRole(supabase, userId))) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      }
+      if (!(await resolveAdminOrReject(request, reply))) return;
 
       const parsed = createMidiSchema.safeParse(request.body);
       if (!parsed.success) {
@@ -219,10 +219,7 @@ export function createCatalogRoutes(supabase: SupabaseClient) {
      * Admin-only.
      */
     server.patch('/api/catalog/:id', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      if (!(await requireAdminRole(supabase, userId))) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      }
+      if (!(await resolveAdminOrReject(request, reply))) return;
 
       const { id } = request.params as { id: string };
 
@@ -275,10 +272,7 @@ export function createCatalogRoutes(supabase: SupabaseClient) {
      * Admin-only.
      */
     server.delete('/api/catalog/:id', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      if (!(await requireAdminRole(supabase, userId))) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      }
+      if (!(await resolveAdminOrReject(request, reply))) return;
 
       const { id } = request.params as { id: string };
       const { permanent } = request.query as { permanent?: string };
@@ -347,10 +341,7 @@ export function createCatalogRoutes(supabase: SupabaseClient) {
      * Returns the public URL. Admin-only.
      */
     server.post('/api/catalog/upload', async (request, reply) => {
-      const userId = request.headers['x-user-id'] as string | undefined;
-      if (!(await requireAdminRole(supabase, userId))) {
-        return reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      }
+      if (!(await resolveAdminOrReject(request, reply))) return;
 
       try {
         const body = request.body as { fileName: string; fileBase64: string };

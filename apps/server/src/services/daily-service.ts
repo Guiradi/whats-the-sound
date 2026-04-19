@@ -3,7 +3,6 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   DAILY_BUFFER_DAYS,
   DAILY_PHASES_TOTAL,
-  DAILY_TIMEZONE,
   type DailyAttempt,
   type DailyGuessResponse,
   type DailyHistoryEntry,
@@ -16,42 +15,39 @@ import {
   XP_FIRST_MATCH_OF_DAY,
   XP_STREAK_CAP,
   XP_STREAK_MULTIPLIER,
+  getBRTWeekday,
   verifyDailyGuess,
 } from '@wts/shared';
+import { z } from 'zod';
+import { dailyHistoryRowSchema } from '../types/db-rows.js';
 import type { AchievementService } from './achievement-service.js';
 import type { ReferralService } from './referral-service.js';
 import { SupabaseMidiProvider } from './supabase-midi-provider.js';
 import type { XpService } from './xp-service.js';
 
-/**
- * Get today's date string in BRT (America/Sao_Paulo).
- */
-export function getTodayBRT(): string {
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: DAILY_TIMEZONE,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-  return formatter.format(now); // YYYY-MM-DD
-}
+const dailyHistoryListSchema = z.array(dailyHistoryRowSchema);
 
-/**
- * Get the day number since epoch for a given date (used as daily number).
- */
 function getDayNumber(dateISO: string): number {
   const epoch = new Date('2026-04-01').getTime();
   const target = new Date(dateISO).getTime();
   return Math.floor((target - epoch) / (24 * 60 * 60 * 1000)) + 1;
 }
 
-/**
- * Get the BRT weekday (0=Sunday) for a date string.
- */
-function getBRTWeekday(dateISO: string): number {
-  const date = new Date(`${dateISO}T12:00:00-03:00`);
-  return date.getDay();
+function evaluateNextPhase(
+  phase: 1 | 2 | 3 | 4,
+  result: GuessResult,
+): { nextPhase: 1 | 2 | 3 | 4 | null; completed: boolean } {
+  if (result === GuessResult.CORRECT) {
+    return { nextPhase: null, completed: true };
+  }
+  const isAlmost = result === GuessResult.HOT || result === GuessResult.WARM;
+  if (isAlmost) {
+    return { nextPhase: phase, completed: false };
+  }
+  if (phase >= DAILY_PHASES_TOTAL) {
+    return { nextPhase: null, completed: true };
+  }
+  return { nextPhase: (phase + 1) as 1 | 2 | 3 | 4, completed: false };
 }
 
 export function createDailyService(
@@ -63,12 +59,67 @@ export function createDailyService(
 ) {
   const midiProvider = new SupabaseMidiProvider(supabase);
 
-  /**
-   * Deterministically select the daily MIDI for a given date.
-   * Uses HMAC-SHA256 with the daily seed to ensure same result every time.
-   */
+  interface AwardDailyXpParams {
+    userId: string;
+    dateISO: string;
+    phase: 1 | 2 | 3 | 4;
+    isCorrect: boolean;
+    justCompleted: boolean;
+    isFirstAttemptToday: boolean;
+  }
+
+  async function awardDailyXp(params: AwardDailyXpParams): Promise<void> {
+    if (!xpService) return;
+    const { userId, dateISO, phase, isCorrect, justCompleted, isFirstAttemptToday } = params;
+
+    if (justCompleted) {
+      await xpService.awardXp(
+        isCorrect
+          ? {
+              userId,
+              source: 'daily_correct',
+              sourceRef: `daily_correct_${dateISO}_${userId}`,
+              amount: XP_DAILY_CORRECT[phase] ?? 0,
+              context: { phase, date: dateISO },
+            }
+          : {
+              userId,
+              source: 'daily_participation',
+              sourceRef: `daily_participation_${dateISO}_${userId}`,
+              amount: XP_DAILY_PARTICIPATION,
+              context: { date: dateISO },
+            },
+      );
+
+      await xpService.awardXp({
+        userId,
+        source: 'first_match_of_day',
+        sourceRef: `first_match_${dateISO}_${userId}`,
+        amount: XP_FIRST_MATCH_OF_DAY,
+        context: { date: dateISO, matchSource: 'daily' },
+      });
+    }
+
+    if (isFirstAttemptToday) {
+      const { data: streakRow } = await supabase
+        .from('users')
+        .select('daily_streak')
+        .eq('id', userId)
+        .maybeSingle();
+      const newStreak = (streakRow as { daily_streak: number } | null)?.daily_streak ?? 0;
+      if (newStreak >= 2) {
+        await xpService.awardXp({
+          userId,
+          source: 'daily_streak_bonus',
+          sourceRef: `daily_streak_${dateISO}_${userId}`,
+          amount: XP_STREAK_MULTIPLIER * Math.min(newStreak, XP_STREAK_CAP),
+          context: { streak: newStreak, date: dateISO },
+        });
+      }
+    }
+  }
+
   async function selectDailyMidi(dateISO: string): Promise<string> {
-    // Check if already selected
     const { data: existing } = await supabase
       .from('daily_schedule')
       .select('midi_id')
@@ -79,11 +130,9 @@ export function createDailyService(
       return existing.midi_id as string;
     }
 
-    // Determine category based on weekday
     const weekday = getBRTWeekday(dateISO);
     const category = WEEKDAY_CATEGORY[weekday] ?? 'random';
 
-    // Get recently used MIDI IDs to exclude
     const { data: recentSchedule } = await supabase
       .from('daily_schedule')
       .select('midi_id')
@@ -92,15 +141,12 @@ export function createDailyService(
 
     const excludeIds = (recentSchedule ?? []).map((r: { midi_id: string }) => r.midi_id);
 
-    // Get available MIDIs
     let available = await midiProvider.getAvailableMidis(category, excludeIds);
 
-    // Fallback to random category if no MIDIs available for the day's category
     if (available.length === 0 && category !== 'random') {
       available = await midiProvider.getAvailableMidis('random', excludeIds);
     }
 
-    // Last resort: allow repeats
     if (available.length === 0) {
       available = await midiProvider.getAvailableMidis('random', []);
     }
@@ -109,7 +155,6 @@ export function createDailyService(
       throw new Error('No MIDIs available in catalog for daily selection');
     }
 
-    // Deterministic selection via HMAC
     const hash = createHmac('sha256', dailySeed).update(dateISO).digest('hex');
     const index = Number.parseInt(hash.slice(0, 8), 16) % available.length;
     const selected = available[index];
@@ -117,7 +162,6 @@ export function createDailyService(
       throw new Error('Failed to select daily MIDI: invalid index');
     }
 
-    // Upsert into daily_schedule
     const { error } = await supabase.from('daily_schedule').upsert(
       {
         date: dateISO,
@@ -154,7 +198,6 @@ export function createDailyService(
 
     const dayNumber = getDayNumber(dateISO);
 
-    // Check if user has already played
     interface DailyResultRow {
       phase_guessed: number | null;
       attempts: DailyAttempt[] | null;
@@ -178,7 +221,6 @@ export function createDailyService(
     const isCorrect = existingResult?.phase_guessed != null;
     const attempts = existingResult?.attempts ?? [];
 
-    // Determine current phase from attempts
     let currentPhase: 1 | 2 | 3 | 4 = 1;
     if (!completed) {
       // Count wrong attempts (each wrong = used a phase)
@@ -224,7 +266,6 @@ export function createDailyService(
       throw new Error(`Daily MIDI ${midiId} not found`);
     }
 
-    // Check existing result
     const { data: existingRaw } = await supabase
       .from('daily_results')
       .select('*')
@@ -259,27 +300,7 @@ export function createDailyService(
     attempts.push(newAttempt);
 
     const isCorrect = verification.result === GuessResult.CORRECT;
-
-    // "Almost" (HOT/WARM) don't consume the attempt — player can try again on same phase
-    const consumesAttempt =
-      verification.result !== GuessResult.HOT && verification.result !== GuessResult.WARM;
-
-    // Determine next phase and completion
-    let nextPhase: 1 | 2 | 3 | 4 | null = null;
-    let completed = false;
-
-    if (isCorrect) {
-      completed = true;
-    } else if (consumesAttempt) {
-      if (phase >= DAILY_PHASES_TOTAL) {
-        completed = true; // Ran out of phases
-      } else {
-        nextPhase = (phase + 1) as 1 | 2 | 3 | 4;
-      }
-    } else {
-      // HOT/WARM — stay on same phase
-      nextPhase = phase;
-    }
+    const { nextPhase, completed } = evaluateNextPhase(phase, verification.result);
 
     // Upsert daily_results
     const resultRow = {
@@ -315,61 +336,14 @@ export function createDailyService(
       }
     }
 
-    // Award XP — requires xpService (skipped when Supabase is not configured in tests).
-    // Idempotent via source_ref; guest/unknown users are filtered inside xp-service.
-    if (xpService) {
-      if (justCompleted) {
-        if (isCorrect) {
-          await xpService.awardXp({
-            userId,
-            source: 'daily_correct',
-            sourceRef: `daily_correct_${dateISO}_${userId}`,
-            amount: XP_DAILY_CORRECT[phase] ?? 0,
-            context: { phase, date: dateISO },
-          });
-        } else {
-          await xpService.awardXp({
-            userId,
-            source: 'daily_participation',
-            sourceRef: `daily_participation_${dateISO}_${userId}`,
-            amount: XP_DAILY_PARTICIPATION,
-            context: { date: dateISO },
-          });
-        }
-
-        // First match of the day bonus — fires once per user per BRT day regardless of
-        // whether they came in via daily or MP. Idempotent via source_ref, so subsequent
-        // completions are no-ops.
-        await xpService.awardXp({
-          userId,
-          source: 'first_match_of_day',
-          sourceRef: `first_match_${dateISO}_${userId}`,
-          amount: XP_FIRST_MATCH_OF_DAY,
-          context: { date: dateISO, matchSource: 'daily' },
-        });
-      }
-
-      // Streak bonus: only fires on the first attempt of the day, when the INSERT
-      // trigger has just bumped `users.daily_streak`. Skipped on subsequent
-      // guesses of the same day (UPDATE doesn't re-trigger the streak function).
-      if (isFirstAttemptToday) {
-        const { data: streakRow } = await supabase
-          .from('users')
-          .select('daily_streak')
-          .eq('id', userId)
-          .maybeSingle();
-        const newStreak = (streakRow as { daily_streak: number } | null)?.daily_streak ?? 0;
-        if (newStreak >= 2) {
-          await xpService.awardXp({
-            userId,
-            source: 'daily_streak_bonus',
-            sourceRef: `daily_streak_${dateISO}_${userId}`,
-            amount: XP_STREAK_MULTIPLIER * Math.min(newStreak, XP_STREAK_CAP),
-            context: { streak: newStreak, date: dateISO },
-          });
-        }
-      }
-    }
+    await awardDailyXp({
+      userId,
+      dateISO,
+      phase,
+      isCorrect,
+      justCompleted,
+      isFirstAttemptToday,
+    });
 
     // Referral reward: if this user was referred, this completion triggers the bonus
     // to the referrer. Idempotent — only fires on the invitee's first successful match.
@@ -392,7 +366,6 @@ export function createDailyService(
       });
     }
 
-    // Get next phase audio data
     let nextPhaseAudioData = null;
     if (nextPhase) {
       const phaseKey = `phase${nextPhase}` as keyof typeof midi.phases;
@@ -472,24 +445,20 @@ export function createDailyService(
       throw new Error(`Failed to fetch daily history: ${error.message}`);
     }
 
-    return (data ?? []).map((row: Record<string, unknown>) => {
-      const catalog = row.midi_catalog as {
-        title: string;
-        artist: string;
-        category: MidiCategory;
-      };
-      return {
-        date: row.date as string,
-        dayNumber: getDayNumber(row.date as string),
-        midiId: row.midi_id as string,
-        title: catalog.title,
-        artist: catalog.artist,
-        category: catalog.category,
-        phaseGuessed: row.phase_guessed as number | null,
-        completed: row.completed as boolean,
-        isCorrect: row.phase_guessed != null,
-      };
-    });
+    const parsed = dailyHistoryListSchema.safeParse(data ?? []);
+    if (!parsed.success) return [];
+
+    return parsed.data.map((row) => ({
+      date: row.date,
+      dayNumber: getDayNumber(row.date),
+      midiId: row.midi_id,
+      title: row.midi_catalog.title,
+      artist: row.midi_catalog.artist,
+      category: row.midi_catalog.category as MidiCategory,
+      phaseGuessed: row.phase_guessed,
+      completed: row.completed,
+      isCorrect: row.phase_guessed != null,
+    }));
   }
 
   /**
@@ -519,7 +488,6 @@ export function createDailyService(
     getResultForUser,
     getHistory,
     getStreakInfo,
-    getTodayBRT,
   };
 }
 

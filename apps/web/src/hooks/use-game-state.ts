@@ -1,6 +1,6 @@
 'use client';
 
-import { GameStatus } from '@wts/shared';
+import { GameStatus, isActivePhase } from '@wts/shared';
 import type { RoomPlayer, RoomStateSnapshot } from '@wts/shared';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -24,13 +24,6 @@ interface GameState {
   correctPlayerIds: string[];
 }
 
-const ACTIVE_PHASES: ReadonlySet<string> = new Set([
-  GameStatus.PHASE_1,
-  GameStatus.PHASE_2,
-  GameStatus.PHASE_3,
-  GameStatus.PHASE_4,
-]);
-
 function getTimerColor(progress: number): TimerColor {
   if (progress > 0.5) return 'cyan';
   if (progress > 0.2) return 'yellow';
@@ -42,7 +35,7 @@ export function useGameState(snapshot: RoomStateSnapshot | null, myId: string | 
 
   const round = snapshot?.round ?? null;
   const status = snapshot?.room.status ?? GameStatus.LOBBY;
-  const isPlaying = ACTIVE_PHASES.has(status);
+  const isPlaying = isActivePhase(status);
   const phaseEndAt = round?.phaseEndAt ?? 0;
   const phaseStartAt = round?.phaseStartAt ?? 0;
   const timeTotal = phaseEndAt > phaseStartAt ? (phaseEndAt - phaseStartAt) / 1000 : 0;

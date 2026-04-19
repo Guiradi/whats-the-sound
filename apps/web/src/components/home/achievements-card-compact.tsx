@@ -1,9 +1,9 @@
 'use client';
 
 import { AchievementBadge } from '@/components/shared/achievement-badge';
-import { env } from '@/env';
 import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@/i18n/navigation';
+import { authFetch } from '@/lib/api-client';
 import type { AchievementDefinition } from '@wts/shared';
 import { Medal, Trophy } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -22,9 +22,7 @@ export function AchievementsCardCompact() {
   useEffect(() => {
     if (!user || isGuest) return;
     let cancelled = false;
-    fetch(`${env.NEXT_PUBLIC_SERVER_URL}/api/me/achievements`, {
-      headers: { 'x-user-id': user.id },
-    })
+    authFetch('/api/me/achievements')
       .then((res) => (res.ok ? res.json() : null))
       .then((body) => {
         if (!cancelled && body) setData(body as AchievementsResponse);
