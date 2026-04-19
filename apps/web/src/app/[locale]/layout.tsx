@@ -1,6 +1,5 @@
-import { BottomNav } from '@/components/shared/bottom-nav';
+import { AppShell } from '@/components/shared/app-shell';
 import { ReferralCapture } from '@/components/shared/referral-capture';
-import { TopHeader } from '@/components/shared/top-header';
 import { TouchLoginBridge } from '@/components/shared/touch-login-bridge';
 import { XpNotificationBridge } from '@/components/shared/xp-notification-bridge';
 import { Toaster } from '@/components/ui/toaster';
@@ -101,9 +100,7 @@ export default async function LocaleLayout({
             <ReferralCapture />
             <TouchLoginBridge />
             <XpNotificationBridge />
-            <TopHeader />
-            <div className="pb-20 lg:pb-0">{children}</div>
-            <BottomNav />
+            <AppShell>{children}</AppShell>
           </AuthProvider>
         </NextIntlClientProvider>
         <Toaster />

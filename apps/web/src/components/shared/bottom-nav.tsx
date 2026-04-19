@@ -1,5 +1,6 @@
 'use client';
 
+import { isActivePath } from '@/components/shared/nav-visibility';
 import { Link, usePathname } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { CalendarDays, Home, User, Users } from 'lucide-react';
@@ -21,30 +22,9 @@ const TABS: readonly Tab[] = [
   { href: '/profile', labelKey: 'profile', icon: User },
 ] as const;
 
-const HIDDEN_PATH_PREFIXES = ['/login', '/admin', '/auth/callback'];
-
-function shouldHide(pathname: string | null): boolean {
-  if (!pathname) return false;
-  if (
-    HIDDEN_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
-  ) {
-    return true;
-  }
-  if (/^\/room\/[^/]+/.test(pathname)) return true;
-  return false;
-}
-
-function isActive(pathname: string | null, href: string): boolean {
-  if (!pathname) return false;
-  if (href === '/') return pathname === '/';
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
 export function BottomNav() {
   const pathname = usePathname();
   const t = useTranslations('nav');
-
-  if (shouldHide(pathname)) return null;
 
   return (
     <nav
@@ -54,7 +34,7 @@ export function BottomNav() {
       <ul className="mx-auto flex max-w-xl items-stretch justify-around px-2 pb-[env(safe-area-inset-bottom)]">
         {TABS.map((tab) => {
           const Icon = tab.icon;
-          const active = isActive(pathname, tab.href);
+          const active = isActivePath(pathname, tab.href);
           return (
             <li key={tab.href} className="flex-1">
               <Link

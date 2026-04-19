@@ -1,6 +1,7 @@
 'use client';
 
 import { AuthMenu } from '@/components/auth/auth-menu';
+import { isActivePath } from '@/components/shared/nav-visibility';
 import { Link, usePathname } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
@@ -16,32 +17,9 @@ const LINKS: readonly NavLink[] = [
   { href: '/profile', labelKey: 'profile' },
 ] as const;
 
-const HIDDEN_PATH_PREFIXES = ['/login', '/admin', '/auth/callback'];
-
-function shouldHide(pathname: string | null): boolean {
-  if (!pathname) return false;
-  // pathname from next-intl is locale-relative (e.g. "/rooms")
-  if (
-    HIDDEN_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
-  ) {
-    return true;
-  }
-  // Hide on active game room
-  if (/^\/room\/[^/]+/.test(pathname)) return true;
-  return false;
-}
-
-function isActive(pathname: string | null, href: string): boolean {
-  if (!pathname) return false;
-  if (href === '/') return pathname === '/';
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
 export function TopHeader() {
   const pathname = usePathname();
   const t = useTranslations('nav');
-
-  if (shouldHide(pathname)) return null;
 
   return (
     <header className="sticky top-0 z-40 border-b border-bg-border/60 bg-bg-base/80 backdrop-blur">
@@ -57,7 +35,7 @@ export function TopHeader() {
         <nav aria-label={t('primaryLabel')} className="hidden lg:block">
           <ul className="flex items-center gap-1">
             {LINKS.map((link) => {
-              const active = isActive(pathname, link.href);
+              const active = isActivePath(pathname, link.href);
               return (
                 <li key={link.href}>
                   <Link
