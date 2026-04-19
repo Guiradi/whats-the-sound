@@ -22,7 +22,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <>
       <TopHeader />
-      <div className="pb-24 lg:pb-8">{children}</div>
+      <div className="pb-24 pt-6 sm:pt-8 lg:pb-8">{children}</div>
       <BottomNav />
     </>
   );
