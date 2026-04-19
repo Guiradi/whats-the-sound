@@ -1,3 +1,4 @@
+import { APP_DISPLAY_URL } from '@/lib/app-url';
 import { ImageResponse } from 'next/og';
 import type { NextRequest } from 'next/server';
 
@@ -84,7 +85,7 @@ export async function GET(
           color: '#00f0ff',
         }}
       >
-        whatsthesound.io/daily
+        {APP_DISPLAY_URL}/daily
       </div>
     </div>,
     {

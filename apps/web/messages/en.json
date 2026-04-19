@@ -265,7 +265,8 @@
       "counter": "{completed} of {invited} friends played",
       "noneYet": "No one has joined through your link yet. Share it!",
       "shareSubject": "Come play What's the Sound?",
-      "shareText": "Wanna guess songs with me on What's the Sound? Join here:"
+      "shareText": "Wanna guess songs with me on What's the Sound? Join here:",
+      "share": "Share"
     },
     "signOut": "Sign out",
     "signOutSuccess": "Signed out.",

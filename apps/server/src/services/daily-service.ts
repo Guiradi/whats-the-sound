@@ -270,6 +270,7 @@ export function createDailyService(
       attempts,
       completed,
       isCorrect,
+      phaseGuessed: (existingResult?.phase_guessed as 1 | 2 | 3 | 4 | null | undefined) ?? null,
       phaseAudioData,
       midiFileUrl: completed ? null : midi.midiFileUrl,
       hints: computePhaseHints(currentPhase, midi.year ?? null, midi.category),

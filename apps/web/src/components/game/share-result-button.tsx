@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { APP_DISPLAY_URL } from '@/lib/app-url';
 import type { RoomPlayer } from '@wts/shared';
 import { Share2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -23,7 +24,7 @@ function buildShareText(players: RoomPlayer[]): string {
     }
   }
 
-  lines.push('', 'whatsthesound.io');
+  lines.push('', APP_DISPLAY_URL);
   return lines.join('\n');
 }
 

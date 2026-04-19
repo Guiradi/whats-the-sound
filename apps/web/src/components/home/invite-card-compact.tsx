@@ -88,14 +88,14 @@ export function InviteCardCompact() {
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex min-w-0 gap-2">
         <Button type="button" variant="secondary" onClick={handleCopy} className="flex-1">
           <Copy className="h-4 w-4" aria-hidden="true" />
           {tProfile('copy')}
         </Button>
         <Button type="button" variant="primary" onClick={handleShare} className="flex-1">
           <Share2 className="h-4 w-4" aria-hidden="true" />
-          {tProfile('shareSubject')}
+          {tProfile('share')}
         </Button>
       </div>
 

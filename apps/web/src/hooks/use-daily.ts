@@ -120,6 +120,7 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
             completed: data.completed,
             isCorrect: data.isCorrect,
             currentPhase: data.nextPhase ?? prev.currentPhase,
+            phaseGuessed: data.isCorrect ? prev.currentPhase : prev.phaseGuessed,
             phaseAudioData: data.nextPhaseAudioData ?? prev.phaseAudioData,
             midiFileUrl: data.completed ? null : prev.midiFileUrl,
             hints: data.nextHints ?? prev.hints,

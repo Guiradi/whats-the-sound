@@ -112,6 +112,7 @@ export interface DailyState {
   attempts: DailyAttempt[];
   completed: boolean;
   isCorrect: boolean;
+  phaseGuessed: 1 | 2 | 3 | 4 | null;
   phaseAudioData: PhaseConfig | null;
   midiFileUrl: string | null;
   hints: PhaseHints;

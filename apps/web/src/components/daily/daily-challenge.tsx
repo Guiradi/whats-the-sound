@@ -142,7 +142,7 @@ export function DailyChallenge() {
         dayNumber={state.dayNumber}
         attempts={state.attempts}
         isCorrect={state.isCorrect}
-        phaseGuessed={state.isCorrect ? state.currentPhase : null}
+        phaseGuessed={state.phaseGuessed}
         title={revealedTitle}
         artist={revealedArtist}
         currentStreak={streak?.currentStreak ?? null}

@@ -265,7 +265,8 @@
       "counter": "{completed} de {invited} amigos jogaram",
       "noneYet": "Ninguém aceitou seu convite ainda. Compartilhe!",
       "shareSubject": "Vem jogar What's the Sound?",
-      "shareText": "Topa adivinhar músicas comigo no What's the Sound? Entra por aqui:"
+      "shareText": "Topa adivinhar músicas comigo no What's the Sound? Entra por aqui:",
+      "share": "Compartilhar"
     },
     "signOut": "Sair",
     "signOutSuccess": "Sessão encerrada.",
