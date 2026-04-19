@@ -3,6 +3,12 @@ import { MidiCategory } from '@wts/shared';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import type { AuthResolver } from '../middleware/auth.js';
+import { disabledCategoriesSchema } from '../types/db-rows.js';
+
+function readDisabledCategories(value: unknown): string[] {
+  const parsed = disabledCategoriesSchema.safeParse(value ?? []);
+  return parsed.success ? parsed.data : [];
+}
 
 const midiCategoryValues = Object.values(MidiCategory) as [string, ...string[]];
 
@@ -41,7 +47,7 @@ export function createAdminRoutes(supabase: SupabaseClient, auth: AuthResolver) 
           .eq('key', 'disabled_categories')
           .maybeSingle();
 
-        return { disabledCategories: (data?.value ?? []) as string[] };
+        return { disabledCategories: readDisabledCategories(data?.value) };
       } catch (err) {
         _request.log.error(err, 'Failed to fetch disabled categories');
         return reply.status(500).send({
@@ -180,7 +186,7 @@ export function createAdminRoutes(supabase: SupabaseClient, auth: AuthResolver) 
         ]);
 
         const catalogData = catalogResult.data ?? [];
-        const disabledCategories = (configResult.data?.value ?? []) as string[];
+        const disabledCategories = readDisabledCategories(configResult.data?.value);
 
         const categories = Object.values(MidiCategory).map((cat) => {
           const entries = catalogData.filter((e) => e.category === cat);
@@ -224,7 +230,7 @@ export function createAdminRoutes(supabase: SupabaseClient, auth: AuthResolver) 
           .eq('key', 'disabled_categories')
           .maybeSingle();
 
-        const current = (config?.value ?? []) as string[];
+        const current = readDisabledCategories(config?.value);
         if (!current.includes(category)) {
           current.push(category);
         }
@@ -274,7 +280,7 @@ export function createAdminRoutes(supabase: SupabaseClient, auth: AuthResolver) 
           .eq('key', 'disabled_categories')
           .maybeSingle();
 
-        const current = (config?.value ?? []) as string[];
+        const current = readDisabledCategories(config?.value);
         const updated = current.filter((c) => c !== category);
 
         const { error } = await supabase.from('admin_config').upsert({

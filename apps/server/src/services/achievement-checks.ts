@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { AchievementId } from '@wts/shared/achievements';
+import { userStreakRowSchema } from '../types/db-rows.js';
 
 /**
  * Each check returns true if the user now qualifies for the achievement.
@@ -47,7 +48,8 @@ async function dailyStreak7(userId: string, supabase: SupabaseClient): Promise<b
     .select('daily_streak')
     .eq('id', userId)
     .maybeSingle();
-  const streak = (data as { daily_streak: number } | null)?.daily_streak ?? 0;
+  const parsed = userStreakRowSchema.safeParse(data);
+  const streak = parsed.success ? parsed.data.daily_streak : 0;
   return streak >= 7;
 }
 

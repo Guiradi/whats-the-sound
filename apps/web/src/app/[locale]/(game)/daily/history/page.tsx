@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Link } from '@/i18n/navigation';
 import { authFetch } from '@/lib/api-client';
 import type { DailyHistoryEntry } from '@wts/shared';
+import { dailyHistoryResponseSchema } from '@wts/shared';
 import { ArrowLeft, Calendar, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
@@ -28,12 +29,11 @@ export default function DailyHistoryPage() {
       try {
         const res = await authFetch('/api/daily/history');
         if (!res.ok) throw new Error('Failed to load history');
-        const data = (await res.json()) as {
-          entries: DailyHistoryEntry[];
-          streak: { currentStreak: number; maxStreak: number };
-        };
-        setEntries(data.entries);
-        setStreak(data.streak);
+        const parsed = dailyHistoryResponseSchema.safeParse(await res.json());
+        if (parsed.success) {
+          setEntries(parsed.data.entries as DailyHistoryEntry[]);
+          setStreak(parsed.data.streak);
+        }
       } catch {
         // Silently fail — show empty state
       } finally {

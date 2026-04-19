@@ -6,22 +6,13 @@ import { HowItWorks } from '@/components/landing/how-it-works';
 import { LocaleSwitcher } from '@/components/shared/locale-switcher';
 import { Link } from '@/i18n/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { type HomeProfileRow, homeProfileRowSchema } from '@wts/shared';
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 
-// Depends on the authenticated user cookie to pick dashboard vs landing — do not prerender.
 export const dynamic = 'force-dynamic';
 
-interface HomeProfile {
-  nickname: string;
-  avatar_url: string | null;
-  xp: number;
-  level: number;
-  login_streak: number;
-  daily_streak: number;
-}
-
-async function fetchHomeProfile(): Promise<HomeProfile | null> {
+async function fetchHomeProfile(): Promise<HomeProfileRow | null> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -34,7 +25,8 @@ async function fetchHomeProfile(): Promise<HomeProfile | null> {
     .eq('id', user.id)
     .maybeSingle();
 
-  return (data as HomeProfile | null) ?? null;
+  const parsed = homeProfileRowSchema.safeParse(data);
+  return parsed.success ? parsed.data : null;
 }
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {

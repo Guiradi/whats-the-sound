@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { XP_REFERRAL_BONUS } from '@wts/shared/constants';
+import { userReferralStateRowSchema } from '../types/db-rows.js';
 import type { AchievementService } from './achievement-service.js';
 import type { XpService } from './xp-service.js';
 
@@ -25,10 +26,9 @@ export function createReferralService(
 
     if (error || !row) return;
 
-    const state = row as {
-      referred_by_user_id: string | null;
-      referral_completed_at: string | null;
-    };
+    const parsed = userReferralStateRowSchema.safeParse(row);
+    if (!parsed.success) return;
+    const state = parsed.data;
 
     if (!state.referred_by_user_id || state.referral_completed_at) return;
 

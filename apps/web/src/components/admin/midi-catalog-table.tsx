@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Link } from '@/i18n/navigation';
 import { authFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
-import { MidiDifficulty } from '@wts/shared';
+import { type CategoryInfo, MidiDifficulty, adminCategoriesResponseSchema } from '@wts/shared';
 import {
   ArrowUpDown,
   ChevronLeft,
@@ -41,13 +41,6 @@ interface CatalogResponse {
   total: number;
 }
 
-interface CategoryInfo {
-  name: string;
-  totalSongs: number;
-  activeSongs: number;
-  isDisabled: boolean;
-}
-
 const DIFFICULTIES = Object.values(MidiDifficulty);
 const PAGE_SIZE = 20;
 
@@ -79,8 +72,8 @@ export function MidiCatalogTable() {
       try {
         const res = await authFetch('/api/admin/categories');
         if (res.ok) {
-          const data = (await res.json()) as { categories: CategoryInfo[] };
-          setCategories(data.categories);
+          const parsed = adminCategoriesResponseSchema.safeParse(await res.json());
+          if (parsed.success) setCategories(parsed.data.categories);
         }
       } catch {
         // silent

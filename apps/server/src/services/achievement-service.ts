@@ -6,9 +6,13 @@ import {
   type AchievementTrigger,
   getAchievementsForTrigger,
 } from '@wts/shared/achievements';
+import { z } from 'zod';
 import type { TypedServer } from '../socket/index.js';
+import { achievementInsertRowSchema, userAchievementRowSchema } from '../types/db-rows.js';
 import { ACHIEVEMENT_CHECKS, type AchievementCheckContext } from './achievement-checks.js';
 import type { XpService } from './xp-service.js';
+
+const unlockedListSchema = z.array(userAchievementRowSchema);
 
 export function createAchievementService(supabase: SupabaseClient, xpService: XpService) {
   let io: TypedServer | null = null;
@@ -56,13 +60,14 @@ export function createAchievementService(supabase: SupabaseClient, xpService: Xp
       .maybeSingle();
 
     if (error) {
-      // 23505 = unique violation = already unlocked, treat as no-op.
       if (error.code === '23505') return;
       return;
     }
     if (!inserted) return;
 
-    const unlockedAt = (inserted as { unlocked_at: string }).unlocked_at;
+    const parsedInsert = achievementInsertRowSchema.safeParse(inserted);
+    if (!parsedInsert.success) return;
+    const unlockedAt = parsedInsert.data.unlocked_at;
 
     // Award bonus XP via the existing pipeline. xp_events source_ref is stable,
     // so even if this code runs twice somehow, XP is awarded exactly once.
@@ -112,9 +117,12 @@ export function createAchievementService(supabase: SupabaseClient, xpService: Xp
       .eq('user_id', userId)
       .order('unlocked_at', { ascending: false });
 
-    return ((data as { achievement_id: string; unlocked_at: string }[] | null) ?? []).map(
-      (row) => ({ achievementId: row.achievement_id, unlockedAt: row.unlocked_at }),
-    );
+    const parsed = unlockedListSchema.safeParse(data ?? []);
+    if (!parsed.success) return [];
+    return parsed.data.map((row) => ({
+      achievementId: row.achievement_id,
+      unlockedAt: row.unlocked_at,
+    }));
   }
 
   return {

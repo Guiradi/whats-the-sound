@@ -1,5 +1,6 @@
 import { LegalPage } from '@/components/legal/legal-page';
 import type { Locale } from '@/i18n/config';
+import { readLegalSections } from '@/lib/legal-sections';
 import type { Metadata } from 'next';
 import { useMessages, useTranslations } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
@@ -26,18 +27,6 @@ export default async function PrivacyPage({
 
 function PrivacyContent() {
   const t = useTranslations('legal.privacy');
-  const messages = useMessages() as unknown as {
-    legal: {
-      privacy: {
-        sections: Array<{ title: string; body?: string[]; intro?: string; list?: string[] }>;
-      };
-    };
-  };
-  return (
-    <LegalPage
-      title={t('title')}
-      lastUpdated={t('lastUpdated')}
-      sections={messages.legal.privacy.sections}
-    />
-  );
+  const sections = readLegalSections(useMessages(), 'privacy');
+  return <LegalPage title={t('title')} lastUpdated={t('lastUpdated')} sections={sections} />;
 }

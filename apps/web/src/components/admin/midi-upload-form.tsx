@@ -7,19 +7,12 @@ import { Input } from '@/components/ui/input';
 import { useRouter } from '@/i18n/navigation';
 import { authFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
-import { MidiDifficulty } from '@wts/shared';
+import { type CategoryInfo, MidiDifficulty, adminCategoriesResponseSchema } from '@wts/shared';
 import type { MidiPhases } from '@wts/shared';
 import { Check, ChevronLeft, ChevronRight, Loader2, Upload, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-
-interface CategoryInfo {
-  name: string;
-  totalSongs: number;
-  activeSongs: number;
-  isDisabled: boolean;
-}
 
 const DIFFICULTIES = Object.values(MidiDifficulty);
 
@@ -165,12 +158,14 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
       try {
         const res = await authFetch('/api/admin/categories');
         if (res.ok) {
-          const data = (await res.json()) as { categories: CategoryInfo[] };
-          setCategories(data.categories);
-          if (mode === 'create' && data.categories.length > 0) {
-            const firstEnabled = data.categories.find((c) => !c.isDisabled);
-            if (firstEnabled) {
-              updateForm({ category: firstEnabled.name });
+          const parsed = adminCategoriesResponseSchema.safeParse(await res.json());
+          if (parsed.success) {
+            setCategories(parsed.data.categories);
+            if (mode === 'create' && parsed.data.categories.length > 0) {
+              const firstEnabled = parsed.data.categories.find((c) => !c.isDisabled);
+              if (firstEnabled) {
+                updateForm({ category: firstEnabled.name });
+              }
             }
           }
         }

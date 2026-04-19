@@ -64,7 +64,7 @@ Disabled categories are **automatically filtered out** from the room creation dr
 | DELETE | `/api/catalog/:id` | Soft-delete (deactivate) |
 | POST | `/api/catalog/upload` | Upload MIDI file |
 
-All admin endpoints require `x-user-id` header with a valid admin user ID.
+All admin endpoints require a valid Supabase JWT in the `Authorization: Bearer` header; the server resolves the user via `authResolver.resolveUserId(request)` and rejects non-admins with 404.
 
 ## Database
 

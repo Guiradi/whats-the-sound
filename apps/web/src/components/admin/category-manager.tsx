@@ -14,16 +14,10 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { authFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
+import { type CategoryInfo, adminCategoriesResponseSchema } from '@wts/shared';
 import { AlertTriangle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
-
-interface CategoryInfo {
-  name: string;
-  totalSongs: number;
-  activeSongs: number;
-  isDisabled: boolean;
-}
 
 export function CategoryManager() {
   const t = useTranslations('admin.categories');
@@ -42,8 +36,8 @@ export function CategoryManager() {
     try {
       const res = await authFetch('/api/admin/categories');
       if (!res.ok) throw new Error('Failed');
-      const data = await res.json();
-      setCategories(data.categories);
+      const parsed = adminCategoriesResponseSchema.safeParse(await res.json());
+      if (parsed.success) setCategories(parsed.data.categories);
     } catch {
       // silently fail — stats page handles errors
     } finally {

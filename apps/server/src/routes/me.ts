@@ -6,6 +6,14 @@ import { z } from 'zod';
 import type { AuthResolver } from '../middleware/auth.js';
 import type { AchievementService } from '../services/achievement-service.js';
 import type { LoginService } from '../services/login-service.js';
+import {
+  inviteeRowSchema,
+  userIdRowSchema,
+  userReferralCodeRowSchema,
+  userReferralSelfRowSchema,
+} from '../types/db-rows.js';
+
+const inviteeListSchema = z.array(inviteeRowSchema);
 
 const applyReferralSchema = z.object({
   code: z
@@ -85,10 +93,13 @@ export function createMeRoutes(
           });
         }
 
-        const self = selfRow as {
-          referred_by_user_id: string | null;
-          referral_code: string | null;
-        };
+        const parsedSelf = userReferralSelfRowSchema.safeParse(selfRow);
+        if (!parsedSelf.success) {
+          return reply.status(500).send({
+            error: { code: 'INTERNAL_ERROR', message: 'Invalid user data' },
+          });
+        }
+        const self = parsedSelf.data;
 
         if (self.referred_by_user_id) {
           return { applied: false, reason: 'already_referred' };
@@ -107,7 +118,11 @@ export function createMeRoutes(
           return { applied: false, reason: 'invalid_code' };
         }
 
-        const referrerId = (referrerRow as { id: string }).id;
+        const parsedReferrer = userIdRowSchema.safeParse(referrerRow);
+        if (!parsedReferrer.success) {
+          return { applied: false, reason: 'invalid_code' };
+        }
+        const referrerId = parsedReferrer.data.id;
         if (referrerId === userId) {
           return { applied: false, reason: 'self_referral' };
         }
@@ -156,14 +171,16 @@ export function createMeRoutes(
           .eq('id', userId)
           .maybeSingle();
 
-        const code = (selfRow as { referral_code: string } | null)?.referral_code ?? null;
+        const parsedCode = userReferralCodeRowSchema.safeParse(selfRow);
+        const code = parsedCode.success ? parsedCode.data.referral_code : null;
 
         const { data: invitees } = await supabase
           .from('users')
           .select('id, referral_completed_at')
           .eq('referred_by_user_id', userId);
 
-        const list = (invitees ?? []) as { id: string; referral_completed_at: string | null }[];
+        const parsedInvitees = inviteeListSchema.safeParse(invitees ?? []);
+        const list = parsedInvitees.success ? parsedInvitees.data : [];
         const invitedCount = list.length;
         const completedCount = list.filter((r) => r.referral_completed_at !== null).length;
 

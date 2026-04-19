@@ -6,3 +6,4 @@ export * from './verification/index.js';
 export * from './achievements/index.js';
 export * from './chat/index.js';
 export * from './utils/index.js';
+export * from './zod/index.js';

@@ -19,7 +19,11 @@ import {
   verifyDailyGuess,
 } from '@wts/shared';
 import { z } from 'zod';
-import { dailyHistoryRowSchema } from '../types/db-rows.js';
+import {
+  dailyHistoryRowSchema,
+  dailyResultRowSchema,
+  userStreakRowSchema,
+} from '../types/db-rows.js';
 import type { AchievementService } from './achievement-service.js';
 import type { ReferralService } from './referral-service.js';
 import { SupabaseMidiProvider } from './supabase-midi-provider.js';
@@ -106,7 +110,8 @@ export function createDailyService(
         .select('daily_streak')
         .eq('id', userId)
         .maybeSingle();
-      const newStreak = (streakRow as { daily_streak: number } | null)?.daily_streak ?? 0;
+      const parsedStreak = userStreakRowSchema.safeParse(streakRow);
+      const newStreak = parsedStreak.success ? parsedStreak.data.daily_streak : 0;
       if (newStreak >= 2) {
         await xpService.awardXp({
           userId,
@@ -273,12 +278,18 @@ export function createDailyService(
       .eq('date', dateISO)
       .maybeSingle();
 
-    const existing = existingRaw as {
-      completed: boolean;
-      phase_guessed: number | null;
-      attempts: DailyAttempt[] | null;
-      midi_id: string;
-    } | null;
+    const existing = existingRaw
+      ? (() => {
+          const parsed = dailyResultRowSchema.safeParse(existingRaw);
+          if (!parsed.success) return null;
+          return {
+            completed: parsed.data.completed,
+            phase_guessed: parsed.data.phase_guessed,
+            attempts: parsed.data.attempts as DailyAttempt[] | null,
+            midi_id: parsed.data.midi_id,
+          };
+        })()
+      : null;
 
     if (existing?.completed) {
       return {

@@ -5,6 +5,7 @@ import {
   XP_LOGIN_STREAK_CAP,
   XP_LOGIN_STREAK_MULTIPLIER,
 } from '@wts/shared/constants';
+import { userLoginRowSchema } from '../types/db-rows.js';
 import type { AchievementService } from './achievement-service.js';
 import type { XpService } from './xp-service.js';
 
@@ -44,13 +45,12 @@ export function createLoginService(
       return { touched: false, streak: 0, maxStreak: 0, xpAwarded: 0 };
     }
 
-    const row = userRow as {
-      last_login_date: string | null;
-      login_streak: number;
-      max_login_streak: number;
-    };
+    const parsedRow = userLoginRowSchema.safeParse(userRow);
+    if (!parsedRow.success) {
+      return { touched: false, streak: 0, maxStreak: 0, xpAwarded: 0 };
+    }
+    const row = parsedRow.data;
 
-    // Already logged in today — no-op.
     if (row.last_login_date === today) {
       return {
         touched: false,
