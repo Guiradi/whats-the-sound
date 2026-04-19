@@ -1,5 +1,6 @@
 'use client';
 
+import { DiscordMark, GoogleMark } from '@/components/auth/provider-marks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
@@ -113,32 +114,5 @@ export function LoginForm({ next, onGuestLogin, onOAuthStart }: LoginFormProps) 
         </Button>
       </form>
     </div>
-  );
-}
-
-function GoogleMark() {
-  return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="#EA4335"
-        d="M12 10.8V14.4h5.1c-.2 1.2-1.5 3.6-5.1 3.6-3.1 0-5.6-2.5-5.6-5.7s2.5-5.7 5.6-5.7c1.8 0 2.9.8 3.6 1.4l2.4-2.4C16.5 4.2 14.5 3.3 12 3.3 7.2 3.3 3.4 7.2 3.4 12s3.8 8.7 8.6 8.7c5 0 8.2-3.5 8.2-8.4 0-.6 0-1-.1-1.5H12z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 10.8V14.4h5.1c-.2 1.2-1.5 3.6-5.1 3.6-3.1 0-5.6-2.5-5.6-5.7h-3C3.4 16.8 7.2 20.7 12 20.7c5 0 8.2-3.5 8.2-8.4 0-.6 0-1-.1-1.5H12z"
-        opacity="0"
-      />
-    </svg>
-  );
-}
-
-function DiscordMark() {
-  return (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="#5865F2"
-        d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.2.4c1.8.5 2.6 1.1 3.5 1.8a13.3 13.3 0 0 0-11.4 0C8.2 4.5 9 3.9 10.8 3.4L10.6 3a19.6 19.6 0 0 0-4.9 1.4C2.6 9 1.8 13.5 2.2 17.9a19.7 19.7 0 0 0 6 3.1l.6-.9a12.5 12.5 0 0 1-2-1l.4-.3a14 14 0 0 0 12 0l.4.3c-.6.4-1.3.7-2 1l.6.9a19.7 19.7 0 0 0 6-3.1c.5-5.2-.8-9.7-3.9-13.5zM8.5 15.3c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4zm7 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4z"
-      />
-    </svg>
   );
 }

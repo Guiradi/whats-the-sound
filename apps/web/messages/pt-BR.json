@@ -80,6 +80,11 @@
       }
     },
     "heroTagline": "Ouça. Adivinhe. Repita.",
+    "quickStart": {
+      "submit": "Jogar",
+      "divider": "ou entre com conta",
+      "dailyLink": "Ver Daily Sound"
+    },
     "howItWorks": {
       "title": "Como funciona",
       "stepLabel": "Passo {n}",

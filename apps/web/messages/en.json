@@ -80,6 +80,11 @@
       }
     },
     "heroTagline": "Listen. Guess. Repeat.",
+    "quickStart": {
+      "submit": "Play",
+      "divider": "or sign in",
+      "dailyLink": "See Daily Sound"
+    },
     "howItWorks": {
       "title": "How it works",
       "stepLabel": "Step {n}",
