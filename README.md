@@ -57,8 +57,7 @@ whats-the-sound/
 │   └── shared/         ← Types, enums, constants, env helpers compartilhados
 ├── supabase/           ← Config + migrations SQL versionadas
 ├── specs/              ← Especificações do produto e features (10 specs)
-├── docs/               ← Design system e UX principles
-├── tasks/              ← Backlog, plano de execução, completed por sprints
+├── docs/               ← Design system, UX principles e deploy checklist
 ├── .claude/            ← Memory, rules e agentes do Claude Code
 └── CLAUDE.md           ← Configuração do agente de desenvolvimento
 ```
@@ -155,7 +154,7 @@ Para matar, `Ctrl+C` uma vez — Turborepo encerra os dois.
 
 ## Desenvolvimento
 
-O projeto segue o modelo **Spec-Driven Development** — toda feature tem uma especificação detalhada antes de qualquer código ser escrito. As specs estão em `specs/features/` e as tasks atômicas em `tasks/backlog.md`.
+O projeto segue o modelo **Spec-Driven Development** — toda feature tem uma especificação detalhada em `specs/features/`, mantida como fonte de verdade mesmo após o MVP.
 
 | Documento | Conteúdo |
 |-----------|----------|
@@ -168,9 +167,7 @@ O projeto segue o modelo **Spec-Driven Development** — toda feature tem uma es
 | `specs/technical/database.md` | Schema DDL completo, RLS, triggers |
 | `docs/design-system.md` | Paleta synthwave, tipografia, componentes |
 | `docs/ux-principles.md` | Princípios de UX, tom de voz, acessibilidade |
-| `tasks/backlog.md` | Tasks atômicas pendentes (spec inline) |
-| `tasks/execution-plan.md` | 6 sprints com dependências e checklists |
-| `tasks/completed.md` | Tasks concluídas, com resumo do que foi entregue |
+| `docs/deploy-checklist.md` | Checklist de pré-deploy, deploy e smoke em produção |
 
 ### Progresso — v1.0.0
 
@@ -218,7 +215,7 @@ O projeto segue o modelo **Spec-Driven Development** — toda feature tem uma es
 
 ### Deploy step-by-step
 
-Ver `tasks/v1-checklists.md` para o checklist completo de deploy e testes.
+Ver `docs/deploy-checklist.md` para o checklist completo de deploy e testes.
 
 ## Licença
 

@@ -77,11 +77,8 @@ whats-the-sound/
 │       └── database.md
 ├── docs/
 │   ├── design-system.md
-│   └── ux-principles.md
-├── tasks/
-│   ├── backlog.md          ← TODAS as tasks pendentes
-│   ├── execution-plan.md   ← Sprints e dependências
-│   └── completed.md        ← Tasks finalizadas
+│   ├── ux-principles.md
+│   └── deploy-checklist.md
 ├── apps/
 │   ├── web/                ← Next.js 15 frontend
 │   │   ├── src/
@@ -158,53 +155,37 @@ whats-the-sound/
 ## Key Conventions
 
 - **Toda feature começa pela spec** — Ler `specs/features/XX-*.md` antes de codar.
-- **Tasks são atômicas** — Cada task do backlog é completável em 1-6 horas.
-- **Backlog é source of truth** — Todo trabalho pendente está em `tasks/backlog.md`.
-- **Atualizar status** — Marcar task como `[→]` ao iniciar, `[✓]` ao concluir.
-- **Mover tasks concluídas** — Após completar, mover de backlog.md para completed.md.
 - **Respostas NUNCA no client** — Título/artista da música NUNCA enviados antes do round_end.
 - **Mobile-first** — Todo componente é pensado primeiro para mobile.
 - **Dark mode only** — Sem tema claro no MVP.
 - **Sem console.log em production** — Usar logger estruturado no server.
 - **Commits convencionais** — `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`
 
-## Workflow: Sprint Execution
+## Workflow
 
-1. Ler `tasks/execution-plan.md` para entender a sprint atual
-2. Ler a task no `tasks/backlog.md` — contém spec inline com TUDO necessário
-3. Ler a spec de referência (`specs/features/XX-*.md`) para contexto completo
-4. Seguir a ordem de dependências (nunca pular uma task que depende de outra incompleta)
-5. Implementar a task conforme a spec
-6. Validar usando o checklist da task
-7. Rodar: `pnpm lint && pnpm type-check && pnpm build`
-8. **Atualizar o Dev Docs Portal** (feature 09) — toda TASK concluída atualiza:
-   - A seção arquitetural correspondente em `apps/web/src/content/dev-docs/arch/*.mdx` (ou `setup/`, `conventions/`, `troubleshooting/` conforme o caso)
-   - Uma entrada nova em `apps/web/src/content/dev-docs/progress.mdx` com resumo do que foi entregue e link para `tasks/completed.md#TASK-XXX`
-   - Rodapé "Última atualização: TASK-XXX — YYYY-MM-DD" da page tocada
-   - Antes da TASK-029 estar pronta, escrever o conteúdo em `.md` colado na spec relacionada ou em um scratch; migrar quando o portal existir
-9. Atualizar status da task no backlog (`[→]` → `[✓]`)
-10. Mover task concluída para `tasks/completed.md`
+1. Identificar a feature afetada e ler `specs/features/XX-*.md` para contexto.
+2. Implementar conforme a spec; se a spec estiver desatualizada, atualizá-la no mesmo commit.
+3. Rodar os gates: `pnpm lint && pnpm type-check && pnpm build`.
+4. Atualizar o Dev Docs Portal (`apps/web/src/content/dev-docs/*`) quando a mudança afetar arquitetura, setup, convenções ou troubleshooting. Entradas narrativas em `progress.mdx` só quando houver algo notável a registrar.
 
 ## Specs & Docs
 
-| Documento                        | Conteúdo                                    |
-|----------------------------------|---------------------------------------------|
-| `specs/overview.md`              | Visão do produto, personas, fases, métricas |
-| `specs/features/01-07.md`        | Features core do produto (setup, MIDI, auth, MP, daily, catálogo, PWA) |
-| `specs/features/08-xp-system.md` | XP + Level (badge visual, fontes, curva quadrática) |
-| `specs/features/09-dev-docs.md`  | Portal interno /admin/docs (MDX + role admin) |
-| `specs/features/10-i18n.md`      | Internacionalização pt-BR + en (next-intl, prefixo por locale) |
-| `specs/technical/architecture.md`| Stack, diagrama, decisões arquiteturais     |
-| `specs/technical/database.md`    | Schema DDL completo, RLS, triggers          |
-| `docs/design-system.md`         | Cores, tipografia, espaçamento, componentes |
-| `docs/ux-principles.md`         | Princípios UX, tom de voz, acessibilidade   |
-| `tasks/backlog.md`              | Todas as tasks com spec inline              |
-| `tasks/execution-plan.md`       | Sprints organizadas com dependências        |
-| `tasks/v1-checklists.md`       | Checklists: pré-deploy, deploy, testes prod |
+| Documento                         | Conteúdo                                    |
+|-----------------------------------|---------------------------------------------|
+| `specs/overview.md`               | Visão do produto, personas, fases, métricas |
+| `specs/features/01-07.md`         | Features core do produto (setup, MIDI, auth, MP, daily, catálogo, PWA) |
+| `specs/features/08-xp-system.md`  | XP + Level (badge visual, fontes, curva quadrática) |
+| `specs/features/09-dev-docs.md`   | Portal interno /admin/docs (MDX + role admin) |
+| `specs/features/10-i18n.md`       | Internacionalização pt-BR + en (next-intl, prefixo por locale) |
+| `specs/technical/architecture.md` | Stack, diagrama, decisões arquiteturais     |
+| `specs/technical/database.md`     | Schema DDL completo, RLS, triggers          |
+| `docs/design-system.md`           | Cores, tipografia, espaçamento, componentes |
+| `docs/ux-principles.md`           | Princípios UX, tom de voz, acessibilidade   |
+| `docs/deploy-checklist.md`        | Checklists: pré-deploy, deploy, testes prod |
 
 ## Testing
 
-- **v1.0 (MVP):** Testes manuais conforme `tasks/v1-checklists.md` — 3 seções: pré-deploy (~45 min), deploy step-by-step, testes em produção (~20 min)
+- **v1.0 (MVP):** Testes manuais conforme `docs/deploy-checklist.md` — 3 seções: pré-deploy (~45 min), deploy step-by-step, testes em produção (~20 min)
 - **Futuro (Fase 2+):**
   - Unit tests: Vitest para services (guess-verifier, scoring, daily-selector)
   - Integration tests: Playwright para fluxos críticos (login, jogo completo, daily)

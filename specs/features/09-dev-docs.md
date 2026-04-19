@@ -112,4 +112,4 @@ Durante a criação da TASK-029, o conteúdo inicial cobre **retroativamente** T
 - **Gated por role admin, não por IP ou basic auth:** reaproveita infra de auth que vai existir de qualquer forma. Dev pode pular localmente via env flag.
 - **Living document por convenção, não por automação:** não tentamos gerar docs a partir de specs/código. A convenção é simples (cada PR atualiza MDX), e o custo de automação não vale o benefício no MVP.
 - **Não é público:** evita expectativa de "docs de produto". Decisões arquiteturais e troubleshooting são para o time, não para usuários finais.
-- **Página `/progress` como índice de tasks concluídas:** é o "changelog humano" do projeto — complementa o `tasks/completed.md` com contexto narrativo.
+- **Página `/progress` como índice narrativo das entregas:** é o "changelog humano" do projeto, por sprint e por TASK.

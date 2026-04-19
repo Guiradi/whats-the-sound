@@ -54,19 +54,15 @@ Convencionais:
 
 Exemplo: `feat: add audio visualizer with FFT rendering (TASK-006)`
 
-## Tasks workflow
+## Workflow
 
-1. Ler task em `tasks/backlog.md`
-2. Ler spec de referência (`specs/features/XX-*.md`)
-3. Status `[ ]` → `[→]` ao iniciar
-4. Implementar conforme spec
-5. Rodar gates: `pnpm lint && pnpm type-check && pnpm build`
-6. **Atualizar dev docs** relevantes + entry em `/admin/docs/progress`
-7. Status `[→]` → `[✓]`
-8. Migrar entry de `backlog.md` pra `completed.md`
+1. Identificar a spec afetada (`specs/features/XX-*.md`) e ler o contexto.
+2. Implementar conforme spec; se a spec estiver desatualizada, ajustar no mesmo commit.
+3. Rodar gates: `pnpm lint && pnpm type-check && pnpm build`.
+4. **Atualizar dev docs** relevantes quando a mudança afetar arquitetura, setup, convenções ou troubleshooting; usar `/admin/docs/progress` para entradas narrativas notáveis.
 
 ## PR
 
-- Descrição cita `TASK-XXX` e explica o "why"
-- CI verde (lint + type-check + build) antes de merge
-- Mobile-first: testar mobile width antes de requestar review
+- Descrição explica o "why" (não só o "what"); citar TASK-XXX é opcional quando aplicável.
+- CI verde (lint + type-check + build) antes de merge.
+- Mobile-first: testar mobile width antes de requestar review.
