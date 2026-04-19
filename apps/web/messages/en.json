@@ -70,7 +70,8 @@
       "achievements": {
         "title": "Achievements",
         "progress": "{unlocked}/{total} unlocked",
-        "loading": "Loading achievements..."
+        "loading": "Loading achievements...",
+        "error": "Couldn't load your achievements."
       },
       "invite": {
         "title": "Invite friends",

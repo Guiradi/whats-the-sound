@@ -14,20 +14,38 @@ interface AchievementsResponse {
   unlocked: { achievementId: string; unlockedAt: string }[];
 }
 
+type Status = 'loading' | 'ok' | 'error';
+
 export function AchievementsCardCompact() {
   const t = useTranslations('home.dashboard.achievements');
   const { user, isGuest } = useAuth();
   const [data, setData] = useState<AchievementsResponse | null>(null);
+  const [status, setStatus] = useState<Status>('loading');
 
   useEffect(() => {
     if (!user || isGuest) return;
     let cancelled = false;
+    setStatus('loading');
     authFetch('/api/me/achievements')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((body) => {
-        if (!cancelled && body) setData(body as AchievementsResponse);
+      .then(async (res) => {
+        if (cancelled) return;
+        if (!res.ok) {
+          console.warn('achievements fetch failed', res.status, await res.text().catch(() => ''));
+          setStatus('error');
+          return;
+        }
+        const body = (await res.json()) as AchievementsResponse;
+        if (!cancelled) {
+          setData(body);
+          setStatus('ok');
+        }
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (!cancelled) {
+          console.warn('achievements fetch threw', err);
+          setStatus('error');
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -49,14 +67,16 @@ export function AchievementsCardCompact() {
         <div className="flex-1">
           <h2 className="font-display text-lg font-semibold text-text-primary">{t('title')}</h2>
           <p className="mt-1 text-sm text-text-secondary">
-            {catalog.length > 0
+            {status === 'ok' && catalog.length > 0
               ? t('progress', { unlocked: unlockedCount, total: catalog.length })
-              : t('loading')}
+              : status === 'error'
+                ? t('error')
+                : t('loading')}
           </p>
         </div>
       </div>
 
-      {catalog.length > 0 ? (
+      {status === 'ok' && catalog.length > 0 ? (
         <ul className="grid grid-cols-4 gap-2 sm:grid-cols-8">
           {catalog.map((achievement) => (
             <li key={achievement.id} className="flex justify-center">
@@ -72,7 +92,7 @@ export function AchievementsCardCompact() {
       ) : (
         <div className="flex items-center gap-2 text-text-muted">
           <Trophy className="h-5 w-5" aria-hidden="true" />
-          <span className="text-sm">{t('loading')}</span>
+          <span className="text-sm">{status === 'error' ? t('error') : t('loading')}</span>
         </div>
       )}
     </Link>

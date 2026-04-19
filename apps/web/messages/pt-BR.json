@@ -70,7 +70,8 @@
       "achievements": {
         "title": "Conquistas",
         "progress": "{unlocked}/{total} desbloqueadas",
-        "loading": "Carregando conquistas..."
+        "loading": "Carregando conquistas...",
+        "error": "Não foi possível carregar suas conquistas."
       },
       "invite": {
         "title": "Convide amigos",

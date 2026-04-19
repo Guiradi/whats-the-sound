@@ -18,13 +18,23 @@ function extractBearerToken(request: FastifyRequest): string | null {
 export function createAuthResolver(supabase: SupabaseClient) {
   async function resolveUserId(request: FastifyRequest): Promise<string | null> {
     const token = extractBearerToken(request);
-    if (!token) return null;
+    if (!token) {
+      request.log.warn({ url: request.url }, 'auth: missing bearer token');
+      return null;
+    }
     try {
       const { data, error } = await supabase.auth.getUser(token);
-      if (error || !data.user) return null;
+      if (error || !data.user) {
+        request.log.warn(
+          { url: request.url, err: error?.message, status: error?.status },
+          'auth: getUser rejected token',
+        );
+        return null;
+      }
       request.userId = data.user.id;
       return data.user.id;
-    } catch {
+    } catch (err) {
+      request.log.warn({ url: request.url, err }, 'auth: getUser threw');
       return null;
     }
   }
