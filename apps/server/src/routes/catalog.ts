@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { MidiCategory, MidiDifficulty } from '@wts/shared';
-import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { createAdminPreHandler } from '../middleware/admin-guard.js';
 import type { AuthResolver } from '../middleware/auth.js';
 import { analyzeMidi } from '../services/midi-analyzer.js';
 
@@ -54,32 +55,15 @@ const listQuerySchema = z.object({
   sortDir: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
-async function isAdminUser(supabase: SupabaseClient, userId: string): Promise<boolean> {
-  const { data } = await supabase.from('users').select('role').eq('id', userId).maybeSingle();
-  return data?.role === 'admin';
-}
-
 export function createCatalogRoutes(supabase: SupabaseClient, auth: AuthResolver) {
-  async function resolveAdminOrReject(
-    request: FastifyRequest,
-    reply: FastifyReply,
-  ): Promise<boolean> {
-    const userId = await auth.resolveUserId(request);
-    if (!userId || !(await isAdminUser(supabase, userId))) {
-      reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      return false;
-    }
-    return true;
-  }
+  const adminOnly = { preHandler: createAdminPreHandler(supabase, auth) };
 
   return async function catalogRoutes(server: FastifyInstance) {
     /**
      * GET /api/catalog — List MIDI catalog entries with filters.
      * Admin-only.
      */
-    server.get('/api/catalog', async (request, reply) => {
-      if (!(await resolveAdminOrReject(request, reply))) return;
-
+    server.get('/api/catalog', adminOnly, async (request, reply) => {
       const parsed = listQuerySchema.safeParse(request.query);
       if (!parsed.success) {
         return reply.status(400).send({
@@ -134,9 +118,7 @@ export function createCatalogRoutes(supabase: SupabaseClient, auth: AuthResolver
      * GET /api/catalog/:id — Get a single MIDI entry.
      * Admin-only.
      */
-    server.get('/api/catalog/:id', async (request, reply) => {
-      if (!(await resolveAdminOrReject(request, reply))) return;
-
+    server.get('/api/catalog/:id', adminOnly, async (request, reply) => {
       const { id } = request.params as { id: string };
 
       try {
@@ -171,9 +153,7 @@ export function createCatalogRoutes(supabase: SupabaseClient, auth: AuthResolver
      * POST /api/catalog — Create a new MIDI entry.
      * Admin-only.
      */
-    server.post('/api/catalog', async (request, reply) => {
-      if (!(await resolveAdminOrReject(request, reply))) return;
-
+    server.post('/api/catalog', adminOnly, async (request, reply) => {
       const parsed = createMidiSchema.safeParse(request.body);
       if (!parsed.success) {
         return reply.status(400).send({
@@ -218,9 +198,7 @@ export function createCatalogRoutes(supabase: SupabaseClient, auth: AuthResolver
      * PATCH /api/catalog/:id — Update a MIDI entry.
      * Admin-only.
      */
-    server.patch('/api/catalog/:id', async (request, reply) => {
-      if (!(await resolveAdminOrReject(request, reply))) return;
-
+    server.patch('/api/catalog/:id', adminOnly, async (request, reply) => {
       const { id } = request.params as { id: string };
 
       const parsed = updateMidiSchema.safeParse(request.body);
@@ -271,9 +249,7 @@ export function createCatalogRoutes(supabase: SupabaseClient, auth: AuthResolver
      * With ?permanent=true: hard-delete (remove from DB + Storage).
      * Admin-only.
      */
-    server.delete('/api/catalog/:id', async (request, reply) => {
-      if (!(await resolveAdminOrReject(request, reply))) return;
-
+    server.delete('/api/catalog/:id', adminOnly, async (request, reply) => {
       const { id } = request.params as { id: string };
       const { permanent } = request.query as { permanent?: string };
 
@@ -340,9 +316,7 @@ export function createCatalogRoutes(supabase: SupabaseClient, auth: AuthResolver
      * POST /api/catalog/upload — Upload a MIDI file to Supabase Storage.
      * Returns the public URL. Admin-only.
      */
-    server.post('/api/catalog/upload', async (request, reply) => {
-      if (!(await resolveAdminOrReject(request, reply))) return;
-
+    server.post('/api/catalog/upload', adminOnly, async (request, reply) => {
       try {
         const body = request.body as { fileName: string; fileBase64: string };
         if (!body.fileName || !body.fileBase64) {

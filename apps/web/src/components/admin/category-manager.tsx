@@ -11,46 +11,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useAuth } from '@/hooks/use-auth';
+import { useAdminCategories } from '@/hooks/admin/use-admin-categories';
 import { authFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
-import { type CategoryInfo, adminCategoriesResponseSchema } from '@wts/shared';
+import type { CategoryInfo } from '@wts/shared';
 import { AlertTriangle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export function CategoryManager() {
   const t = useTranslations('admin.categories');
   const catT = useTranslations('room.categories');
-  const { user } = useAuth();
+  const { data, isLoading, refetch } = useAdminCategories();
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
-  const [loading, setLoading] = useState(true);
   const [togglingCategory, setTogglingCategory] = useState<string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<{
     category: string;
     currentlyDisabled: boolean;
   } | null>(null);
 
-  const fetchCategories = useCallback(async () => {
-    if (!user) return;
-    try {
-      const res = await authFetch('/api/admin/categories');
-      if (!res.ok) throw new Error('Failed');
-      const parsed = adminCategoriesResponseSchema.safeParse(await res.json());
-      if (parsed.success) setCategories(parsed.data.categories);
-    } catch {
-      // silently fail — stats page handles errors
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    if (data) setCategories(data.categories);
+  }, [data]);
 
   const toggleCategory = async (category: string, currentlyDisabled: boolean) => {
-    if (!user) return;
     setTogglingCategory(category);
     try {
       const action = currentlyDisabled ? 'enable' : 'disable';
@@ -61,6 +45,7 @@ export function CategoryManager() {
         setCategories((prev) =>
           prev.map((c) => (c.name === category ? { ...c, isDisabled: !currentlyDisabled } : c)),
         );
+        refetch();
       }
     } catch {
       // silently fail
@@ -86,7 +71,7 @@ export function CategoryManager() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card className="animate-pulse">
         <CardHeader>

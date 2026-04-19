@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { MidiCategory } from '@wts/shared';
-import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { createAdminPreHandler } from '../middleware/admin-guard.js';
 import type { AuthResolver } from '../middleware/auth.js';
 import { disabledCategoriesSchema } from '../types/db-rows.js';
 
@@ -16,23 +17,8 @@ const categoryActionSchema = z.object({
   category: z.enum(midiCategoryValues),
 });
 
-async function isAdminUser(supabase: SupabaseClient, userId: string): Promise<boolean> {
-  const { data } = await supabase.from('users').select('role').eq('id', userId).maybeSingle();
-  return data?.role === 'admin';
-}
-
 export function createAdminRoutes(supabase: SupabaseClient, auth: AuthResolver) {
-  async function resolveAdminOrReject(
-    request: FastifyRequest,
-    reply: FastifyReply,
-  ): Promise<string | null> {
-    const userId = await auth.resolveUserId(request);
-    if (!userId || !(await isAdminUser(supabase, userId))) {
-      reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'Not found' } });
-      return null;
-    }
-    return userId;
-  }
+  const adminOnly = { preHandler: createAdminPreHandler(supabase, auth) };
 
   return async function adminRoutes(server: FastifyInstance) {
     /**
@@ -60,9 +46,7 @@ export function createAdminRoutes(supabase: SupabaseClient, auth: AuthResolver) 
      * GET /api/admin/stats — Dashboard statistics.
      * Admin-only.
      */
-    server.get('/api/admin/stats', async (request, reply) => {
-      if (!(await resolveAdminOrReject(request, reply))) return;
-
+    server.get('/api/admin/stats', adminOnly, async (request, reply) => {
       try {
         // Run all queries in parallel
         const [usersResult, gamesResult, dailyResult, catalogResult, catalogByCategoryResult] =
@@ -172,9 +156,7 @@ export function createAdminRoutes(supabase: SupabaseClient, auth: AuthResolver) 
      * GET /api/admin/categories — List categories with song counts and disabled status.
      * Admin-only.
      */
-    server.get('/api/admin/categories', async (request, reply) => {
-      if (!(await resolveAdminOrReject(request, reply))) return;
-
+    server.get('/api/admin/categories', adminOnly, async (request, reply) => {
       try {
         const [catalogResult, configResult] = await Promise.all([
           supabase.from('midi_catalog').select('category, is_active'),
@@ -211,9 +193,7 @@ export function createAdminRoutes(supabase: SupabaseClient, auth: AuthResolver) 
      * PATCH /api/admin/categories/:category/disable — Disable a category.
      * Admin-only.
      */
-    server.patch('/api/admin/categories/:category/disable', async (request, reply) => {
-      if (!(await resolveAdminOrReject(request, reply))) return;
-
+    server.patch('/api/admin/categories/:category/disable', adminOnly, async (request, reply) => {
       const parsed = categoryActionSchema.safeParse(request.params);
       if (!parsed.success) {
         return reply.status(400).send({
@@ -261,9 +241,7 @@ export function createAdminRoutes(supabase: SupabaseClient, auth: AuthResolver) 
      * PATCH /api/admin/categories/:category/enable — Enable a category.
      * Admin-only.
      */
-    server.patch('/api/admin/categories/:category/enable', async (request, reply) => {
-      if (!(await resolveAdminOrReject(request, reply))) return;
-
+    server.patch('/api/admin/categories/:category/enable', adminOnly, async (request, reply) => {
       const parsed = categoryActionSchema.safeParse(request.params);
       if (!parsed.success) {
         return reply.status(400).send({

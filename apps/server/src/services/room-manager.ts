@@ -126,6 +126,22 @@ function scheduleCleanup(code: string): void {
 
 // ─── Public API ────────────────────────────────────────────────
 
+function withRoom<T>(code: string, fn: (room: ServerRoomState) => T): T | undefined {
+  const room = rooms.get(code);
+  return room ? fn(room) : undefined;
+}
+
+function withRoomAndPlayer<T>(
+  code: string,
+  playerId: string,
+  fn: (room: ServerRoomState, player: ServerPlayer) => T,
+): T | undefined {
+  return withRoom(code, (room) => {
+    const player = room.players.get(playerId);
+    return player ? fn(room, player) : undefined;
+  });
+}
+
 export function createRoom(
   hostId: string,
   hostPlayer: Omit<ServerPlayer, 'disconnectTimer'>,
@@ -184,39 +200,35 @@ export function leaveRoom(
   code: string,
   playerId: string,
 ): { room: ServerRoomState | null; hostChanged: boolean; newHostId?: string } {
-  const room = rooms.get(code);
-  if (!room) return { room: null, hostChanged: false };
-
-  const player = room.players.get(playerId);
-  if (player?.disconnectTimer) {
-    clearTimeout(player.disconnectTimer);
-  }
-  room.players.delete(playerId);
-  room.version++;
-
-  // If room is now empty, schedule cleanup
-  if (room.players.size === 0) {
-    scheduleCleanup(code);
-    return { room, hostChanged: false };
-  }
-
-  // Host migration: pick earliest-joined connected player
-  let hostChanged = false;
-  let newHostId: string | undefined;
-  if (room.hostId === playerId) {
-    const connected = Array.from(room.players.values())
-      .filter((p) => p.connected)
-      .sort((a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime());
-
-    const nextHost = connected[0];
-    if (nextHost) {
-      room.hostId = nextHost.id;
-      newHostId = room.hostId;
-      hostChanged = true;
+  const result = withRoom(code, (room) => {
+    const player = room.players.get(playerId);
+    if (player?.disconnectTimer) {
+      clearTimeout(player.disconnectTimer);
     }
-  }
+    room.players.delete(playerId);
+    room.version++;
 
-  return { room, hostChanged, newHostId };
+    if (room.players.size === 0) {
+      scheduleCleanup(code);
+      return { room, hostChanged: false as const };
+    }
+
+    if (room.hostId === playerId) {
+      const connected = Array.from(room.players.values())
+        .filter((p) => p.connected)
+        .sort((a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime());
+
+      const nextHost = connected[0];
+      if (nextHost) {
+        room.hostId = nextHost.id;
+        return { room, hostChanged: true as const, newHostId: nextHost.id };
+      }
+    }
+
+    return { room, hostChanged: false as const };
+  });
+
+  return result ?? { room: null, hostChanged: false };
 }
 
 export function getRoom(code: string): ServerRoomState | undefined {
@@ -238,36 +250,26 @@ export function reconnectPlayer(
   playerId: string,
   newSocketId: string,
 ): ServerRoomState | undefined {
-  const room = rooms.get(code);
-  if (!room) return undefined;
-
-  const player = room.players.get(playerId);
-  if (!player) return undefined;
-
-  if (player.disconnectTimer) {
-    clearTimeout(player.disconnectTimer);
-    player.disconnectTimer = null;
-  }
-
-  player.connected = true;
-  player.socketId = newSocketId;
-  room.version++;
-  return room;
+  return withRoomAndPlayer(code, playerId, (room, player) => {
+    if (player.disconnectTimer) {
+      clearTimeout(player.disconnectTimer);
+      player.disconnectTimer = null;
+    }
+    player.connected = true;
+    player.socketId = newSocketId;
+    room.version++;
+    return room;
+  });
 }
 
 export function disconnectPlayer(code: string, playerId: string, onGraceExpired: () => void): void {
-  const room = rooms.get(code);
-  if (!room) return;
-
-  const player = room.players.get(playerId);
-  if (!player) return;
-
-  player.connected = false;
-  room.version++;
-
-  player.disconnectTimer = setTimeout(() => {
-    onGraceExpired();
-  }, PLAYER_DISCONNECT_GRACE_MS);
+  withRoomAndPlayer(code, playerId, (room, player) => {
+    player.connected = false;
+    room.version++;
+    player.disconnectTimer = setTimeout(() => {
+      onGraceExpired();
+    }, PLAYER_DISCONNECT_GRACE_MS);
+  });
 }
 
 export function setPlayerReady(
@@ -275,31 +277,29 @@ export function setPlayerReady(
   playerId: string,
   ready: boolean,
 ): ServerRoomState | undefined {
-  const room = rooms.get(code);
-  if (!room) return undefined;
-  const player = room.players.get(playerId);
-  if (!player) return undefined;
-  player.isReady = ready;
-  room.version++;
-  return room;
+  return withRoomAndPlayer(code, playerId, (room, player) => {
+    player.isReady = ready;
+    room.version++;
+    return room;
+  });
 }
 
 export function resetAllReady(code: string): void {
-  const room = rooms.get(code);
-  if (!room) return;
-  for (const player of room.players.values()) {
-    player.isReady = false;
-  }
+  withRoom(code, (room) => {
+    for (const player of room.players.values()) {
+      player.isReady = false;
+    }
+  });
 }
 
 export function addChatMessage(code: string, message: ChatMessage): void {
-  const room = rooms.get(code);
-  if (!room) return;
-  room.chat.push(message);
-  if (room.chat.length > MAX_CHAT_MESSAGES) {
-    room.chat = room.chat.slice(-MAX_CHAT_MESSAGES);
-  }
-  room.version++;
+  withRoom(code, (room) => {
+    room.chat.push(message);
+    if (room.chat.length > MAX_CHAT_MESSAGES) {
+      room.chat = room.chat.slice(-MAX_CHAT_MESSAGES);
+    }
+    room.version++;
+  });
 }
 
 /** Find which room a player is in, by their player ID. */

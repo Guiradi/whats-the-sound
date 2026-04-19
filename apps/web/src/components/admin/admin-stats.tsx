@@ -1,64 +1,15 @@
 'use client';
 
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/hooks/use-auth';
-import { authFetch } from '@/lib/api-client';
+import { useAdminStats } from '@/hooks/admin/use-admin-stats';
 import { Calendar, Gamepad2, Music, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState } from 'react';
-
-interface StatsData {
-  users: {
-    total: number;
-    registered: number;
-    guests: number;
-    admins: number;
-  };
-  games: {
-    total: number;
-    active: number;
-    finished: number;
-    waiting: number;
-  };
-  daily: {
-    totalPlayed: number;
-    totalCompleted: number;
-  };
-  catalog: {
-    total: number;
-    active: number;
-    inactive: number;
-    byDifficulty: { easy: number; medium: number; hard: number };
-    byCategory: Record<string, { total: number; active: number }>;
-  };
-}
 
 export function AdminStats() {
   const t = useTranslations('admin.stats');
-  const { user } = useAuth();
-  const [stats, setStats] = useState<StatsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const { data: stats, isLoading, error } = useAdminStats();
 
-  const fetchStats = useCallback(async () => {
-    if (!user) return;
-    try {
-      const res = await authFetch('/api/admin/stats');
-      if (!res.ok) throw new Error('Failed');
-      const data = await res.json();
-      setStats(data);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {['skel-1', 'skel-2', 'skel-3', 'skel-4'].map((id) => (

@@ -64,3 +64,58 @@ export const dailyHistoryResponseSchema = z.object({
   streak: dailyStreakInfoSchema,
 });
 export type DailyHistoryResponse = z.infer<typeof dailyHistoryResponseSchema>;
+
+export const adminStatsSchema = z.object({
+  users: z.object({
+    total: z.number().int().nonnegative(),
+    registered: z.number().int().nonnegative(),
+    guests: z.number().int().nonnegative(),
+    admins: z.number().int().nonnegative(),
+  }),
+  games: z.object({
+    total: z.number().int().nonnegative(),
+    active: z.number().int().nonnegative(),
+    finished: z.number().int().nonnegative(),
+    waiting: z.number().int().nonnegative(),
+  }),
+  daily: z.object({
+    totalPlayed: z.number().int().nonnegative(),
+    totalCompleted: z.number().int().nonnegative(),
+  }),
+  catalog: z.object({
+    total: z.number().int().nonnegative(),
+    active: z.number().int().nonnegative(),
+    inactive: z.number().int().nonnegative(),
+    byDifficulty: z.object({
+      easy: z.number().int().nonnegative(),
+      medium: z.number().int().nonnegative(),
+      hard: z.number().int().nonnegative(),
+    }),
+    byCategory: z.record(
+      z.object({
+        total: z.number().int().nonnegative(),
+        active: z.number().int().nonnegative(),
+      }),
+    ),
+  }),
+});
+export type AdminStats = z.infer<typeof adminStatsSchema>;
+
+export const catalogItemSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  artist: z.string(),
+  category: z.string(),
+  difficulty: z.string(),
+  play_count: z.number().int().nonnegative(),
+  correct_rate: z.number(),
+  is_active: z.boolean(),
+  midi_file_url: z.string(),
+});
+export type CatalogItem = z.infer<typeof catalogItemSchema>;
+
+export const catalogListResponseSchema = z.object({
+  items: z.array(catalogItemSchema),
+  total: z.number().int().nonnegative(),
+});
+export type CatalogListResponse = z.infer<typeof catalogListResponseSchema>;

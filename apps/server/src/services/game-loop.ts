@@ -5,80 +5,25 @@ import {
   MIN_PLAYERS_PER_ROOM,
   calculateArtistScore,
   calculateTitleScore,
-  encodeBotEvent,
-  getTodayBRT,
   isActivePhase,
   resolveGuessPosition,
   verifyGuess,
 } from '@wts/shared';
-import type { ChatMessage } from '@wts/shared';
-import {
-  XP_FIRST_MATCH_OF_DAY,
-  XP_MULTIPLAYER_CORRECT_DIVISOR,
-  XP_MULTIPLAYER_FINISH_BASE,
-  XP_MULTIPLAYER_PODIUM,
-  XP_MULTIPLAYER_ROUND_PLAYED,
-} from '@wts/shared/constants';
 import type { TypedServer } from '../socket/index.js';
-import type {
-  ArtistMatchAnswer,
-  CorrectAnswer,
-  ServerRoomState,
-  ServerRoundState,
-} from '../types/room.js';
+import type { ArtistMatchAnswer, CorrectAnswer } from '../types/room.js';
 import type { AchievementService } from './achievement-service.js';
+import { broadcastBotEvent, broadcastPlayerMessage } from './bot-broadcaster.js';
 import type { MidiProvider } from './midi-provider.js';
+import { createMultiplayerXpAwarder } from './multiplayer-xp-awarder.js';
 import type { ReferralService } from './referral-service.js';
 import * as roomManager from './room-manager.js';
+import {
+  broadcastRoomState,
+  clearRoundTimers,
+  connectedPlayerCount,
+  createRoundOrchestrator,
+} from './round-orchestrator.js';
 import type { XpService } from './xp-service.js';
-
-const ROUND_START_COUNTDOWN_MS = 3000;
-const ROUND_END_DISPLAY_MS = 12000;
-
-type Phase = 1 | 2 | 3 | 4;
-
-function phaseToStatus(phase: Phase): GameStatus {
-  const map: Record<Phase, GameStatus> = {
-    1: GameStatus.PHASE_1,
-    2: GameStatus.PHASE_2,
-    3: GameStatus.PHASE_3,
-    4: GameStatus.PHASE_4,
-  };
-  return map[phase];
-}
-
-function makeBotMessage(text: string): ChatMessage {
-  return {
-    id: randomUUID(),
-    authorId: 'bot',
-    text,
-    kind: 'bot',
-    at: Date.now(),
-  };
-}
-
-function broadcastState(io: TypedServer, room: ServerRoomState): void {
-  io.to(`room:${room.code}`).emit('room:state', roomManager.toSnapshot(room));
-}
-
-function clearRoundTimers(round: ServerRoundState): void {
-  if (round.phaseTimer) {
-    clearTimeout(round.phaseTimer);
-    round.phaseTimer = null;
-  }
-  if (round.tickInterval) {
-    clearInterval(round.tickInterval);
-    round.tickInterval = null;
-  }
-}
-
-function connectedPlayerCount(room: ServerRoomState): number {
-  let count = 0;
-  for (const p of room.players.values()) {
-    if (p.connected) count++;
-  }
-  return count;
-}
 
 export interface GameLoop {
   startGame(roomCode: string, hostId: string): string | null;
@@ -93,37 +38,13 @@ export function createGameLoop(
   referralService?: ReferralService,
   achievementService?: AchievementService,
 ): GameLoop {
-  function fireAndForgetXp(
-    userId: string,
-    source: Parameters<XpService['awardXp']>[0]['source'],
-    sourceRef: string,
-    amount: number,
-    context: Record<string, unknown>,
-  ): void {
-    if (!xpService || !userId || userId.startsWith('guest:') || amount <= 0) return;
-    setImmediate(() => {
-      xpService.awardXp({ userId, source, sourceRef, amount, context }).catch(() => {});
-    });
-  }
-
-  /** First MP/Daily completion of the day grants a one-off bonus; idempotent by date+user. */
-  function awardFirstMatchOfDay(userId: string, matchSource: 'mp' | 'daily'): void {
-    if (!xpService || !userId || userId.startsWith('guest:')) return;
-    const dateISO = getTodayBRT();
-    setImmediate(() => {
-      xpService
-        .awardXp({
-          userId,
-          source: 'first_match_of_day',
-          sourceRef: `first_match_${dateISO}_${userId}`,
-          amount: XP_FIRST_MATCH_OF_DAY,
-          context: { date: dateISO, matchSource },
-        })
-        .catch(() => {});
-    });
-  }
-
-  // ─── Start Game ────────────────────────────────────────────
+  const xpAwarder = createMultiplayerXpAwarder(xpService);
+  const orchestrator = createRoundOrchestrator({
+    io,
+    xpAwarder,
+    referralService,
+    achievementService,
+  });
 
   function startGame(roomCode: string, hostId: string): string | null {
     const room = roomManager.getRoom(roomCode);
@@ -134,7 +55,6 @@ export function createGameLoop(
       return 'INVALID_STATE';
     if (connectedPlayerCount(room) < MIN_PLAYERS_PER_ROOM) return 'NOT_ENOUGH_PLAYERS';
 
-    // Reset all player scores and ready states
     for (const player of room.players.values()) {
       player.totalScore = 0;
       player.correctCount = 0;
@@ -145,7 +65,6 @@ export function createGameLoop(
     room.gameSessionId = randomUUID();
     room.version++;
 
-    // Load MIDIs asynchronously then start rounds
     midiProvider
       .getMidis(room.config.category, room.config.maxRounds)
       .then((midis) => {
@@ -153,252 +72,28 @@ export function createGameLoop(
         if (!currentRoom) return;
 
         if (midis.length === 0) {
-          const msg = makeBotMessage(encodeBotEvent('noSongsAvailable'));
-          roomManager.addChatMessage(roomCode, msg);
-          io.to(`room:${roomCode}`).emit('chat:message', msg);
+          broadcastBotEvent(io, roomCode, 'noSongsAvailable');
           currentRoom.status = GameStatus.LOBBY;
           currentRoom.version++;
-          broadcastState(io, currentRoom);
+          broadcastRoomState(io, currentRoom);
           return;
         }
 
         room.playlist = midis;
-
-        const msg = makeBotMessage(encodeBotEvent('gameStarting', { rounds: midis.length }));
-        roomManager.addChatMessage(roomCode, msg);
-        io.to(`room:${roomCode}`).emit('chat:message', msg);
-
-        startRound(roomCode);
+        broadcastBotEvent(io, roomCode, 'gameStarting', { rounds: midis.length });
+        orchestrator.startRound(roomCode);
       })
       .catch(() => {
         const currentRoom = roomManager.getRoom(roomCode);
         if (currentRoom) {
           currentRoom.status = GameStatus.LOBBY;
           currentRoom.version++;
-          broadcastState(io, currentRoom);
+          broadcastRoomState(io, currentRoom);
         }
       });
 
     return null;
   }
-
-  // ─── Start Round ───────────────────────────────────────────
-
-  function startRound(roomCode: string): void {
-    const room = roomManager.getRoom(roomCode);
-    if (!room) return;
-
-    const midi = room.playlist[room.currentRoundIndex];
-    if (!midi) {
-      endGame(roomCode);
-      return;
-    }
-
-    room.status = GameStatus.ROUND_START;
-    room.round = {
-      current: room.currentRoundIndex + 1,
-      total: room.playlist.length,
-      midi,
-      phase: null,
-      phaseStartAt: 0,
-      phaseEndAt: 0,
-      correctAnswers: [],
-      artistMatchAnswers: [],
-      phaseTimer: null,
-      tickInterval: null,
-    };
-    room.version++;
-
-    const msg = makeBotMessage(
-      encodeBotEvent('roundStart', { current: room.round.current, total: room.round.total }),
-    );
-    roomManager.addChatMessage(roomCode, msg);
-    io.to(`room:${roomCode}`).emit('chat:message', msg);
-
-    broadcastState(io, room);
-
-    // Countdown before starting phase 1
-    room.round.phaseTimer = setTimeout(() => {
-      startPhase(roomCode, 1);
-    }, ROUND_START_COUNTDOWN_MS);
-  }
-
-  // ─── Start Phase ───────────────────────────────────────────
-
-  function startPhase(roomCode: string, phase: Phase): void {
-    const room = roomManager.getRoom(roomCode);
-    if (!room?.round) return;
-
-    const round = room.round;
-
-    // Clear previous timers
-    clearRoundTimers(round);
-
-    room.status = phaseToStatus(phase);
-    round.phase = phase;
-    const now = Date.now();
-    round.phaseStartAt = now;
-    round.phaseEndAt = now + room.config.timePerPhaseSec * 1000;
-    room.version++;
-
-    // Extract audio data for this phase
-    const phaseKey = `phase${phase}` as keyof typeof round.midi.phases;
-    const phaseConfig = round.midi.phases[phaseKey];
-
-    io.to(`room:${roomCode}`).emit('phase:start', {
-      phase,
-      endsAt: round.phaseEndAt,
-      audioData: phaseConfig,
-      midiFileUrl: round.midi.midiFileUrl,
-    });
-
-    broadcastState(io, room);
-
-    // 1-second tick for state sync
-    round.tickInterval = setInterval(() => {
-      const currentRoom = roomManager.getRoom(roomCode);
-      if (!currentRoom) {
-        if (round.tickInterval) clearInterval(round.tickInterval);
-        return;
-      }
-      broadcastState(io, currentRoom);
-    }, 1000);
-
-    // Phase timeout
-    round.phaseTimer = setTimeout(() => {
-      endPhase(roomCode);
-    }, room.config.timePerPhaseSec * 1000);
-  }
-
-  // ─── End Phase ─────────────────────────────────────────────
-
-  function endPhase(roomCode: string): void {
-    const room = roomManager.getRoom(roomCode);
-    if (!room?.round) return;
-
-    const round = room.round;
-    clearRoundTimers(round);
-
-    const currentPhase = round.phase;
-    if (!currentPhase) return;
-
-    if (currentPhase < 4) {
-      startPhase(roomCode, (currentPhase + 1) as Phase);
-    } else {
-      endRound(roomCode);
-    }
-  }
-
-  // ─── End Round ─────────────────────────────────────────────
-
-  function endRound(roomCode: string): void {
-    const room = roomManager.getRoom(roomCode);
-    if (!room?.round) return;
-
-    const round = room.round;
-    clearRoundTimers(round);
-
-    room.status = GameStatus.ROUND_END;
-    room.version++;
-
-    // Reveal the answer
-    io.to(`room:${roomCode}`).emit('round:reveal', {
-      title: round.midi.title,
-      artist: round.midi.artist,
-      correctPlayerIds: round.correctAnswers.map((a) => a.playerId),
-    });
-
-    // Award participation XP to every connected player — rewards showing up and trying,
-    // not just winning. Idempotent per (gameSession, round, player).
-    for (const player of room.players.values()) {
-      if (!player.connected) continue;
-      fireAndForgetXp(
-        player.id,
-        'multiplayer_round_played',
-        `mp_played_${room.gameSessionId}_${room.currentRoundIndex}_${player.id}`,
-        XP_MULTIPLAYER_ROUND_PLAYED,
-        { roomCode, roundIndex: room.currentRoundIndex },
-      );
-    }
-
-    broadcastState(io, room);
-
-    // Wait then advance
-    round.phaseTimer = setTimeout(() => {
-      const currentRoom = roomManager.getRoom(roomCode);
-      if (!currentRoom) return;
-
-      currentRoom.currentRoundIndex++;
-      if (currentRoom.currentRoundIndex < currentRoom.playlist.length) {
-        startRound(roomCode);
-      } else {
-        endGame(roomCode);
-      }
-    }, ROUND_END_DISPLAY_MS);
-  }
-
-  // ─── End Game ──────────────────────────────────────────────
-
-  function endGame(roomCode: string): void {
-    const room = roomManager.getRoom(roomCode);
-    if (!room) return;
-
-    if (room.round) {
-      clearRoundTimers(room.round);
-    }
-
-    room.status = GameStatus.GAME_END;
-    room.round = null;
-    room.version++;
-
-    // Final ranking drives both podium bonus XP and first-match-of-day detection.
-    const ranking = Array.from(room.players.values())
-      .filter((p) => p.connected)
-      .sort((a, b) => b.totalScore - a.totalScore);
-
-    ranking.forEach((player, idx) => {
-      const position = idx + 1;
-      const podiumBonus = XP_MULTIPLAYER_PODIUM[position] ?? 0;
-      const amount = XP_MULTIPLAYER_FINISH_BASE + podiumBonus;
-      fireAndForgetXp(
-        player.id,
-        'multiplayer_finish',
-        `mp_finish_${room.gameSessionId}_${player.id}`,
-        amount,
-        { finalPosition: position, totalPlayers: ranking.length, roomCode },
-      );
-      awardFirstMatchOfDay(player.id, 'mp');
-
-      // Referral reward — fires once per invitee when they finish their first MP match.
-      if (referralService && !player.id.startsWith('guest:')) {
-        setImmediate(() => {
-          referralService.maybeRewardReferrer(player.id).catch(() => {});
-        });
-      }
-
-      // Achievement evaluation — mp_first_win fires when this player finishes in 1st place.
-      if (achievementService && !player.id.startsWith('guest:')) {
-        const playerId = player.id;
-        setImmediate(() => {
-          achievementService
-            .checkAchievements(playerId, 'multiplayer', {
-              finalPosition: position,
-              totalPlayers: ranking.length,
-              roomCode,
-            })
-            .catch(() => {});
-        });
-      }
-    });
-
-    const msg = makeBotMessage(encodeBotEvent('gameOver'));
-    roomManager.addChatMessage(roomCode, msg);
-    io.to(`room:${roomCode}`).emit('chat:message', msg);
-
-    broadcastState(io, room);
-  }
-
-  // ─── Handle Guess ──────────────────────────────────────────
 
   function handleGuess(roomCode: string, playerId: string, guess: string): void {
     const room = roomManager.getRoom(roomCode);
@@ -433,56 +128,40 @@ export function createGameLoop(
         player.correctCount++;
         room.version++;
 
-        // Award XP for the correct guess. source_ref is tied to this game session + round
-        // + player so repeated plays or reconnects never double-award.
-        const xpAmount = Math.floor(score / XP_MULTIPLAYER_CORRECT_DIVISOR);
-        fireAndForgetXp(
+        xpAwarder.awardCorrectGuess({
           playerId,
-          'multiplayer_correct',
-          `mp_correct_${room.gameSessionId}_${room.currentRoundIndex}_${playerId}`,
-          xpAmount,
-          { phase: round.phase, position, roomCode, score },
-        );
+          gameSessionId: room.gameSessionId,
+          roundIndex: room.currentRoundIndex,
+          score,
+          phase: round.phase,
+          position,
+          roomCode,
+        });
 
-        const msg = makeBotMessage(
-          encodeBotEvent('guessedCorrectly', { nickname: player.nickname, score }),
-        );
-        roomManager.addChatMessage(roomCode, msg);
-        io.to(`room:${roomCode}`).emit('chat:message', msg);
-        broadcastState(io, room);
+        broadcastBotEvent(io, roomCode, 'guessedCorrectly', {
+          nickname: player.nickname,
+          score,
+        });
+        broadcastRoomState(io, room);
 
         const connected = connectedPlayerCount(room);
         if (round.correctAnswers.length >= connected) {
           clearRoundTimers(round);
-          endRound(roomCode);
+          orchestrator.endRound(roomCode);
         }
         break;
       }
       case GuessResult.HOT: {
-        const msg = makeBotMessage(encodeBotEvent('hot', { nickname: player.nickname }));
-        roomManager.addChatMessage(roomCode, msg);
-        io.to(`room:${roomCode}`).emit('chat:message', msg);
+        broadcastBotEvent(io, roomCode, 'hot', { nickname: player.nickname });
         break;
       }
       case GuessResult.WARM: {
-        const msg = makeBotMessage(encodeBotEvent('warm', { nickname: player.nickname }));
-        roomManager.addChatMessage(roomCode, msg);
-        io.to(`room:${roomCode}`).emit('chat:message', msg);
+        broadcastBotEvent(io, roomCode, 'warm', { nickname: player.nickname });
         break;
       }
       case GuessResult.ARTIST_MATCH: {
-        // Only award artist points once per player per round
         if (round.artistMatchAnswers.some((a) => a.playerId === playerId)) {
-          // Already got artist — treat as a regular chat message
-          const dupMsg: ChatMessage = {
-            id: randomUUID(),
-            authorId: playerId,
-            text: guess,
-            kind: 'player',
-            at: Date.now(),
-          };
-          roomManager.addChatMessage(roomCode, dupMsg);
-          io.to(`room:${roomCode}`).emit('chat:message', dupMsg);
+          broadcastPlayerMessage(io, roomCode, playerId, guess);
           break;
         }
 
@@ -501,31 +180,19 @@ export function createGameLoop(
         player.totalScore += artistScore;
         room.version++;
 
-        const msg = makeBotMessage(
-          encodeBotEvent('artistMatch', { nickname: player.nickname, score: artistScore }),
-        );
-        roomManager.addChatMessage(roomCode, msg);
-        io.to(`room:${roomCode}`).emit('chat:message', msg);
-        broadcastState(io, room);
+        broadcastBotEvent(io, roomCode, 'artistMatch', {
+          nickname: player.nickname,
+          score: artistScore,
+        });
+        broadcastRoomState(io, room);
         break;
       }
       case GuessResult.WRONG: {
-        // Wrong guesses show as regular chat messages
-        const msg: ChatMessage = {
-          id: randomUUID(),
-          authorId: playerId,
-          text: guess,
-          kind: 'player',
-          at: Date.now(),
-        };
-        roomManager.addChatMessage(roomCode, msg);
-        io.to(`room:${roomCode}`).emit('chat:message', msg);
+        broadcastPlayerMessage(io, roomCode, playerId, guess);
         break;
       }
     }
   }
-
-  // ─── Handle Chat ───────────────────────────────────────────
 
   function handleChat(roomCode: string, playerId: string, text: string): void {
     const room = roomManager.getRoom(roomCode);
@@ -539,15 +206,7 @@ export function createGameLoop(
       return;
     }
 
-    const msg: ChatMessage = {
-      id: randomUUID(),
-      authorId: playerId,
-      text,
-      kind: 'player',
-      at: Date.now(),
-    };
-    roomManager.addChatMessage(roomCode, msg);
-    io.to(`room:${roomCode}`).emit('chat:message', msg);
+    broadcastPlayerMessage(io, roomCode, playerId, text);
   }
 
   return { startGame, handleGuess, handleChat };

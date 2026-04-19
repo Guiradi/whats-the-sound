@@ -4,10 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useAdminCategories } from '@/hooks/admin/use-admin-categories';
 import { useRouter } from '@/i18n/navigation';
 import { authFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
-import { type CategoryInfo, MidiDifficulty, adminCategoriesResponseSchema } from '@wts/shared';
+import { type CategoryInfo, MidiDifficulty } from '@wts/shared';
 import type { MidiPhases } from '@wts/shared';
 import { Check, ChevronLeft, ChevronRight, Loader2, Upload, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -143,7 +144,8 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [categories, setCategories] = useState<CategoryInfo[]>([]);
+  const { data: categoriesData } = useAdminCategories();
+  const categories: CategoryInfo[] = categoriesData?.categories ?? [];
 
   const stepIndex = STEPS.indexOf(step);
   const isFirst = stepIndex === 0;
@@ -154,27 +156,12 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
   }, []);
 
   useEffect(() => {
-    async function loadCategories() {
-      try {
-        const res = await authFetch('/api/admin/categories');
-        if (res.ok) {
-          const parsed = adminCategoriesResponseSchema.safeParse(await res.json());
-          if (parsed.success) {
-            setCategories(parsed.data.categories);
-            if (mode === 'create' && parsed.data.categories.length > 0) {
-              const firstEnabled = parsed.data.categories.find((c) => !c.isDisabled);
-              if (firstEnabled) {
-                updateForm({ category: firstEnabled.name });
-              }
-            }
-          }
-        }
-      } catch {
-        // fallback: categories stay empty
-      }
+    if (mode !== 'create' || categories.length === 0) return;
+    const firstEnabled = categories.find((c) => !c.isDisabled);
+    if (firstEnabled) {
+      updateForm({ category: firstEnabled.name });
     }
-    loadCategories();
-  }, [mode, updateForm]);
+  }, [mode, categories, updateForm]);
 
   const handleFileUpload = async (file: File) => {
     setUploading(true);
