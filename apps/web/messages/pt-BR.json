@@ -559,6 +559,8 @@
     "replay": "Ouvir novamente",
     "guessPlaceholder": "Qual é a música?",
     "guestCta": "Faça login para enviar palpites e salvar seu progresso.",
+    "loginRequired": "Você precisa entrar ou jogar como convidado para jogar o Daily Sound.",
+    "loginAction": "Entrar ou jogar como convidado",
     "nextDaily": "Próximo desafio em:",
     "feedback": {
       "correct": "Acertou! 🎉",

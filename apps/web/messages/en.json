@@ -557,6 +557,8 @@
     "replay": "Listen again",
     "guessPlaceholder": "What's the song?",
     "guestCta": "Sign in to submit guesses and save your progress.",
+    "loginRequired": "You need to sign in or play as a guest to play Daily Sound.",
+    "loginAction": "Sign in or play as guest",
     "nextDaily": "Next challenge in:",
     "feedback": {
       "correct": "Correct! 🎉",
