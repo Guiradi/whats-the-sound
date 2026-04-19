@@ -95,6 +95,7 @@ export interface DailyAttempt {
   phase: 1 | 2 | 3 | 4;
   guess: string;
   result: GuessResult;
+  skipped?: boolean;
 }
 
 export interface DailyState {

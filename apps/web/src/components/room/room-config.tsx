@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
 import { env } from '@/env';
 import { MidiCategory } from '@wts/shared';
 import type { RoomConfig } from '@wts/shared';
@@ -52,18 +53,18 @@ export function RoomConfigForm({ onSubmit, isLoading }: RoomConfigFormProps) {
         >
           {t('config.category')}
         </label>
-        <select
+        <Select
           id="room-category"
           value={category}
           onChange={(e) => setCategory(e.target.value as MidiCategory | 'random')}
-          className="h-10 w-full rounded-md border border-bg-border bg-bg-surface px-3 text-sm text-text-primary focus-visible:border-accent-cyan focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-cyan"
+          className="w-full"
         >
           {categories.map((cat) => (
             <option key={cat} value={cat}>
               {t(`categories.${cat}`)}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div>

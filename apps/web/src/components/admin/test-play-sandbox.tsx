@@ -12,6 +12,7 @@ import { AudioVisualizer } from '@/components/audio/audio-visualizer';
 import { GameTimer } from '@/components/game/game-timer';
 import { PhaseIndicator } from '@/components/game/phase-indicator';
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
 import { useMidiPlayer } from '@/hooks/use-midi-player';
 import { Link } from '@/i18n/navigation';
 import { authFetch } from '@/lib/api-client';
@@ -389,18 +390,18 @@ function TestPlaySandboxInner({ catalogId }: TestPlaySandboxProps) {
                 >
                   {t('position')}
                 </label>
-                <select
+                <Select
                   id="position-select"
                   value={position}
                   onChange={(e) => setPosition(Number(e.target.value))}
-                  className="mt-2 h-10 w-full rounded-md border border-bg-border bg-bg-elevated px-3 text-sm text-text-primary"
+                  className="mt-2 w-full"
                 >
                   {POSITION_OPTIONS.map((p) => (
                     <option key={p} value={p}>
                       {t('positionLabel', { position: p })}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <TestPlayScorePreview breakdown={breakdown} />

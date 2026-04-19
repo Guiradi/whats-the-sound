@@ -49,8 +49,6 @@ export class SupabaseMidiProvider implements MidiProvider {
       query = query.eq('category', category);
     }
 
-    // Supabase doesn't support ORDER BY random() directly.
-    // Fetch more than needed and shuffle client-side.
     const fetchCount = Math.min(count * 3, 100);
     const { data, error } = await query.limit(fetchCount);
 
@@ -64,7 +62,6 @@ export class SupabaseMidiProvider implements MidiProvider {
 
     const rows = data as MidiCatalogRow[];
 
-    // Fisher-Yates shuffle
     for (let i = rows.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       const tmp = rows[i];
@@ -72,7 +69,15 @@ export class SupabaseMidiProvider implements MidiProvider {
       rows[j] = tmp as MidiCatalogRow;
     }
 
-    return rows.slice(0, count).map(rowToEntry);
+    if (rows.length >= count) {
+      return rows.slice(0, count).map(rowToEntry);
+    }
+
+    const padded: MidiCatalogRow[] = [];
+    while (padded.length < count) {
+      padded.push(rows[padded.length % rows.length] as MidiCatalogRow);
+    }
+    return padded.map(rowToEntry);
   }
 
   /**

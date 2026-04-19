@@ -18,11 +18,9 @@ interface UseDailyReturn {
   isLoading: boolean;
   error: string | null;
   submitGuess: (guess: string) => Promise<DailyGuessResponse | null>;
-  /** Title revealed after completion */
+  skipPhase: () => Promise<DailyGuessResponse | null>;
   revealedTitle: string | null;
-  /** Artist revealed after completion */
   revealedArtist: string | null;
-  /** Streak info (available after completion for logged-in users) */
   streak: DailyStreak | null;
 }
 
@@ -84,20 +82,15 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
     load();
   }, [userId, fetchResult]);
 
-  const submitGuess = useCallback(
-    async (guess: string): Promise<DailyGuessResponse | null> => {
+  const postAttempt = useCallback(
+    async (body: { guess?: string; skip?: boolean }): Promise<DailyGuessResponse | null> => {
       if (!state || !userId) return null;
 
       try {
         const res = await authFetch('/api/daily/guess', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            guess,
-            phase: state.currentPhase,
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...body, phase: state.currentPhase }),
         });
 
         if (!res.ok) {
@@ -106,12 +99,18 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
 
         const data = (await res.json()) as DailyGuessResponse;
 
-        // Update local state based on response
-        const newAttempt: DailyAttempt = {
-          phase: state.currentPhase,
-          guess,
-          result: data.result,
-        };
+        const newAttempt: DailyAttempt = body.skip
+          ? {
+              phase: state.currentPhase,
+              guess: '',
+              result: data.result,
+              skipped: true,
+            }
+          : {
+              phase: state.currentPhase,
+              guess: body.guess ?? '',
+              result: data.result,
+            };
 
         setState((prev) => {
           if (!prev) return prev;
@@ -126,11 +125,9 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
           };
         });
 
-        // Reveal title/artist on completion
         if (data.completed && data.title) {
           setRevealedTitle(data.title);
           setRevealedArtist(data.artist ?? null);
-          // Fetch streak info (server updates daily_streak on completion)
           fetchResult();
         }
 
@@ -143,11 +140,16 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
     [state, userId, fetchResult],
   );
 
+  const submitGuess = useCallback((guess: string) => postAttempt({ guess }), [postAttempt]);
+
+  const skipPhase = useCallback(() => postAttempt({ skip: true }), [postAttempt]);
+
   return {
     state,
     isLoading,
     error,
     submitGuess,
+    skipPhase,
     revealedTitle,
     revealedArtist,
     streak,

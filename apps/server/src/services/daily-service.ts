@@ -70,13 +70,22 @@ export function createDailyService(
     isCorrect: boolean;
     justCompleted: boolean;
     isFirstAttemptToday: boolean;
+    allAttemptsSkipped: boolean;
   }
 
   async function awardDailyXp(params: AwardDailyXpParams): Promise<void> {
     if (!xpService) return;
-    const { userId, dateISO, phase, isCorrect, justCompleted, isFirstAttemptToday } = params;
+    const {
+      userId,
+      dateISO,
+      phase,
+      isCorrect,
+      justCompleted,
+      isFirstAttemptToday,
+      allAttemptsSkipped,
+    } = params;
 
-    if (justCompleted) {
+    if (justCompleted && !allAttemptsSkipped) {
       await xpService.awardXp(
         isCorrect
           ? {
@@ -263,6 +272,7 @@ export function createDailyService(
     dateISO: string,
     phase: 1 | 2 | 3 | 4,
     guess: string,
+    skip = false,
   ): Promise<DailyGuessResponse> {
     const midiId = await selectDailyMidi(dateISO);
     const midi = await midiProvider.getMidiById(midiId);
@@ -303,11 +313,14 @@ export function createDailyService(
       };
     }
 
-    // Verify the guess
-    const verification = verifyDailyGuess(guess, midi.acceptedTitles, midi.acceptedArtists);
+    const verification = skip
+      ? { result: GuessResult.WRONG }
+      : verifyDailyGuess(guess, midi.acceptedTitles, midi.acceptedArtists);
 
     const attempts: DailyAttempt[] = existing?.attempts ?? [];
-    const newAttempt: DailyAttempt = { phase, guess, result: verification.result };
+    const newAttempt: DailyAttempt = skip
+      ? { phase, guess: '', result: GuessResult.WRONG, skipped: true }
+      : { phase, guess, result: verification.result };
     attempts.push(newAttempt);
 
     const isCorrect = verification.result === GuessResult.CORRECT;
@@ -347,6 +360,8 @@ export function createDailyService(
       }
     }
 
+    const allAttemptsSkipped = attempts.every((a) => a.skipped === true);
+
     await awardDailyXp({
       userId,
       dateISO,
@@ -354,6 +369,7 @@ export function createDailyService(
       isCorrect,
       justCompleted,
       isFirstAttemptToday,
+      allAttemptsSkipped,
     });
 
     // Referral reward: if this user was referred, this completion triggers the bonus

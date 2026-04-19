@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { useAdminCategories } from '@/hooks/admin/use-admin-categories';
 import { useCatalogItems } from '@/hooks/admin/use-catalog-items';
 import { Link } from '@/i18n/navigation';
@@ -158,13 +159,12 @@ export function MidiCatalogTable() {
             className="pl-9"
           />
         </div>
-        <select
+        <Select
           value={category}
           onChange={(e) => {
             setCategory(e.target.value);
             setPage(0);
           }}
-          className="h-10 rounded-md border border-bg-border bg-bg-surface px-3 text-sm text-text-primary"
         >
           <option value="">{t('filters.allCategories')}</option>
           {categories.map((c) => (
@@ -173,14 +173,13 @@ export function MidiCatalogTable() {
               {c.isDisabled ? ` (${t('categoryDisabled')})` : ''}
             </option>
           ))}
-        </select>
-        <select
+        </Select>
+        <Select
           value={difficulty}
           onChange={(e) => {
             setDifficulty(e.target.value);
             setPage(0);
           }}
-          className="h-10 rounded-md border border-bg-border bg-bg-surface px-3 text-sm text-text-primary"
         >
           <option value="">{t('filters.allDifficulties')}</option>
           {DIFFICULTIES.map((d) => (
@@ -188,7 +187,7 @@ export function MidiCatalogTable() {
               {t(`difficulties.${d}`)}
             </option>
           ))}
-        </select>
+        </Select>
         <label className="inline-flex items-center gap-2 text-sm text-text-secondary">
           <input
             type="checkbox"

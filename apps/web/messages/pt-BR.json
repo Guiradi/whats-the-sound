@@ -83,8 +83,7 @@
     "heroTagline": "Ouça. Adivinhe. Repita.",
     "quickStart": {
       "submit": "Jogar",
-      "divider": "ou entre com conta",
-      "dailyLink": "Ver Daily Sound"
+      "divider": "ou entre com conta"
     },
     "howItWorks": {
       "title": "Como funciona",
@@ -560,6 +559,7 @@
     "ready": "Jogar",
     "readyHint": "Quando estiver pronto, a música começa!",
     "replay": "Ouvir novamente",
+    "skip": "Pular fase",
     "guessPlaceholder": "Qual é a música?",
     "guestCta": "Faça login para enviar palpites e salvar seu progresso.",
     "loginRequired": "Você precisa entrar ou jogar como convidado para jogar o Daily Sound.",

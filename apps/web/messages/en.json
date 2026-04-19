@@ -83,8 +83,7 @@
     "heroTagline": "Listen. Guess. Repeat.",
     "quickStart": {
       "submit": "Play",
-      "divider": "or sign in",
-      "dailyLink": "See Daily Sound"
+      "divider": "or sign in"
     },
     "howItWorks": {
       "title": "How it works",
@@ -558,6 +557,7 @@
     "ready": "Play",
     "readyHint": "When you're ready, the music starts!",
     "replay": "Listen again",
+    "skip": "Skip phase",
     "guessPlaceholder": "What's the song?",
     "guestCta": "Sign in to submit guesses and save your progress.",
     "loginRequired": "You need to sign in or play as a guest to play Daily Sound.",

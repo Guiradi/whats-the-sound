@@ -21,9 +21,10 @@ export function PhaseAttempts({
   const t = useTranslations('daily');
 
   // Group attempts by phase, find decisive attempt per phase
-  function getPhaseStatus(phase: number): 'correct' | 'wrong' | 'active' | 'upcoming' {
+  function getPhaseStatus(phase: number): 'correct' | 'wrong' | 'skipped' | 'active' | 'upcoming' {
     const phaseAttempts = attempts.filter((a) => a.phase === phase);
     const hasCorrect = phaseAttempts.some((a) => a.result === GuessResult.CORRECT);
+    const hasSkip = phaseAttempts.some((a) => a.skipped === true);
     const hasWrongConsumingAttempt = phaseAttempts.some(
       (a) =>
         a.result !== GuessResult.CORRECT &&
@@ -32,6 +33,7 @@ export function PhaseAttempts({
     );
 
     if (hasCorrect) return 'correct';
+    if (hasSkip && !hasCorrect) return 'skipped';
     if (hasWrongConsumingAttempt) return 'wrong';
     if (phase === currentPhase && !completed) return 'active';
     if (phase < currentPhase || completed) return 'wrong';
@@ -52,12 +54,20 @@ export function PhaseAttempts({
                 status === 'correct' &&
                   'bg-accent-green/20 text-accent-green ring-1 ring-accent-green/40',
                 status === 'wrong' && 'bg-accent-red/20 text-accent-red ring-1 ring-accent-red/40',
+                status === 'skipped' &&
+                  'bg-text-muted/10 text-text-muted ring-1 ring-text-muted/30',
                 status === 'active' &&
                   'bg-accent-cyan/20 text-accent-cyan ring-2 ring-accent-cyan/60 shadow-[var(--shadow-glow-cyan)]',
                 status === 'upcoming' && 'bg-bg-surface text-text-muted ring-1 ring-bg-border',
               )}
             >
-              {status === 'correct' ? '✓' : status === 'wrong' ? '✗' : phase}
+              {status === 'correct'
+                ? '✓'
+                : status === 'skipped'
+                  ? '»'
+                  : status === 'wrong'
+                    ? '✗'
+                    : phase}
             </div>
             <span className="text-xs text-text-muted">{t('phaseLabel', { n: phase })}</span>
           </div>

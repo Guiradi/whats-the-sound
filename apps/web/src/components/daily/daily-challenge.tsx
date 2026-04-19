@@ -11,7 +11,7 @@ import { useDaily } from '@/hooks/use-daily';
 import { useMidiPlayer } from '@/hooks/use-midi-player';
 import { cn } from '@/lib/utils';
 import { GuessResult } from '@wts/shared';
-import { Loader2, Music, Play, Send } from 'lucide-react';
+import { Loader2, Music, Play, Send, SkipForward } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -19,9 +19,10 @@ export function DailyChallenge() {
   const t = useTranslations('daily');
   const { user, isGuest } = useAuth();
   const userId = user?.id ?? null;
-  const { state, isLoading, error, submitGuess, revealedTitle, revealedArtist, streak } = useDaily({
-    userId,
-  });
+  const { state, isLoading, error, submitGuess, skipPhase, revealedTitle, revealedArtist, streak } =
+    useDaily({
+      userId,
+    });
   const player = useMidiPlayer();
   const [guessInput, setGuessInput] = useState('');
   const [lastFeedback, setLastFeedback] = useState<string | null>(null);
@@ -49,17 +50,8 @@ export function DailyChallenge() {
     player.play(state.phaseAudioData);
   }, [ready, midiLoaded, state, player]);
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!guessInput.trim() || isSubmitting) return;
-
-      setIsSubmitting(true);
-      setLastFeedback(null);
-
-      const result = await submitGuess(guessInput.trim());
-      setIsSubmitting(false);
-
+  const applyResult = useCallback(
+    (result: Awaited<ReturnType<typeof submitGuess>>) => {
       if (!result) return;
 
       // Set feedback message
@@ -92,8 +84,30 @@ export function DailyChallenge() {
       setGuessInput('');
       inputRef.current?.focus();
     },
-    [guessInput, isSubmitting, submitGuess, t, player],
+    [player, t],
   );
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!guessInput.trim() || isSubmitting) return;
+      setIsSubmitting(true);
+      setLastFeedback(null);
+      const result = await submitGuess(guessInput.trim());
+      setIsSubmitting(false);
+      applyResult(result);
+    },
+    [guessInput, isSubmitting, submitGuess, applyResult],
+  );
+
+  const handleSkip = useCallback(async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setLastFeedback(null);
+    const result = await skipPhase();
+    setIsSubmitting(false);
+    applyResult(result);
+  }, [isSubmitting, skipPhase, applyResult]);
 
   const handleReplay = useCallback(() => {
     if (state?.phaseAudioData) {
@@ -190,11 +204,23 @@ export function DailyChallenge() {
       {/* Audio Visualizer */}
       <AudioVisualizer analyser={player.analyser} isPlaying={player.isPlaying} />
 
-      {/* Replay button */}
-      <div className="flex justify-center">
+      {/* Replay + skip */}
+      <div className="flex justify-center gap-2">
         <Button variant="secondary" size="sm" onClick={handleReplay} disabled={player.isPlaying}>
           {t('replay')}
         </Button>
+        {!isGuest && userId ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSkip}
+            disabled={isSubmitting}
+            className="gap-1"
+          >
+            <SkipForward className="h-4 w-4" />
+            {t('skip')}
+          </Button>
+        ) : null}
       </div>
 
       {/* Feedback */}

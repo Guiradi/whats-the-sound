@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { useAdminCategories } from '@/hooks/admin/use-admin-categories';
 import { useRouter } from '@/i18n/navigation';
 import { authFetch } from '@/lib/api-client';
@@ -398,11 +399,11 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                   >
                     {t('metadata.category')}
                   </label>
-                  <select
+                  <Select
                     id="midi-category"
                     value={form.category}
                     onChange={(e) => updateForm({ category: e.target.value })}
-                    className="h-10 w-full rounded-md border border-bg-border bg-bg-surface px-3 text-sm text-text-primary"
+                    className="w-full"
                   >
                     {categories.map((c) => (
                       <option key={c.name} value={c.name}>
@@ -410,7 +411,7 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                         {c.isDisabled ? ` (${tCatalog('categoryDisabled')})` : ''}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <div>
                   <label
@@ -419,18 +420,18 @@ export function MidiUploadForm({ initialData, mode = 'create' }: MidiUploadFormP
                   >
                     {t('metadata.difficulty')}
                   </label>
-                  <select
+                  <Select
                     id="midi-difficulty"
                     value={form.difficulty}
                     onChange={(e) => updateForm({ difficulty: e.target.value })}
-                    className="h-10 w-full rounded-md border border-bg-border bg-bg-surface px-3 text-sm text-text-primary"
+                    className="w-full"
                   >
                     {DIFFICULTIES.map((d) => (
                       <option key={d} value={d}>
                         {tCatalog(`difficulties.${d}`)}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
               <div>

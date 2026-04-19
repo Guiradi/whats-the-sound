@@ -4,10 +4,15 @@ import { z } from 'zod';
 import type { AuthResolver } from '../middleware/auth.js';
 import type { DailyService } from '../services/daily-service.js';
 
-const guessSchema = z.object({
-  guess: z.string().min(1).max(200),
-  phase: z.number().int().min(1).max(4) as z.ZodType<1 | 2 | 3 | 4>,
-});
+const guessSchema = z
+  .object({
+    guess: z.string().max(200).optional(),
+    phase: z.number().int().min(1).max(4) as z.ZodType<1 | 2 | 3 | 4>,
+    skip: z.boolean().optional(),
+  })
+  .refine((data) => data.skip === true || (data.guess !== undefined && data.guess.length > 0), {
+    message: 'guess is required unless skip is true',
+  });
 
 export function createDailyRoutes(dailyService: DailyService, auth: AuthResolver) {
   return async function dailyRoutes(server: FastifyInstance) {
@@ -45,10 +50,16 @@ export function createDailyRoutes(dailyService: DailyService, auth: AuthResolver
       }
 
       const today = getTodayBRT();
-      const { guess, phase } = parsed.data;
+      const { guess, phase, skip } = parsed.data;
 
       try {
-        const result = await dailyService.submitGuess(userId, today, phase, guess);
+        const result = await dailyService.submitGuess(
+          userId,
+          today,
+          phase,
+          guess ?? '',
+          skip === true,
+        );
         return result;
       } catch (err) {
         request.log.error(err, 'Failed to submit daily guess');
