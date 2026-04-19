@@ -111,6 +111,10 @@ export function createRoundOrchestrator(deps: RoundOrchestratorDeps) {
       endsAt: round.phaseEndAt,
       audioData: phaseConfig,
       midiFileUrl: round.midi.midiFileUrl,
+      hints: {
+        year: phase >= 2 ? (round.midi.year ?? null) : null,
+        category: phase >= 3 ? round.midi.category : null,
+      },
     });
 
     broadcastRoomState(io, room);

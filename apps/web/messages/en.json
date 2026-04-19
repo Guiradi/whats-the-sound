@@ -1,4 +1,8 @@
 {
+  "hints": {
+    "year": "Year",
+    "genre": "Genre"
+  },
   "metadata": {
     "siteName": "What's the Sound?",
     "siteDescription": "Multiplayer PWA music guessing game with MIDI audio and progressive reveal.",
@@ -368,6 +372,10 @@
     },
     "status": {
       "youGuessedCorrectly": "You guessed correctly! Waiting for next phase..."
+    },
+    "cadence": {
+      "startingIn": "Starting in",
+      "replayIn": "Replaying in"
     },
     "reveal": {
       "correctPlayers": "Guessed correctly:",

@@ -1,13 +1,20 @@
 'use client';
 
 import type { TypedSocket } from '@/lib/socket';
-import type { ChatMessage, PhaseConfig, RoomStateSnapshot, XpLevelUpPayload } from '@wts/shared';
+import type {
+  ChatMessage,
+  PhaseConfig,
+  PhaseHints,
+  RoomStateSnapshot,
+  XpLevelUpPayload,
+} from '@wts/shared';
 
 export interface PhaseStartPayload {
   phase: 1 | 2 | 3 | 4;
   endsAt: number;
   audioData: PhaseConfig;
   midiFileUrl: string;
+  hints: PhaseHints;
 }
 
 export interface RoundRevealPayload {

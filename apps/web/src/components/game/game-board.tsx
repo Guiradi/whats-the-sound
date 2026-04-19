@@ -10,20 +10,31 @@ import { PhaseIndicator } from '@/components/game/phase-indicator';
 import { PlayerList } from '@/components/game/player-list';
 import { RoundReveal } from '@/components/game/round-reveal';
 import { RoundTransition } from '@/components/game/round-transition';
+import { PhaseHints as PhaseHintsView } from '@/components/shared/phase-hints';
 import { Button } from '@/components/ui/button';
 import { useGameState } from '@/hooks/use-game-state';
 import { useMidiPlayer } from '@/hooks/use-midi-player';
 import { useAudioContext } from '@/lib/midi/audio-context';
-import type { ChatMessage, PhaseConfig, RoomStateSnapshot } from '@wts/shared';
+import { MP_PHASE_INITIAL_COUNTDOWN_MS, MP_PHASE_REPLAY_COUNTDOWN_MS } from '@wts/shared';
+import type { ChatMessage, PhaseConfig, PhaseHints, RoomStateSnapshot } from '@wts/shared';
 import { MessageCircle, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+type CadenceStep =
+  | 'idle'
+  | 'countdown-initial'
+  | 'playing-1'
+  | 'countdown-replay'
+  | 'playing-2'
+  | 'listening';
 
 interface PhaseStartPayload {
   phase: 1 | 2 | 3 | 4;
   endsAt: number;
   audioData: PhaseConfig;
   midiFileUrl: string;
+  hints: PhaseHints;
 }
 
 interface RoundRevealPayload {
@@ -54,26 +65,100 @@ export function GameBoard({
   const midiPlayer = useMidiPlayer();
   const { isReady: audioReady } = useAudioContext();
   const currentMidiUrlRef = useRef<string | null>(null);
+  const [cadenceStep, setCadenceStep] = useState<CadenceStep>('idle');
+  const [countdownSeconds, setCountdownSeconds] = useState(0);
+  const wasPlayingRef = useRef(false);
 
-  // Load MIDI and play when phase:start fires
   useEffect(() => {
     if (!phaseStart) return;
 
-    async function handlePhaseStart(payload: PhaseStartPayload) {
+    let cancelled = false;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    const intervals: ReturnType<typeof setInterval>[] = [];
+
+    async function runCadence(payload: PhaseStartPayload) {
       try {
-        // Load MIDI file if it's a new URL (new round)
         if (payload.midiFileUrl !== currentMidiUrlRef.current) {
           currentMidiUrlRef.current = payload.midiFileUrl;
           await midiPlayer.loadMidi(payload.midiFileUrl);
         }
-        await midiPlayer.play(payload.audioData);
       } catch {
-        // Audio errors are non-fatal — game continues without sound
+        return;
       }
+      if (cancelled) return;
+
+      const initialSec = Math.ceil(MP_PHASE_INITIAL_COUNTDOWN_MS / 1000);
+      setCadenceStep('countdown-initial');
+      setCountdownSeconds(initialSec);
+
+      let remaining = initialSec;
+      const initialInterval = setInterval(() => {
+        remaining -= 1;
+        setCountdownSeconds(Math.max(0, remaining));
+        if (remaining <= 0) clearInterval(initialInterval);
+      }, 1000);
+      intervals.push(initialInterval);
+
+      const playFirst = setTimeout(async () => {
+        if (cancelled) return;
+        setCadenceStep('playing-1');
+        try {
+          await midiPlayer.play(payload.audioData);
+        } catch {
+          // non-fatal
+        }
+      }, MP_PHASE_INITIAL_COUNTDOWN_MS);
+      timeouts.push(playFirst);
     }
 
-    handlePhaseStart(phaseStart);
+    runCadence(phaseStart);
+
+    return () => {
+      cancelled = true;
+      for (const t of timeouts) clearTimeout(t);
+      for (const i of intervals) clearInterval(i);
+    };
   }, [phaseStart, midiPlayer]);
+
+  useEffect(() => {
+    const justEndedFirst =
+      wasPlayingRef.current && !midiPlayer.isPlaying && cadenceStep === 'playing-1';
+    const justEndedSecond =
+      wasPlayingRef.current && !midiPlayer.isPlaying && cadenceStep === 'playing-2';
+    wasPlayingRef.current = midiPlayer.isPlaying;
+
+    if (justEndedFirst && phaseStart) {
+      const replaySec = Math.ceil(MP_PHASE_REPLAY_COUNTDOWN_MS / 1000);
+      setCadenceStep('countdown-replay');
+      setCountdownSeconds(replaySec);
+
+      let remaining = replaySec;
+      const interval = setInterval(() => {
+        remaining -= 1;
+        setCountdownSeconds(Math.max(0, remaining));
+        if (remaining <= 0) clearInterval(interval);
+      }, 1000);
+
+      const timeout = setTimeout(async () => {
+        setCadenceStep('playing-2');
+        try {
+          await midiPlayer.play(phaseStart.audioData);
+        } catch {
+          // non-fatal
+        }
+      }, MP_PHASE_REPLAY_COUNTDOWN_MS);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+
+    if (justEndedSecond) {
+      setCadenceStep('listening');
+    }
+    return undefined;
+  }, [midiPlayer.isPlaying, cadenceStep, phaseStart, midiPlayer]);
 
   // Play the full MIDI on round reveal so players hear what the song was.
   // Resetting currentMidiUrlRef ensures the next round reloads the MIDI.
@@ -193,15 +278,35 @@ export function GameBoard({
         </div>
 
         {/* Visualizer area */}
-        <div className="flex flex-1 flex-col items-center justify-center p-4">
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 p-4">
           <AudioVisualizer
             analyser={midiPlayer.analyser}
             isPlaying={midiPlayer.isPlaying}
             className="w-full max-w-lg"
           />
 
+          {phaseStart?.hints && <PhaseHintsView hints={phaseStart.hints} />}
+
+          {(cadenceStep === 'countdown-initial' || cadenceStep === 'countdown-replay') &&
+            countdownSeconds > 0 && (
+              <div
+                className="flex flex-col items-center gap-1 text-center"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                <span className="text-xs uppercase tracking-wider text-text-muted">
+                  {cadenceStep === 'countdown-initial'
+                    ? t('cadence.startingIn')
+                    : t('cadence.replayIn')}
+                </span>
+                <span className="font-display text-5xl font-bold text-accent-cyan">
+                  {countdownSeconds}
+                </span>
+              </div>
+            )}
+
           {gameState.myCorrect && (
-            <p className="mt-4 text-sm font-semibold text-accent-green">
+            <p className="text-sm font-semibold text-accent-green">
               {t('status.youGuessedCorrectly')}
             </p>
           )}

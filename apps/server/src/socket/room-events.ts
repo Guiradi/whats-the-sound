@@ -37,7 +37,7 @@ const roomConfigSchema = z.object({
   ]),
   maxRounds: z.union([z.literal(5), z.literal(10), z.literal(15)]).default(DEFAULT_ROUND_COUNT),
   timePerPhaseSec: z
-    .union([z.literal(15), z.literal(20), z.literal(30)])
+    .union([z.literal(25), z.literal(35), z.literal(45)])
     .default(DEFAULT_PHASE_DURATION_SEC),
   maxPlayers: z
     .number()

@@ -1,4 +1,8 @@
 {
+  "hints": {
+    "year": "Ano",
+    "genre": "Gênero"
+  },
   "metadata": {
     "siteName": "What's the Sound?",
     "siteDescription": "Jogo PWA multiplayer de adivinhação musical com MIDI e revelação progressiva.",
@@ -368,6 +372,10 @@
     },
     "status": {
       "youGuessedCorrectly": "Você acertou! Aguardando próxima fase..."
+    },
+    "cadence": {
+      "startingIn": "Começa em",
+      "replayIn": "Tocando de novo em"
     },
     "reveal": {
       "correctPlayers": "Acertaram:",

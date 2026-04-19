@@ -10,8 +10,11 @@ export const DEFAULT_MAX_PLAYERS = 12;
 export const ALLOWED_ROUND_COUNTS = [5, 10, 15] as const;
 export const DEFAULT_ROUND_COUNT = 10;
 
-export const ALLOWED_PHASE_DURATIONS_SEC = [15, 20, 30] as const;
-export const DEFAULT_PHASE_DURATION_SEC = 20;
+export const ALLOWED_PHASE_DURATIONS_SEC = [25, 35, 45] as const;
+export const DEFAULT_PHASE_DURATION_SEC = 35;
+
+export const MP_PHASE_INITIAL_COUNTDOWN_MS = 3000;
+export const MP_PHASE_REPLAY_COUNTDOWN_MS = 2000;
 
 export const TOTAL_PHASES = 4;
 

@@ -122,6 +122,7 @@ export function useDaily({ userId }: UseDailyOptions): UseDailyReturn {
             currentPhase: data.nextPhase ?? prev.currentPhase,
             phaseAudioData: data.nextPhaseAudioData ?? prev.phaseAudioData,
             midiFileUrl: data.completed ? null : prev.midiFileUrl,
+            hints: data.nextHints ?? prev.hints,
           };
         });
 

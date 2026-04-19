@@ -4,6 +4,7 @@ import { AudioUnlockBanner } from '@/components/audio/audio-unlock-banner';
 import { AudioVisualizer } from '@/components/audio/audio-visualizer';
 import { DailyResult } from '@/components/daily/daily-result';
 import { PhaseAttempts } from '@/components/daily/phase-attempts';
+import { PhaseHints } from '@/components/shared/phase-hints';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
@@ -200,6 +201,8 @@ export function DailyChallenge() {
 
       {/* Phase indicator */}
       <PhaseAttempts attempts={state.attempts} currentPhase={state.currentPhase} totalPhases={4} />
+
+      <PhaseHints hints={state.hints} />
 
       {/* Audio Visualizer */}
       <AudioVisualizer analyser={player.analyser} isPlaying={player.isPlaying} />

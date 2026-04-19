@@ -31,7 +31,7 @@ export interface MidiEntry {
 export interface RoomConfig {
   category: MidiCategory | 'random';
   maxRounds: 5 | 10 | 15;
-  timePerPhaseSec: 15 | 20 | 30;
+  timePerPhaseSec: 25 | 35 | 45;
   maxPlayers: number;
   isPublic: boolean;
 }
@@ -98,6 +98,11 @@ export interface DailyAttempt {
   skipped?: boolean;
 }
 
+export interface PhaseHints {
+  year: number | null;
+  category: string | null;
+}
+
 export interface DailyState {
   midiId: string;
   date: string;
@@ -109,6 +114,7 @@ export interface DailyState {
   isCorrect: boolean;
   phaseAudioData: PhaseConfig | null;
   midiFileUrl: string | null;
+  hints: PhaseHints;
 }
 
 export interface DailyGuessResponse {
@@ -117,6 +123,7 @@ export interface DailyGuessResponse {
   isCorrect: boolean;
   nextPhase: 1 | 2 | 3 | 4 | null;
   nextPhaseAudioData: PhaseConfig | null;
+  nextHints?: PhaseHints;
   /** Revealed only on completion */
   title?: string;
   artist?: string;
@@ -205,6 +212,7 @@ export interface ServerToClientEvents {
     endsAt: number;
     audioData: PhaseConfig;
     midiFileUrl: string;
+    hints: PhaseHints;
   }) => void;
   'round:reveal': (payload: { title: string; artist: string; correctPlayerIds: string[] }) => void;
   'xp:level_up': (payload: XpLevelUpPayload) => void;

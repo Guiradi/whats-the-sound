@@ -16,13 +16,13 @@ interface RoomConfigFormProps {
 const ALL_CATEGORIES: Array<MidiCategory | 'random'> = ['random', ...Object.values(MidiCategory)];
 
 const ROUND_OPTIONS = [5, 10, 15] as const;
-const TIME_OPTIONS = [15, 20, 30] as const;
+const TIME_OPTIONS = [25, 35, 45] as const;
 
 export function RoomConfigForm({ onSubmit, isLoading }: RoomConfigFormProps) {
   const t = useTranslations('room');
   const [category, setCategory] = useState<MidiCategory | 'random'>('random');
   const [maxRounds, setMaxRounds] = useState<5 | 10 | 15>(5);
-  const [timePerPhaseSec, setTimePerPhaseSec] = useState<15 | 20 | 30>(20);
+  const [timePerPhaseSec, setTimePerPhaseSec] = useState<25 | 35 | 45>(35);
   const [maxPlayers, setMaxPlayers] = useState(8);
   const [isPublic, setIsPublic] = useState(true);
   const [disabledCategories, setDisabledCategories] = useState<string[]>([]);

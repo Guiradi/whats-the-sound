@@ -37,6 +37,17 @@ function getDayNumber(dateISO: string): number {
   return Math.floor((target - epoch) / (24 * 60 * 60 * 1000)) + 1;
 }
 
+function computePhaseHints(
+  phase: 1 | 2 | 3 | 4,
+  year: number | null,
+  category: string,
+): { year: number | null; category: string | null } {
+  return {
+    year: phase >= 2 ? year : null,
+    category: phase >= 3 ? category : null,
+  };
+}
+
 function evaluateNextPhase(
   phase: 1 | 2 | 3 | 4,
   result: GuessResult,
@@ -261,6 +272,7 @@ export function createDailyService(
       isCorrect,
       phaseAudioData,
       midiFileUrl: completed ? null : midi.midiFileUrl,
+      hints: computePhaseHints(currentPhase, midi.year ?? null, midi.category),
     };
   }
 
@@ -405,6 +417,9 @@ export function createDailyService(
       isCorrect,
       nextPhase,
       nextPhaseAudioData,
+      nextHints: nextPhase
+        ? computePhaseHints(nextPhase, midi.year ?? null, midi.category)
+        : undefined,
     };
 
     // Reveal title/artist only on completion
