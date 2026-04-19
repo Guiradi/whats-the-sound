@@ -15,7 +15,7 @@ interface ShareActionsProps {
   attempts: DailyAttempt[];
 }
 
-const DAILY_URL = 'https://whatsthesound.io/daily';
+const DAILY_URL = `${process.env.NEXT_PUBLIC_APP_URL}/daily`;
 
 /**
  * Wordle-style emoji grid (spoiler-free — never includes song title).
