@@ -1,7 +1,6 @@
 import { AchievementsCard } from '@/components/profile/achievements-card';
 import { GuestEmptyState } from '@/components/profile/guest-empty-state';
 import { InviteCard } from '@/components/profile/invite-card';
-import { LogoutButton } from '@/components/profile/logout-button';
 import { ProfileCard } from '@/components/profile/profile-card';
 import { type ProfileStats, StatGrid } from '@/components/profile/stat-grid';
 import type { Locale } from '@/i18n/config';
@@ -100,12 +99,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 pb-16">
         {profile ? (
           <div className="flex flex-col gap-8">
-            <div className="flex items-center justify-between">
-              <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-text-primary">
-                {t('heading')}
-              </h1>
-              <LogoutButton />
-            </div>
+            <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-text-primary">
+              {t('heading')}
+            </h1>
             <ProfileCard
               nickname={profile.nickname}
               avatarUrl={profile.avatar_url}

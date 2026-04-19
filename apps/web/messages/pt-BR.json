@@ -155,7 +155,9 @@
       "signIn": "Entrar",
       "signOut": "Sair",
       "guestLabel": "Convidado",
-      "viewProfile": "Ver perfil de {nickname}"
+      "viewProfile": "Ver perfil de {nickname}",
+      "openMenu": "Abrir menu de conta de {nickname}",
+      "endGuest": "Encerrar sessão convidado"
     },
     "banner": {
       "guestCta": "Crie uma conta para salvar seu progresso.",

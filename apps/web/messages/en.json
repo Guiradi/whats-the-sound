@@ -155,7 +155,9 @@
       "signIn": "Sign in",
       "signOut": "Sign out",
       "guestLabel": "Guest",
-      "viewProfile": "View {nickname}'s profile"
+      "viewProfile": "View {nickname}'s profile",
+      "openMenu": "Open account menu for {nickname}",
+      "endGuest": "End guest session"
     },
     "banner": {
       "guestCta": "Create an account to save your progress.",
