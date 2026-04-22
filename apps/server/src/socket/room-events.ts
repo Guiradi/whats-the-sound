@@ -82,8 +82,7 @@ function upsertGuestProfile(supabase: SupabaseClient, guestUserId: string, nickn
   supabase
     .from('guest_profiles')
     .upsert({ id: uuid, nickname }, { onConflict: 'id' })
-    .then(() => {})
-    .catch(() => {});
+    .then(undefined, () => {});
 }
 
 export function registerRoomEvents(
