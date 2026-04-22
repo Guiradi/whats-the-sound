@@ -4,7 +4,7 @@ export const ROOM_CODE_LENGTH = 5;
 export const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 export const MAX_PLAYERS_PER_ROOM = 20;
-export const MIN_PLAYERS_PER_ROOM = 2;
+export const MIN_PLAYERS_PER_ROOM = 1;
 export const DEFAULT_MAX_PLAYERS = 12;
 
 export const ALLOWED_ROUND_COUNTS = [5, 10, 15] as const;
