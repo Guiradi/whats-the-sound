@@ -9,6 +9,7 @@ import { registerErrorHandlers } from './middleware/error-handler.js';
 import { createAdminRoutes } from './routes/admin.js';
 import { createCatalogRoutes } from './routes/catalog.js';
 import { createDailyRoutes } from './routes/daily.js';
+import { createGuestRoutes } from './routes/guest.js';
 import { healthRoutes } from './routes/health.js';
 import { createMeRoutes } from './routes/me.js';
 import { roomsRoutes } from './routes/rooms.js';
@@ -84,6 +85,10 @@ async function main() {
     const loginService = createLoginService(supabase, xpService, achievementService);
     await server.register(createMeRoutes(supabase, loginService, achievementService, authResolver));
     server.log.info('Me routes (login + referral + achievements) registered');
+
+    // Guest migration route (requires Supabase)
+    await server.register(createGuestRoutes(supabase, authResolver));
+    server.log.info('Guest routes registered');
 
     // Catalog admin routes (requires Supabase)
     await server.register(createCatalogRoutes(supabase, authResolver));

@@ -10,6 +10,7 @@ import {
 } from '@wts/shared';
 import type { ClientToServerEvents, RoomConfig, ServerToClientEvents } from '@wts/shared';
 import type { FastifyBaseLogger } from 'fastify';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Server, Socket } from 'socket.io';
 import { z } from 'zod';
 import type { SocketRateLimiter } from '../middleware/rate-limiter.js';
@@ -76,11 +77,25 @@ function makeServerPlayer(
   };
 }
 
+function upsertGuestProfile(
+  supabase: SupabaseClient,
+  guestUserId: string,
+  nickname: string,
+): void {
+  const uuid = guestUserId.replace(/^guest:/, '');
+  supabase
+    .from('guest_profiles')
+    .upsert({ id: uuid, nickname }, { onConflict: 'id' })
+    .then(() => {})
+    .catch(() => {});
+}
+
 export function registerRoomEvents(
   socket: TypedSocket,
   io: TypedServer,
   rateLimiter: SocketRateLimiter,
   logger: FastifyBaseLogger,
+  supabase: SupabaseClient | null,
 ): void {
   socket.on('room:create', (rawConfig, ack) => {
     try {
@@ -149,6 +164,11 @@ export function registerRoomEvents(
 
       const player = makeServerPlayer(socket, nickname);
       const room = roomManager.joinRoom(code, player);
+
+      // Persist guest profile so history survives browser data clears.
+      if (socket.data.isGuest && supabase) {
+        upsertGuestProfile(supabase, socket.data.userId, player.nickname);
+      }
 
       socket.data.roomCode = code;
       socket.join(`room:${code}`);

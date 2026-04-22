@@ -68,6 +68,11 @@ export function GameBoard({
   const [cadenceStep, setCadenceStep] = useState<CadenceStep>('idle');
   const [countdownSeconds, setCountdownSeconds] = useState(0);
   const wasPlayingRef = useRef(false);
+  // Keep a stable ref so effects can access the latest midiPlayer without
+  // listing the whole object as a dependency (it changes every animation frame
+  // because `progress` updates at ~60 fps, which would reset timers each frame).
+  const midiPlayerRef = useRef(midiPlayer);
+  midiPlayerRef.current = midiPlayer;
 
   useEffect(() => {
     if (!phaseStart) return;
@@ -80,7 +85,7 @@ export function GameBoard({
       try {
         if (payload.midiFileUrl !== currentMidiUrlRef.current) {
           currentMidiUrlRef.current = payload.midiFileUrl;
-          await midiPlayer.loadMidi(payload.midiFileUrl);
+          await midiPlayerRef.current.loadMidi(payload.midiFileUrl);
         }
       } catch {
         return;
@@ -103,12 +108,19 @@ export function GameBoard({
         if (cancelled) return;
         setCadenceStep('playing-1');
         try {
-          await midiPlayer.play(payload.audioData);
+          await midiPlayerRef.current.play(payload.audioData);
         } catch {
           // non-fatal
         }
       }, MP_PHASE_INITIAL_COUNTDOWN_MS);
       timeouts.push(playFirst);
+
+      // Safety: stop MIDI after 30 s regardless of note duration.
+      const safetyStop = setTimeout(() => {
+        if (cancelled) return;
+        midiPlayerRef.current.stop();
+      }, 30_000);
+      timeouts.push(safetyStop);
     }
 
     runCadence(phaseStart);
@@ -118,7 +130,7 @@ export function GameBoard({
       for (const t of timeouts) clearTimeout(t);
       for (const i of intervals) clearInterval(i);
     };
-  }, [phaseStart, midiPlayer]);
+  }, [phaseStart]);
 
   useEffect(() => {
     const justEndedFirst =
@@ -142,7 +154,7 @@ export function GameBoard({
       const timeout = setTimeout(async () => {
         setCadenceStep('playing-2');
         try {
-          await midiPlayer.play(phaseStart.audioData);
+          await midiPlayerRef.current.play(phaseStart.audioData);
         } catch {
           // non-fatal
         }
@@ -158,17 +170,26 @@ export function GameBoard({
       setCadenceStep('listening');
     }
     return undefined;
-  }, [midiPlayer.isPlaying, cadenceStep, phaseStart, midiPlayer]);
+  }, [midiPlayer.isPlaying, cadenceStep, phaseStart]);
 
   // Play the full MIDI on round reveal so players hear what the song was.
   // Resetting currentMidiUrlRef ensures the next round reloads the MIDI.
   useEffect(() => {
     if (!roundReveal) return;
-    midiPlayer.playFull().catch(() => {
+    midiPlayerRef.current.playFull().catch(() => {
       // Non-fatal: if audio context is not ready or MIDI missing, skip silently.
     });
     currentMidiUrlRef.current = null;
-  }, [roundReveal, midiPlayer]);
+  }, [roundReveal]);
+
+  // Stop MIDI immediately when the local player guesses correctly.
+  useEffect(() => {
+    if (!gameState.myCorrect) return;
+    if (cadenceStep === 'playing-1' || cadenceStep === 'playing-2') {
+      midiPlayerRef.current.stop();
+      setCadenceStep('listening');
+    }
+  }, [gameState.myCorrect, cadenceStep]);
 
   const playerNames = useMemo(() => {
     const map = new Map<string, string>();

@@ -4,6 +4,7 @@ import {
   type GuestSession,
   clearGuestSession,
   getGuestSession,
+  getOrCreateGuestSession,
   setGuestSession,
 } from '@/lib/auth/guest';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
@@ -38,10 +39,13 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function buildRedirectTo(next: string | undefined): string {
+function buildRedirectTo(next: string | undefined, guestId?: string): string {
   const base = `${window.location.origin}/auth/callback`;
-  if (!next) return base;
-  return `${base}?next=${encodeURIComponent(next)}`;
+  const params = new URLSearchParams();
+  if (next) params.set('next', next);
+  if (guestId) params.set('guest_id', guestId);
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
 }
 
 export function AuthProvider({
@@ -77,7 +81,7 @@ export function AuthProvider({
 
   useEffect(() => {
     if (!initialUser) {
-      setGuest(getGuestSession());
+      setGuest(getOrCreateGuestSession());
     } else {
       fetchProfile(initialUser.id);
     }
@@ -105,9 +109,10 @@ export function AuthProvider({
 
   const signInWithGoogle = useCallback(
     async (next?: string) => {
+      const guestId = getGuestSession()?.id;
       await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: buildRedirectTo(next) },
+        options: { redirectTo: buildRedirectTo(next, guestId) },
       });
     },
     [supabase],
@@ -115,9 +120,10 @@ export function AuthProvider({
 
   const signInWithDiscord = useCallback(
     async (next?: string) => {
+      const guestId = getGuestSession()?.id;
       await supabase.auth.signInWithOAuth({
         provider: 'discord',
-        options: { redirectTo: buildRedirectTo(next) },
+        options: { redirectTo: buildRedirectTo(next, guestId) },
       });
     },
     [supabase],
