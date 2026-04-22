@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   DEFAULT_MAX_PLAYERS,
   DEFAULT_PHASE_DURATION_SEC,
@@ -10,7 +11,6 @@ import {
 } from '@wts/shared';
 import type { ClientToServerEvents, RoomConfig, ServerToClientEvents } from '@wts/shared';
 import type { FastifyBaseLogger } from 'fastify';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Server, Socket } from 'socket.io';
 import { z } from 'zod';
 import type { SocketRateLimiter } from '../middleware/rate-limiter.js';
@@ -77,11 +77,7 @@ function makeServerPlayer(
   };
 }
 
-function upsertGuestProfile(
-  supabase: SupabaseClient,
-  guestUserId: string,
-  nickname: string,
-): void {
+function upsertGuestProfile(supabase: SupabaseClient, guestUserId: string, nickname: string): void {
   const uuid = guestUserId.replace(/^guest:/, '');
   supabase
     .from('guest_profiles')
