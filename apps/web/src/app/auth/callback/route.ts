@@ -23,7 +23,16 @@ export async function GET(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=oauth`);
+    // Log full error to Vercel logs so we can diagnose OAuth failures, and
+    // include a sanitized message in the redirect URL for the user-facing
+    // error page.
+    console.error('OAuth exchangeCodeForSession failed:', {
+      message: error.message,
+      status: error.status,
+      name: error.name,
+    });
+    const detail = encodeURIComponent(error.message || 'unknown');
+    return NextResponse.redirect(`${origin}/login?error=oauth&detail=${detail}`);
   }
 
   // If the user was a guest before logging in, migrate their guest profile.
