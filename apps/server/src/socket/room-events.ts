@@ -135,6 +135,7 @@ export function registerRoomEvents(
             if (room) {
               socket.data.roomCode = code;
               socket.join(`room:${code}`);
+              socket.emit('chat:backlog', roomManager.chatBacklog(room));
               io.to(`room:${code}`).emit('room:state', roomManager.toSnapshot(room));
               return;
             }
@@ -142,6 +143,7 @@ export function registerRoomEvents(
             // Player already in room and connected (e.g., creator navigated to room page)
             socket.data.roomCode = code;
             socket.join(`room:${code}`);
+            socket.emit('chat:backlog', roomManager.chatBacklog(existingRoom));
             socket.emit('room:state', roomManager.toSnapshot(existingRoom));
             return;
           }
@@ -168,6 +170,8 @@ export function registerRoomEvents(
       socket.data.roomCode = code;
       socket.join(`room:${code}`);
 
+      // Send chat backlog only to the joining socket (room broadcast follows).
+      socket.emit('chat:backlog', roomManager.chatBacklog(room));
       io.to(`room:${code}`).emit('room:state', roomManager.toSnapshot(room));
     } catch (err) {
       emitSocketError(

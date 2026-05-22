@@ -79,6 +79,9 @@ export interface RoomStateSnapshot {
   };
   players: RoomPlayer[];
   round: RoundSnapshot | null;
+  /** @deprecated Server no longer populates this. Subscribe to `chat:backlog`
+   *  (initial history) and `chat:message` (incremental) instead. Kept as an
+   *  empty array for one release window to avoid breaking deployed clients. */
   chat: ChatMessage[];
   version: number;
 }
@@ -208,6 +211,10 @@ export interface ServerToClientEvents {
   'room:state': (snapshot: RoomStateSnapshot) => void;
   'room:host_changed': (payload: { previousHostId: string; newHostId: string }) => void;
   'chat:message': (message: ChatMessage) => void;
+  /** Initial chat history sent once on room:join (or reconnect). After this the
+   *  client accumulates messages incrementally from chat:message; the chat field
+   *  on room:state snapshots is no longer authoritative. */
+  'chat:backlog': (messages: ChatMessage[]) => void;
   'phase:start': (payload: {
     phase: 1 | 2 | 3 | 4;
     endsAt: number;

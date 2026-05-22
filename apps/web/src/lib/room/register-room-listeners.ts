@@ -25,6 +25,7 @@ export interface RoundRevealPayload {
 
 export interface RoomListenerHandlers {
   onSnapshot: (snapshot: RoomStateSnapshot) => void;
+  onChatBacklog: (messages: ChatMessage[]) => void;
   onChatMessage: (message: ChatMessage) => void;
   onPhaseStart: (payload: PhaseStartPayload) => void;
   onRoundReveal: (payload: RoundRevealPayload) => void;
@@ -40,6 +41,7 @@ export function registerRoomListeners(
   handlers: RoomListenerHandlers,
 ): () => void {
   socket.on('room:state', handlers.onSnapshot);
+  socket.on('chat:backlog', handlers.onChatBacklog);
   socket.on('chat:message', handlers.onChatMessage);
   socket.on('phase:start', handlers.onPhaseStart);
   socket.on('round:reveal', handlers.onRoundReveal);
@@ -53,6 +55,7 @@ export function registerRoomListeners(
 
   return () => {
     socket.off('room:state');
+    socket.off('chat:backlog');
     socket.off('chat:message');
     socket.off('phase:start');
     socket.off('round:reveal');

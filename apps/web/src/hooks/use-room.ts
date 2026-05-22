@@ -75,8 +75,13 @@ export function useRoom(code: string | null): UseRoomReturn {
           if (snap.version >= versionRef.current) {
             versionRef.current = snap.version;
             setSnapshot(snap);
-            setChat(snap.chat);
+            // Chat is no longer carried on room:state — see onChatBacklog below.
           }
+        },
+        onChatBacklog: (messages) => {
+          // Authoritative chat history on join/reconnect. Replaces any local
+          // chat state so reconnecting catches the room up to the room's state.
+          setChat(messages.slice(-MAX_LOCAL_CHAT));
         },
         onChatMessage: (msg) =>
           setChat((prev) => {

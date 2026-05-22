@@ -68,7 +68,11 @@ function roundToSnapshot(room: ServerRoomState): RoundSnapshot | null {
   };
 }
 
-/** Convert server state to a client-safe snapshot (no midi answers, no timers). */
+/** Convert server state to a client-safe snapshot (no midi answers, no timers).
+ *  chat is intentionally always empty here — the full backlog goes out once via
+ *  the chat:backlog event on join/reconnect, and chat:message handles
+ *  incremental updates. Keeping the field present (vs removing) is a one-release
+ *  compatibility cushion for deployed clients. */
 export function toSnapshot(room: ServerRoomState): RoomStateSnapshot {
   return {
     room: {
@@ -80,9 +84,14 @@ export function toSnapshot(room: ServerRoomState): RoomStateSnapshot {
     },
     players: Array.from(room.players.values()).map(playerToWire),
     round: roundToSnapshot(room),
-    chat: room.chat.slice(-MAX_CHAT_MESSAGES),
+    chat: [],
     version: room.version,
   };
+}
+
+/** Returns the bounded chat backlog for the chat:backlog event. */
+export function chatBacklog(room: ServerRoomState): ChatMessage[] {
+  return room.chat.slice(-MAX_CHAT_MESSAGES);
 }
 
 // ─── Cleanup helpers ───────────────────────────────────────────
