@@ -1,6 +1,7 @@
 import withSerwistInit from '@serwist/next';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+import path from 'node:path';
 import './src/env';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
@@ -14,6 +15,11 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
+  // Standalone output for Docker: bundles server.js + traced node_modules.
+  // outputFileTracingRoot points to the monorepo root so pnpm workspace deps
+  // are correctly traced (server.js ends up at apps/web/server.js in the image).
+  output: 'standalone',
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   reactStrictMode: true,
   transpilePackages: ['@wts/shared'],
   typedRoutes: true,

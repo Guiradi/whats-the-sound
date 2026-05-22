@@ -1,0 +1,43 @@
+# Development — docker compose -f docker-compose.dev.yml up --build
+#
+# Hot reload is enabled via volume mounts on src/ directories.
+# Configs (next.config.ts, tsconfig.json, etc.) come from the image.
+#
+# Changing packages/shared/src requires rebuilding the image:
+#   docker compose -f docker-compose.dev.yml build
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: server-dev
+    ports:
+      - "3001:3001"
+    volumes:
+      # Live source changes; node_modules and config stay in the image
+      - ./apps/server/src:/app/apps/server/src
+    env_file: .env
+    environment:
+      NODE_ENV: development
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/messages:/app/apps/web/messages
+    env_file: .env
+    environment:
+      NODE_ENV: development
+      # Polling is required for file watching on Windows (Hyper-V backend)
+      # WSL2 backend usually works without it
+      WATCHPACK_POLLING: "true"
+    depends_on:
+      - server
+    restart: unless-stopped

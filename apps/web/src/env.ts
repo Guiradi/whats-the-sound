@@ -17,9 +17,8 @@ export const env = createEnv({
     NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
     NEXT_PUBLIC_SERVER_URL: z.string().url().default('http://localhost:3001'),
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
-      .string()
-      .startsWith('sb_publishable_', 'must be a Supabase publishable key (sb_publishable_*)'),
+    // Accepts both the new cloud format (sb_publishable_*) and local JWT anon keys
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
   },
 
   // Static references so Next.js/Webpack can inline these into the client bundle.

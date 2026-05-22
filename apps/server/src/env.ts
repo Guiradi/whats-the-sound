@@ -20,10 +20,8 @@ const schema = z.object({
   // - secret key (sb_secret_*) replaces the legacy service_role JWT; server-only.
   // - DATABASE_URL is the Session Pooler connection string (port 5432) with the project password.
   SUPABASE_URL: z.string().url().optional(),
-  SUPABASE_SECRET_KEY: z
-    .string()
-    .startsWith('sb_secret_', 'must be a Supabase secret key (sb_secret_*)')
-    .optional(),
+  // Accepts both the new cloud format (sb_secret_*) and local JWT service_role keys
+  SUPABASE_SECRET_KEY: z.string().min(1).optional(),
   DATABASE_URL: z.string().url().optional(),
 
   // Optional in Sprint 1; required from TASK-015 onwards (daily backend)

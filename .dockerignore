@@ -1,0 +1,57 @@
+# Dependencies — never copy host node_modules into the image
+node_modules
+**/node_modules
+.pnpm-store
+
+# Build outputs — built inside the image, not from host
+.next
+**/.next
+dist
+**/dist
+build
+.turbo
+**/.turbo
+**/*.tsbuildinfo
+
+# Environment — never bake secrets into the image
+.env
+.env.local
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+
+# VCS
+.git
+.gitignore
+.github
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# PWA build artifacts
+**/public/sw.js
+**/public/sw.js.map
+**/public/workbox-*.js
+
+# Supabase local state
+supabase/.temp
+supabase/.branches
+
+# Docker itself
+Dockerfile
+docker-compose*.yml
+.dockerignore

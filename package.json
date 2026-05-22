@@ -17,7 +17,12 @@
     "format:check": "biome format .",
     "db:push": "supabase db push",
     "db:diff": "supabase db diff",
-    "db:reset": "supabase db reset --linked"
+    "db:reset": "supabase db reset --linked",
+    "up": "supabase start && docker compose up -d --build",
+    "up:dev": "supabase start && docker compose -f docker-compose.dev.yml up --build",
+    "down": "docker compose down && supabase stop",
+    "logs": "docker compose logs -f",
+    "reset": "docker compose down && supabase db reset --local && docker compose up -d --build"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
