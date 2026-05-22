@@ -6,11 +6,13 @@ export const userXpRowSchema = z.object({
 });
 export type UserXpRow = z.infer<typeof userXpRowSchema>;
 
-export const userGuestRowSchema = z.object({
+// Guest filtering is done via the userId prefix ("guest:...") at the caller; the
+// users table never had an is_guest column. This schema is kept for the XP service
+// to validate the xp field after the prefix guard.
+export const userXpReadRowSchema = z.object({
   xp: z.number().int().nonnegative().nullable().default(0),
-  is_guest: z.boolean().nullable().default(false),
 });
-export type UserGuestRow = z.infer<typeof userGuestRowSchema>;
+export type UserXpReadRow = z.infer<typeof userXpReadRowSchema>;
 
 export const xpEventRowSchema = z.object({
   id: z.string(),

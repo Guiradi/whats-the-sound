@@ -5,17 +5,29 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { env } from '@/env';
 import { useRouter } from '@/i18n/navigation';
-import type { RoomStateSnapshot } from '@wts/shared';
 import { Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 
 const POLL_INTERVAL_MS = 5000;
 
+/**
+ * Shape returned by GET /rooms. Mirrors the projection in apps/server/src/routes/rooms.ts —
+ * intentionally narrower than RoomStateSnapshot since the lobby is unauthenticated.
+ */
+interface RoomSummary {
+  code: string;
+  category: string;
+  maxPlayers: number;
+  playerCount: number;
+  status: string;
+  createdAt: string;
+}
+
 export function RoomList() {
   const t = useTranslations('room');
   const router = useRouter();
-  const [rooms, setRooms] = useState<RoomStateSnapshot[]>([]);
+  const [rooms, setRooms] = useState<RoomSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -25,7 +37,7 @@ export function RoomList() {
       try {
         const res = await fetch(`${env.NEXT_PUBLIC_SERVER_URL}/rooms`);
         if (res.ok && active) {
-          const data = (await res.json()) as RoomStateSnapshot[];
+          const data = (await res.json()) as RoomSummary[];
           setRooms(data);
         }
       } catch {
@@ -67,21 +79,21 @@ export function RoomList() {
   return (
     <div className="flex flex-col gap-3">
       {rooms.map((room) => (
-        <Card key={room.room.code} className="flex items-center gap-4 p-4">
+        <Card key={room.code} className="flex items-center gap-4 p-4">
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-sm font-bold text-accent-cyan">{room.room.code}</span>
-              <Badge variant="default">{t(`categories.${room.room.config.category}`)}</Badge>
+              <span className="font-mono text-sm font-bold text-accent-cyan">{room.code}</span>
+              <Badge variant="default">{t(`categories.${room.category}`)}</Badge>
             </div>
             <div className="mt-1 flex items-center gap-1 text-xs text-text-muted">
               <Users className="h-3.5 w-3.5" />
               {t('list.players', {
-                current: room.players.length,
-                max: room.room.config.maxPlayers,
+                current: room.playerCount,
+                max: room.maxPlayers,
               })}
             </div>
           </div>
-          <Button size="sm" onClick={() => handleJoin(room.room.code)}>
+          <Button size="sm" onClick={() => handleJoin(room.code)}>
             {t('list.join')}
           </Button>
         </Card>

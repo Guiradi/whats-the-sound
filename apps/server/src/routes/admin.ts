@@ -73,12 +73,15 @@ export function createAdminRoutes(supabase: SupabaseClient, auth: AuthResolver) 
               .select('category, is_active'),
           ]);
 
-        // Process users
+        // Process users. Note: the users table is auth-tied (no is_guest column);
+        // guests live in guest_profiles. Counting guests cheaply requires a
+        // separate aggregate query, which is deferred — admin UI shows totalUsers
+        // and totalAdmins only.
         const users = usersResult.data ?? [];
         const totalUsers = users.length;
-        const totalGuests = users.filter((u) => u.is_guest).length;
         const totalAdmins = users.filter((u) => u.role === 'admin').length;
-        const totalRegistered = totalUsers - totalGuests;
+        const totalRegistered = totalUsers;
+        const totalGuests = 0;
 
         // Process games
         const games = gamesResult.data ?? [];

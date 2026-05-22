@@ -3,7 +3,7 @@ import { getBRTDateRange, sumXpEvents } from '@wts/shared';
 import { XP_DAILY_SAFETY_CAP, levelForXp } from '@wts/shared/constants';
 import type { XpAwardResult, XpSource } from '@wts/shared/types';
 import type { TypedServer } from '../socket/index.js';
-import { userGuestRowSchema, userXpRowSchema } from '../types/db-rows.js';
+import { userXpReadRowSchema, userXpRowSchema } from '../types/db-rows.js';
 
 interface AwardXpParams {
   userId: string;
@@ -47,7 +47,7 @@ export function createXpService(supabase: SupabaseClient) {
 
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('is_guest, xp')
+      .select('xp')
       .eq('id', userId)
       .maybeSingle();
 
@@ -55,8 +55,8 @@ export function createXpService(supabase: SupabaseClient) {
       return NOOP_RESULT;
     }
 
-    const parsedUser = userGuestRowSchema.safeParse(userData);
-    if (!parsedUser.success || parsedUser.data.is_guest === true) {
+    const parsedUser = userXpReadRowSchema.safeParse(userData);
+    if (!parsedUser.success) {
       return NOOP_RESULT;
     }
 

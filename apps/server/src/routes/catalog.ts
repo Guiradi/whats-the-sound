@@ -91,7 +91,11 @@ export function createCatalogRoutes(supabase: SupabaseClient, auth: AuthResolver
           query = query.eq('difficulty', difficulty);
         }
         if (search) {
-          query = query.or(`title.ilike.%${search}%,artist.ilike.%${search}%`);
+          // Escape characters PostgREST treats as filter syntax (`,`, `(`, `)`,
+          // `*`) so an admin's literal search string cannot reshape the OR
+          // expression and surface unrelated rows.
+          const escaped = search.replace(/[,()\\*]/g, (c) => `\\${c}`);
+          query = query.or(`title.ilike.%${escaped}%,artist.ilike.%${escaped}%`);
         }
 
         query = query.order(sortBy, { ascending: sortDir === 'asc' });
@@ -323,6 +327,25 @@ export function createCatalogRoutes(supabase: SupabaseClient, auth: AuthResolver
         if (!body.fileName || !body.fileBase64) {
           return reply.status(400).send({
             error: { code: 'BAD_REQUEST', message: 'fileName and fileBase64 are required' },
+          });
+        }
+
+        // Enforce a 1.5 MB cap on the base64 payload (~= 1 MB binary). Fastify's
+        // bodyLimit catches even larger uploads earlier, but this is a cheaper
+        // pre-decode guard against quota abuse by a compromised admin session.
+        const MAX_BASE64_BYTES = 1_500_000;
+        if (body.fileBase64.length > MAX_BASE64_BYTES) {
+          return reply.status(413).send({
+            error: { code: 'FILE_TOO_LARGE', message: 'MIDI file exceeds 1 MB limit' },
+          });
+        }
+
+        // Allowlist extensions — the binary itself is validated by analyzeMidi
+        // below, but rejecting non-MIDI uploads early avoids parsing cost and
+        // gives a clearer error.
+        if (!/\.(mid|midi)$/i.test(body.fileName)) {
+          return reply.status(400).send({
+            error: { code: 'BAD_REQUEST', message: 'Only .mid/.midi files are accepted' },
           });
         }
 
