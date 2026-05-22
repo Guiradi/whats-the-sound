@@ -85,47 +85,51 @@ export function analyzeMidi(buffer: Buffer): AnalysisResult {
   const lastNoteEnd = Math.max(...allNotes.map((n) => n.time + n.duration));
   const effectiveDuration = lastNoteEnd - trimSeconds;
 
-  let outputBuffer = buffer;
-  if (trimSeconds > 0) {
-    const trimmedMidi = new Midi();
+  // Always rebuild the buffer so source-MIDI metadata (track names, SequenceName,
+  // header name) — which routinely contains the song title and artist — never
+  // reaches the public storage object. Anti-cheat: track names are visible to any
+  // client that parses the file with @tonejs/midi.
+  const cleanMidi = new Midi();
+  cleanMidi.header.setTempo(bpm);
+  if (timeSig) {
+    cleanMidi.header.timeSignatures = [
+      { ticks: 0, timeSignature: timeSig.timeSignature, measures: 0 },
+    ];
+  }
+  // header.name often carries the song title — clear it.
+  cleanMidi.header.name = '';
 
-    trimmedMidi.header.setTempo(bpm);
-    if (timeSig) {
-      trimmedMidi.header.timeSignatures = [
-        { ticks: 0, timeSignature: timeSig.timeSignature, measures: 0 },
-      ];
+  for (const srcTrack of midi.tracks) {
+    const dstTrack = cleanMidi.addTrack();
+    // Do NOT copy srcTrack.name — it can contain "Lead — <Title>" / "Vocals: <Artist>".
+    dstTrack.channel = srcTrack.channel;
+    dstTrack.instrument.number = srcTrack.instrument.number;
+
+    for (const note of srcTrack.notes) {
+      const newTime = note.time - trimSeconds;
+      if (newTime < 0) continue;
+      dstTrack.addNote({
+        midi: note.midi,
+        time: newTime,
+        duration: note.duration,
+        velocity: note.velocity,
+      });
     }
 
-    for (const srcTrack of midi.tracks) {
-      const dstTrack = trimmedMidi.addTrack();
-      dstTrack.name = srcTrack.name;
-      dstTrack.channel = srcTrack.channel;
-      dstTrack.instrument.number = srcTrack.instrument.number;
-
-      for (const note of srcTrack.notes) {
-        const newTime = note.time - trimSeconds;
+    for (const ccNum of Object.keys(srcTrack.controlChanges)) {
+      const changes = srcTrack.controlChanges[Number(ccNum)];
+      if (!changes) continue;
+      for (const change of changes) {
+        const newTime = change.time - trimSeconds;
         if (newTime < 0) continue;
-        dstTrack.addNote({
-          midi: note.midi,
-          time: newTime,
-          duration: note.duration,
-          velocity: note.velocity,
-        });
-      }
-
-      for (const ccNum of Object.keys(srcTrack.controlChanges)) {
-        const changes = srcTrack.controlChanges[Number(ccNum)];
-        if (!changes) continue;
-        for (const change of changes) {
-          const newTime = change.time - trimSeconds;
-          if (newTime < 0) continue;
-          dstTrack.addCC({ number: change.number, value: change.value, time: newTime });
-        }
+        dstTrack.addCC({ number: change.number, value: change.value, time: newTime });
       }
     }
+  }
 
-    outputBuffer = Buffer.from(trimmedMidi.toArray());
+  const outputBuffer = Buffer.from(cleanMidi.toArray());
 
+  if (trimSeconds > 0) {
     for (let i = 0; i < distinctOnsets.length; i++) {
       distinctOnsets[i] = (distinctOnsets[i] ?? 0) - trimSeconds;
     }

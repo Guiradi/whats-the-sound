@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { MidiCategory, MidiDifficulty } from '@wts/shared';
 import type { FastifyInstance } from 'fastify';
@@ -335,8 +336,9 @@ export function createCatalogRoutes(supabase: SupabaseClient, auth: AuthResolver
           });
         }
 
-        // Upload the (possibly trimmed) buffer
-        const filePath = `catalog/${Date.now()}-${body.fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        // Upload the analyzed buffer. Use an opaque path so the original filename
+        // (often containing the song title) is never reachable via the storage URL.
+        const filePath = `catalog/${randomUUID()}.mid`;
         const { error: uploadError } = await supabase.storage
           .from('midis')
           .upload(filePath, result.buffer, {
