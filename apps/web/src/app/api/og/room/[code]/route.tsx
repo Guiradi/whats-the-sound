@@ -85,6 +85,11 @@ export async function GET(
     {
       width: 1200,
       height: 630,
+      headers: {
+        // Room codes live <1 hour server-side; short cache to avoid hammering
+        // edge compute on every social-platform crawler hit.
+        'Cache-Control': 'public, max-age=600, s-maxage=600',
+      },
     },
   );
 }

@@ -5,6 +5,7 @@ import { XpNotificationBridge } from '@/components/shared/xp-notification-bridge
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth';
 import { type Locale, locales } from '@/i18n/config';
+import { APP_BASE_URL } from '@/lib/app-url';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
@@ -46,10 +47,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'metadata' });
+  const siteName = t('siteName');
+  const description = t('siteDescription');
   return {
-    title: t('siteName'),
-    description: t('siteDescription'),
-    applicationName: t('siteName'),
+    metadataBase: new URL(APP_BASE_URL),
+    title: siteName,
+    description,
+    applicationName: siteName,
     manifest: '/manifest.webmanifest',
     icons: {
       icon: [{ url: '/favicon.png', sizes: '32x32', type: 'image/png' }],
@@ -59,6 +63,28 @@ export async function generateMetadata({
       capable: true,
       statusBarStyle: 'black-translucent',
       title: 'WTS',
+    },
+    openGraph: {
+      type: 'website',
+      siteName,
+      title: siteName,
+      description,
+      locale: locale === 'pt-BR' ? 'pt_BR' : 'en_US',
+      url: APP_BASE_URL,
+      images: [
+        {
+          url: '/icons/icon-512.png',
+          width: 512,
+          height: 512,
+          alt: siteName,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: siteName,
+      description,
+      images: ['/icons/icon-512.png'],
     },
   };
 }

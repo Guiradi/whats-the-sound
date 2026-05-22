@@ -4,12 +4,20 @@ import type { NextRequest } from 'next/server';
 
 export const runtime = 'edge';
 
+const TAGLINES = {
+  'pt-BR': 'Ouça. Adivinhe. Repita.',
+  en: 'Listen. Guess. Repeat.',
+} as const;
+
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ number: string }> },
 ) {
   const { number } = await params;
   const dayNumber = Number(number) || 0;
+  const localeParam = request.nextUrl.searchParams.get('locale');
+  const locale = localeParam === 'en' ? 'en' : 'pt-BR';
+  const tagline = TAGLINES[locale];
 
   return new ImageResponse(
     <div
@@ -73,7 +81,7 @@ export async function GET(
           color: '#a0a0b0',
         }}
       >
-        Ouça. Adivinhe. Compartilhe.
+        {tagline}
       </div>
 
       {/* URL */}
@@ -91,6 +99,13 @@ export async function GET(
     {
       width: 1200,
       height: 630,
+      headers: {
+        // Per-day-number image is fully deterministic and never changes — long
+        // browser cache + long CDN cache, with stale-while-revalidate as
+        // belt-and-suspenders against unusual edge invalidation.
+        'Cache-Control':
+          'public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400, immutable',
+      },
     },
   );
 }
