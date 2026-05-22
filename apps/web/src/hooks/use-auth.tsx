@@ -5,6 +5,7 @@ import {
   clearGuestSession,
   getGuestSession,
   getOrCreateGuestSession,
+  setGuestOptedOut,
   setGuestSession,
 } from '@/lib/auth/guest';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
@@ -132,6 +133,7 @@ export function AuthProvider({
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     clearGuestSession();
+    setGuestOptedOut();
     setUser(null);
     setGuest(null);
   }, [supabase]);

@@ -61,6 +61,10 @@
         "xpBarLabel": "Progress to level {level}",
         "loginStreak": "{count, plural, one {# day} other {# days}}"
       },
+      "guestWelcome": {
+        "hint": "Playing as guest. Progress isn't saved.",
+        "cta": "Sign in to save your progress"
+      },
       "daily": {
         "title": "Today's Daily",
         "description": "A new song every day. Keep your streak going.",

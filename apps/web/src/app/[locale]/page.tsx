@@ -1,4 +1,5 @@
 import { GuestBanner } from '@/components/auth/guest-banner';
+import { GuestOrLanding } from '@/components/home/guest-or-landing';
 import { HomeDashboard } from '@/components/home/home-dashboard';
 import { FeatureHighlights } from '@/components/landing/feature-highlights';
 import { HeroSection } from '@/components/landing/hero-section';
@@ -50,7 +51,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             dailyStreak={profile.daily_streak}
           />
         ) : (
-          <LandingContent />
+          <GuestOrLanding landing={<LandingContent />} />
         )}
       </main>
 

@@ -1,5 +1,6 @@
 const GUEST_ID_KEY = 'wts_guest_id';
 const GUEST_NICKNAME_KEY = 'wts_guest_nickname';
+const GUEST_OPT_OUT_KEY = 'wts_guest_opted_out';
 
 const NICKNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/;
 
@@ -39,21 +40,33 @@ export function setGuestSession(nickname: string): GuestSession {
   const id = existing ?? crypto.randomUUID();
   window.localStorage.setItem(GUEST_ID_KEY, id);
   window.localStorage.setItem(GUEST_NICKNAME_KEY, nickname);
+  // Explicit guest creation is an opt-in — clear any previous opt-out.
+  window.localStorage.removeItem(GUEST_OPT_OUT_KEY);
   return { id, nickname };
+}
+
+export function isGuestOptedOut(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.localStorage.getItem(GUEST_OPT_OUT_KEY) === '1';
+}
+
+export function setGuestOptedOut(): void {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(GUEST_OPT_OUT_KEY, '1');
 }
 
 /**
  * Returns the existing guest session, or creates one automatically with a
- * generated nickname (Guest_XXXX). This ensures every visitor has a session
- * without requiring an explicit "enter nickname" step.
+ * generated nickname (Guest_XXXX). Returns null when the visitor has
+ * explicitly opted out (signed out) and hasn't re-entered guest mode yet.
  */
-export function getOrCreateGuestSession(): GuestSession {
+export function getOrCreateGuestSession(): GuestSession | null {
   if (typeof window === 'undefined') {
-    // SSR fallback — caller should only invoke this client-side.
-    return { id: 'ssr', nickname: 'Guest' };
+    return null;
   }
   const existing = getGuestSession();
   if (existing) return existing;
+  if (isGuestOptedOut()) return null;
   const nickname = generateGuestNickname();
   return setGuestSession(nickname);
 }
