@@ -38,8 +38,11 @@ RUN pnpm --filter @wts/shared build
 FROM shared-build AS server-build
 COPY apps/server ./apps/server
 RUN pnpm --filter @wts/server build
-# pnpm deploy: copies package + resolves workspace:* deps + prod-only node_modules
-RUN pnpm --filter @wts/server deploy --prod /deploy/server
+# pnpm deploy: copies package + resolves workspace:* deps + prod-only node_modules.
+# --legacy restores pre-v10 behaviour; the v10 default requires either
+# inject-workspace-packages=true in pnpm-workspace.yaml or force-legacy-deploy
+# in config, both of which are wider-impact than this flag.
+RUN pnpm --filter @wts/server deploy --prod --legacy /deploy/server
 
 # ===================================================================
 # RUNNER — Server (production)

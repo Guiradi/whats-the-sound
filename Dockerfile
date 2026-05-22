@@ -30,8 +30,9 @@ RUN pnpm --filter @wts/shared build
 FROM shared-build AS server-build
 COPY apps/server ./apps/server
 RUN pnpm --filter @wts/server build
-# pnpm deploy: copies package + resolves workspace:* deps + prod-only node_modules
-RUN pnpm --filter @wts/server deploy --prod /deploy/server
+# pnpm deploy: copies package + resolves workspace:* deps + prod-only node_modules.
+# --legacy restores pre-v10 behaviour (v10 requires inject-workspace-packages).
+RUN pnpm --filter @wts/server deploy --prod --legacy /deploy/server
 
 # ===================================================================
 # WEB BUILD — Next.js with standalone output
