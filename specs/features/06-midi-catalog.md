@@ -81,9 +81,8 @@ type MidiCategory =
 - `POST /api/catalog/verify` — verifica palpite server-side `{ midiId, guess }` → `{ result: 'correct' | 'hot' | 'warm' | 'artist_match' | 'wrong' }`
 
 ### Seed de Dados
-- Script de seed para popular as 100 músicas iniciais
-- Arquivo JSON com metadata de cada música (título, artista, categoria, fases)
-- Comando: `pnpm seed:midis` que lê o JSON e popula o Supabase
+- **MVP:** upload manual pelo `/admin/catalog/new` (form multi-step). Catálogo cresce conforme curadoria + licenciamento das músicas.
+- **Roadmap pós-MVP:** automação `pnpm seed:midis` que lê JSON com metadata e popula via service_role + uploads para Supabase Storage. Pré-requisito: planilha de curadoria com 30+ músicas validadas.
 
 ## Requisitos Não-Funcionais
 - Upload de MIDI < 500KB por arquivo

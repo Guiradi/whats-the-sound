@@ -25,7 +25,6 @@ pnpm build            # Build de produção (ambos apps)
 pnpm lint             # Biome check em todo o monorepo
 pnpm type-check       # tsc --noEmit em todo o monorepo
 pnpm format           # Biome format
-pnpm seed:midis       # Seed do catálogo de 100 MIDIs
 pnpm db:push          # Push migrations para Supabase
 pnpm db:reset         # Reset do banco + re-seed
 ```

@@ -58,7 +58,7 @@ Cross-browser (Firefox, Safari, mobile) deferido para TASK-022 QA pass.
 - **TASK-015** Daily Sound Backend — deterministic selection (seed + date), cron BRT, REST API (/api/daily, /api/daily/guess, /api/daily/result, /api/daily/history), streak logic
 - **TASK-016** Daily Sound Frontend — /daily page (não jogou / jogando / completou), DailyChallenge, DailyResult card, ShareButton (emoji grid), DailyCountdown
 - **TASK-017** Histórico + Calendário — /daily/history (GitHub-style contribution calendar), DayDetailModal, DailyStats
-- **TASK-018** MIDI Catalog Seed — seed script (pnpm seed:midis), 100 músicas com metadata + phase configs, upload to Supabase Storage
+- **TASK-018** MIDI Catalog Seed — admin upload via `/admin/catalog/new` (multi-step form com auto-compute de fases). Seed automatizado JSON→DB fica como roadmap pós-MVP até a planilha de curadoria/licenças ter 30+ músicas validadas.
 - **TASK-030** XP Engine Backend — awardXp service (idempotent via source_ref UNIQUE), daily cap 2000, level formula √(xp/100)+1, integrations with scoring/game-loop/daily
 - **TASK-031** XP Engine Frontend — LevelBadge, LevelUpModal, useLevelUp hook, extended PlayerList/GameChat/Podium/DailyResult/Profile with XP info
 - **TASK-019** OG Images — /api/og/daily/[number] + /api/og/room/[code], 1200x630px, synthwave style

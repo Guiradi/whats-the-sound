@@ -61,11 +61,22 @@ pnpm --filter @wts/server smoke:db   # verifica conectividade end-to-end
 
 ## Dev
 
+Dois fluxos suportados, com a mesma URL final:
+
 ```bash
-pnpm dev    # sobe web (3000) + server (3001) via turbo
+# Recomendado — Docker compose (paridade com prod, hot reload via volumes)
+cp .env.example .env       # preenche Supabase keys
+pnpm up:dev                # supabase start + docker compose dev
+
+# Alternativa — pnpm nativo (mais leve, depende só de Node)
+cp apps/web/.env.example apps/web/.env.local
+cp apps/server/.env.example apps/server/.env.local
+pnpm dev                   # turbo: web (3000) + server (3001)
 ```
 
 Acesso: `http://localhost:3000/pt-BR/`
+
+Outros atalhos do Docker workflow: `pnpm down`, `pnpm logs`, `pnpm reset`. Detalhes no `Makefile` da raiz.
 
 ## Gates de qualidade
 

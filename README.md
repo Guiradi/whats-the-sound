@@ -116,35 +116,69 @@ You should see 6 green checks (tables + storage bucket + auth reachable).
 
 ### Run in Development
 
-From the project root:
+Two supported workflows. Pick one — they target the same code but differ in isolation.
+
+**Docker compose (recommended)** — closer to production, isolates Node/pnpm versions, hot reload via volume mounts. Requires Docker Desktop running.
 
 ```bash
+# 1. Populate the root .env (copy from .env.example, fill Supabase keys)
+cp .env.example .env
+
+# 2. Build + run with hot reload
+docker compose -f docker-compose.dev.yml up --build
+
+# or, if you want the matching production image
+docker compose up --build
+```
+
+Useful shortcuts (defined in the root `Makefile` / `package.json`):
+
+| Command       | What it does                                                |
+| ------------- | ----------------------------------------------------------- |
+| `pnpm up:dev` | `supabase start` (local DB) + `docker compose dev` attached |
+| `pnpm up`     | `supabase start` + `docker compose` (prod build, detached)  |
+| `pnpm down`   | Stop docker services + `supabase stop`                      |
+| `pnpm logs`   | Follow logs from both containers                            |
+| `pnpm reset`  | Wipe DB, re-run migrations, restart app                     |
+
+**Native pnpm (fallback)** — for fast iteration when Docker is heavy on your machine. You point at a cloud Supabase project; nothing local except Node.
+
+```bash
+# Per-app .env.local files (same vars as the root .env, just split)
+cp apps/web/.env.example apps/web/.env.local
+cp apps/server/.env.example apps/server/.env.local
+
 pnpm dev
 ```
 
-Turborepo runs everything in parallel:
+Either way the apps land here:
 
 | App           | URL                                            | Description                                |
 | ------------- | ---------------------------------------------- | ------------------------------------------ |
 | `@wts/web`    | [http://localhost:3000](http://localhost:3000) | Next.js (redirects / → /pt-BR/)            |
 | `@wts/server` | [http://localhost:3001](http://localhost:3001) | Fastify (GET /health = `{ status: "ok" }`) |
 
-Both reload on save. Stop everything with a single `Ctrl+C`.
+Both reload on save. Stop everything with a single `Ctrl+C` (or `pnpm down` if you used Docker detached).
 
 ### Available Scripts
 
-| Command                                 | Description                         |
-| --------------------------------------- | ----------------------------------- |
-| `pnpm dev`                              | Run frontend + backend in dev mode  |
-| `pnpm build`                            | Production build for both apps      |
-| `pnpm lint`                             | Run Biome across monorepo           |
-| `pnpm type-check`                       | Run `tsc --noEmit`                  |
-| `pnpm format`                           | Format with Biome                   |
-| `pnpm db:push`                          | Apply Supabase migrations           |
-| `pnpm db:diff`                          | Show local vs remote DB diff        |
-| `pnpm db:reset`                         | Reset linked database (destructive) |
-| `pnpm --filter @wts/server smoke:db`    | Schema + auth smoke test            |
-| `pnpm --filter @wts/web generate-icons` | Regenerate PWA icons                |
+| Command                                 | Description                                 |
+| --------------------------------------- | ------------------------------------------- |
+| `pnpm dev`                              | Native dev: turbo runs frontend + backend   |
+| `pnpm up:dev`                           | Docker dev (with hot reload)                |
+| `pnpm up`                               | Docker prod image build + run (detached)    |
+| `pnpm down`                             | Stop docker + supabase local                |
+| `pnpm logs`                             | Follow docker logs                          |
+| `pnpm reset`                            | Wipe DB, re-run migrations, restart docker  |
+| `pnpm build`                            | Production build for both apps              |
+| `pnpm lint`                             | Run Biome across monorepo                   |
+| `pnpm type-check`                       | Run `tsc --noEmit`                          |
+| `pnpm format`                           | Format with Biome                           |
+| `pnpm db:push`                          | Apply Supabase migrations                   |
+| `pnpm db:diff`                          | Show local vs remote DB diff                |
+| `pnpm db:reset`                         | Reset linked database (destructive)         |
+| `pnpm --filter @wts/server smoke:db`    | Schema + auth smoke test                    |
+| `pnpm --filter @wts/web generate-icons` | Regenerate PWA icons                        |
 
 ## Development
 

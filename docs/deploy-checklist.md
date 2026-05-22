@@ -177,12 +177,9 @@ pnpm --filter @wts/web run docs:check  # 11/11 OK
   ```sql
   UPDATE public.users SET role = 'admin' WHERE email = 'SEU-EMAIL';
   ```
-- [ ] Seed MIDIs (se necessário):
-  ```bash
-  SUPABASE_URL=https://xxx.supabase.co \
-  SUPABASE_SECRET_KEY=sb_secret_... \
-  pnpm seed:midis
-  ```
+- [ ] Popular catálogo de MIDIs: o seed automatizado (`pnpm seed:midis`) é roadmap pós-MVP, então uploads são feitos pelo admin panel:
+  - `/admin/catalog/new` — formulário multi-step (upload → metadata → respostas → review)
+  - Alvo MVP: 30-50 músicas validadas com licença (composição original, domínio público ou licença individual). Curadoria documentada em `specs/features/06-midi-catalog.md`.
 - [ ] Verificar: `/admin/catalog` mostra as músicas
 
 ### 2.7 Páginas legais
