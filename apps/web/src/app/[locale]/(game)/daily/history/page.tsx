@@ -15,6 +15,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 export default function DailyHistoryPage() {
   const t = useTranslations('dailyHistory');
+  const tCommon = useTranslations('common.actions');
   const { user, isLoading: authLoading } = useAuth();
   const [entries, setEntries] = useState<DailyHistoryEntry[]>([]);
   const [streak, setStreak] = useState({ currentStreak: 0, maxStreak: 0 });
@@ -63,7 +64,7 @@ export default function DailyHistoryPage() {
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
         <p className="text-sm text-text-muted">{t('loginRequired')}</p>
         <Link href="/login">
-          <Button size="sm">Login</Button>
+          <Button size="sm">{tCommon('login')}</Button>
         </Link>
       </div>
     );

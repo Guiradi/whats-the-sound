@@ -31,7 +31,9 @@
     "actions": {
       "playNow": "Play now",
       "viewDaily": "View Daily Sound",
-      "close": "Close"
+      "close": "Close",
+      "login": "Sign in",
+      "notFound": "Not found"
     },
     "footer": {
       "terms": "Terms of Use",

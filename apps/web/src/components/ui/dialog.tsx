@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { type ComponentPropsWithoutRef, type HTMLAttributes, forwardRef } from 'react';
 
 export const Dialog = DialogPrimitive.Root;
@@ -29,7 +30,9 @@ DialogOverlay.displayName = 'DialogOverlay';
 export const DialogContent = forwardRef<
   HTMLDivElement,
   ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => {
+  const t = useTranslations('common.actions');
+  return (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -50,11 +53,12 @@ export const DialogContent = forwardRef<
         )}
       >
         <X className="h-5 w-5" />
-        <span className="sr-only">Fechar</span>
+        <span className="sr-only">{t('close')}</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
-));
+  );
+});
 DialogContent.displayName = 'DialogContent';
 
 export function DialogHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {

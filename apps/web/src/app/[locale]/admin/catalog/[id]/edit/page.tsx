@@ -24,6 +24,7 @@ interface CatalogEntry {
 
 export default function AdminCatalogEditPage() {
   const t = useTranslations('adminCatalog');
+  const tCommon = useTranslations('common.actions');
   const params = useParams<{ id: string }>();
   const [entry, setEntry] = useState<CatalogEntry | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,7 +55,9 @@ export default function AdminCatalogEditPage() {
 
   if (!entry) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-text-muted">Not found</div>
+      <div className="flex min-h-screen items-center justify-center text-text-muted">
+        {tCommon('notFound')}
+      </div>
     );
   }
 

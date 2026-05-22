@@ -31,7 +31,9 @@
     "actions": {
       "playNow": "Jogar agora",
       "viewDaily": "Ver Daily Sound",
-      "close": "Fechar"
+      "close": "Fechar",
+      "login": "Entrar",
+      "notFound": "Não encontrado"
     },
     "footer": {
       "terms": "Termos de Uso",
