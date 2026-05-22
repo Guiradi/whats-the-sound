@@ -1,8 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { ACHIEVEMENTS } from '@wts/shared/achievements';
 import { XP_REFERRAL_BONUS } from '@wts/shared/constants';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
+import { createSupabaseUserClient } from '../lib/supabase.js';
 import type { AuthResolver } from '../middleware/auth.js';
 import type { AchievementService } from '../services/achievement-service.js';
 import type { LoginService } from '../services/login-service.js';
@@ -12,6 +13,16 @@ import {
   userReferralCodeRowSchema,
   userReferralSelfRowSchema,
 } from '../types/db-rows.js';
+
+/**
+ * Pick a supabase client for this request: a user-scoped client when an anon key
+ * is configured (so RLS applies), otherwise the existing admin client. Falls back
+ * silently so the route still works in dev without SUPABASE_ANON_KEY set.
+ */
+function clientFor(request: FastifyRequest, admin: SupabaseClient): SupabaseClient {
+  if (!request.userJwt) return admin;
+  return createSupabaseUserClient(request.userJwt) ?? admin;
+}
 
 const inviteeListSchema = z.array(inviteeRowSchema);
 
@@ -81,7 +92,10 @@ export function createMeRoutes(
       const code = parsed.data.code.toUpperCase();
 
       try {
-        const { data: selfRow } = await supabase
+        // User-scoped client: RLS enforces `auth.uid() = id` on the self-read.
+        const userSupa = clientFor(request, supabase);
+
+        const { data: selfRow } = await userSupa
           .from('users')
           .select('referred_by_user_id, referral_code')
           .eq('id', userId)
@@ -108,7 +122,7 @@ export function createMeRoutes(
           return { applied: false, reason: 'self_referral' };
         }
 
-        const { data: referrerRow } = await supabase
+        const { data: referrerRow } = await userSupa
           .from('users')
           .select('id')
           .eq('referral_code', code)
@@ -127,7 +141,9 @@ export function createMeRoutes(
           return { applied: false, reason: 'self_referral' };
         }
 
-        const { error: updateErr } = await supabase
+        // The UPDATE policy is `using (auth.uid() = id)` so the user client can
+        // mutate its own row but no one else's.
+        const { error: updateErr } = await userSupa
           .from('users')
           .update({
             referred_by_user_id: referrerId,
@@ -165,7 +181,12 @@ export function createMeRoutes(
       }
 
       try {
-        const { data: selfRow } = await supabase
+        // User-scoped client: own referral_code read is RLS-safe via column grant;
+        // invitees lookup filters by referred_by_user_id which only matches own row's
+        // invitees per the users SELECT policy.
+        const userSupa = clientFor(request, supabase);
+
+        const { data: selfRow } = await userSupa
           .from('users')
           .select('referral_code')
           .eq('id', userId)
@@ -174,7 +195,7 @@ export function createMeRoutes(
         const parsedCode = userReferralCodeRowSchema.safeParse(selfRow);
         const code = parsedCode.success ? parsedCode.data.referral_code : null;
 
-        const { data: invitees } = await supabase
+        const { data: invitees } = await userSupa
           .from('users')
           .select('id, referral_completed_at')
           .eq('referred_by_user_id', userId);

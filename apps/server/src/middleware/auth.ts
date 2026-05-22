@@ -4,6 +4,9 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 declare module 'fastify' {
   interface FastifyRequest {
     userId?: string;
+    /** Verified Bearer JWT for the current request. Used by routes that need
+     *  to build a per-request user-scoped supabase client for RLS-enforced reads. */
+    userJwt?: string;
   }
 }
 
@@ -32,6 +35,7 @@ export function createAuthResolver(supabase: SupabaseClient) {
         return null;
       }
       request.userId = data.user.id;
+      request.userJwt = token;
       return data.user.id;
     } catch (err) {
       request.log.warn({ url: request.url, err }, 'auth: getUser threw');

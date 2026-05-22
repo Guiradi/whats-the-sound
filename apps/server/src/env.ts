@@ -23,6 +23,11 @@ const schema = z
   SUPABASE_URL: z.string().url().optional(),
   // Accepts both the new cloud format (sb_secret_*) and local JWT service_role keys
   SUPABASE_SECRET_KEY: z.string().min(1).optional(),
+  // Anon/publishable key — used for per-request user-scoped clients so RLS
+  // applies as defense-in-depth. Same value as the frontend's
+  // NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY. When unset, user-context routes
+  // silently fall back to admin reads with manual filtering.
+  SUPABASE_ANON_KEY: z.string().min(1).optional(),
   DATABASE_URL: z.string().url().optional(),
 
     // Optional in Sprint 1; required from TASK-015 onwards (daily backend)
