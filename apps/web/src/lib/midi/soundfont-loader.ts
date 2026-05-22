@@ -1,4 +1,4 @@
-import * as Tone from 'tone';
+import { PolySynth, Synth, type ToneAudioNode } from 'tone';
 
 interface TrackIdentity {
   instrumentNumber: number;
@@ -7,7 +7,7 @@ interface TrackIdentity {
 }
 
 export interface InstrumentRegistry {
-  get(track: TrackIdentity): Tone.PolySynth;
+  get(track: TrackIdentity): PolySynth;
   dispose(): void;
 }
 
@@ -17,8 +17,8 @@ export interface InstrumentRegistry {
  * Real soundfont samplers will land behind the same interface when TASK-018
  * seeds the catalog with actual audio.
  */
-export function createInstrumentRegistry(output: Tone.ToneAudioNode): InstrumentRegistry {
-  const cache = new Map<string, Tone.PolySynth>();
+export function createInstrumentRegistry(output: ToneAudioNode): InstrumentRegistry {
+  const cache = new Map<string, PolySynth>();
 
   function keyFor(track: TrackIdentity): string {
     return track.isDrum ? 'drum' : 'melodic';
@@ -29,7 +29,7 @@ export function createInstrumentRegistry(output: Tone.ToneAudioNode): Instrument
       const key = keyFor(track);
       const cached = cache.get(key);
       if (cached) return cached;
-      const synth = new Tone.PolySynth(Tone.Synth);
+      const synth = new PolySynth(Synth);
       synth.connect(output);
       cache.set(key, synth);
       return synth;

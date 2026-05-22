@@ -324,7 +324,7 @@ export function createDailyService(
 
     const { data: existingRaw } = await supabase
       .from('daily_results')
-      .select('*')
+      .select('phase_guessed,attempts,completed,midi_id')
       .eq('user_id', userId)
       .eq('date', dateISO)
       .maybeSingle();
@@ -466,7 +466,7 @@ export function createDailyService(
   async function getResultForUser(userId: string, dateISO: string) {
     const { data, error } = await supabase
       .from('daily_results')
-      .select('*')
+      .select('phase_guessed,attempts,completed,midi_id')
       .eq('user_id', userId)
       .eq('date', dateISO)
       .maybeSingle();

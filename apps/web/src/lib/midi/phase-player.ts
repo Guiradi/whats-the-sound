@@ -1,5 +1,5 @@
 import type { PhaseConfig } from '@wts/shared';
-import * as Tone from 'tone';
+import { Analyser, Frequency, Gain, dbToGain, getTransport } from 'tone';
 import { type InstrumentRegistry, createInstrumentRegistry } from './soundfont-loader';
 import type { MidiData, MidiNote, MidiTrack } from './types';
 
@@ -10,37 +10,37 @@ export interface PhasePlaybackSnapshot {
 
 interface ScheduledPhase {
   eventIds: number[];
+  endEventId: number | null;
   endAtSeconds: number;
   notes: number;
 }
 
 export class PhasePlayer {
-  private readonly output: Tone.Gain;
-  private readonly analyser: Tone.Analyser;
+  private readonly output: Gain;
+  private readonly analyser: Analyser;
   private readonly instruments: InstrumentRegistry;
   private scheduled: ScheduledPhase | null = null;
-  private endTimeoutId: number | null = null;
   private endedListeners = new Set<() => void>();
 
   constructor(masterVolumeDb = -6) {
-    this.output = new Tone.Gain(Tone.dbToGain(masterVolumeDb));
+    this.output = new Gain(dbToGain(masterVolumeDb));
     this.output.toDestination();
-    this.analyser = new Tone.Analyser('fft', 128);
+    this.analyser = new Analyser('fft', 128);
     this.output.connect(this.analyser);
     this.instruments = createInstrumentRegistry(this.output);
   }
 
-  getAnalyser(): Tone.Analyser {
+  getAnalyser(): Analyser {
     return this.analyser;
   }
 
   isPlaying(): boolean {
-    return Tone.getTransport().state === 'started';
+    return getTransport().state === 'started';
   }
 
   getProgress(): number {
     if (!this.scheduled) return 0;
-    const elapsed = Tone.getTransport().seconds;
+    const elapsed = getTransport().seconds;
     if (this.scheduled.endAtSeconds <= 0) return 0;
     return Math.min(1, Math.max(0, elapsed / this.scheduled.endAtSeconds));
   }
@@ -53,7 +53,7 @@ export class PhasePlayer {
   play(midi: MidiData, phase: PhaseConfig): PhasePlaybackSnapshot {
     this.stop();
 
-    const transport = Tone.getTransport();
+    const transport = getTransport();
     transport.bpm.value = midi.bpm;
     transport.loop = false;
 
@@ -68,7 +68,7 @@ export class PhasePlayer {
   playFull(midi: MidiData): PhasePlaybackSnapshot {
     this.stop();
 
-    const transport = Tone.getTransport();
+    const transport = getTransport();
     transport.bpm.value = midi.bpm;
     transport.loop = false;
 
@@ -90,7 +90,7 @@ export class PhasePlayer {
     phaseEndSec: number,
     meta: { phaseLabel: string },
   ): PhasePlaybackSnapshot {
-    const transport = Tone.getTransport();
+    const transport = getTransport();
 
     // Count total notes for debug
     let totalNotes = 0;
@@ -113,7 +113,6 @@ export class PhasePlayer {
 
     // If phase yielded zero notes, still resolve with an immediate end event.
     const endAt = Math.max(latestEnd, 0.1);
-    this.scheduled = { eventIds, endAtSeconds: endAt, notes: noteCount };
 
     console.debug(
       `[PhasePlayer] bpm=${midi.bpm} phase=${meta.phaseLabel} ` +
@@ -124,13 +123,17 @@ export class PhasePlayer {
     transport.position = 0;
     transport.start();
 
-    // Schedule an end trigger slightly after the last note's release tail.
-    this.endTimeoutId = window.setTimeout(
-      () => {
-        this.handleEnded();
-      },
-      (endAt + 0.4) * 1000,
-    );
+    // Schedule the end trigger on the audio clock (Tone.Transport) instead of
+    // window.setTimeout — wall-clock setTimeout drifts when the browser tab is
+    // throttled (Chrome forces ≥1s in background tabs) but the AudioContext
+    // keeps running, leaving the cadence state machine stuck. Per
+    // .claude/rules/audio.md: "Use Tone.Transport for scheduling — NEVER
+    // setTimeout for note timing".
+    const endEventId = transport.scheduleOnce(() => {
+      this.handleEnded();
+    }, endAt + 0.4);
+
+    this.scheduled = { eventIds, endEventId, endAtSeconds: endAt, notes: noteCount };
 
     return { isPlaying: true, progress: 0 };
   }
@@ -142,14 +145,14 @@ export class PhasePlayer {
     eventIds: number[],
   ): number {
     const instrument = this.instruments.get(track);
-    const transport = Tone.getTransport();
+    const transport = getTransport();
     let count = 0;
 
     for (const note of track.notes) {
       if (!isNoteWithinPhase(note, phaseStartSec, phaseEndSec)) continue;
       const relTime = note.time - phaseStartSec;
       const duration = Math.min(note.duration, phaseEndSec - note.time);
-      const freq = Tone.Frequency(note.midi, 'midi').toNote();
+      const freq = Frequency(note.midi, 'midi').toNote();
       const id = transport.schedule((time) => {
         instrument.triggerAttackRelease(freq, duration, time, note.velocity);
       }, relTime);
@@ -160,23 +163,24 @@ export class PhasePlayer {
   }
 
   stop(): void {
-    const transport = Tone.getTransport();
+    const transport = getTransport();
     if (this.scheduled) {
       for (const id of this.scheduled.eventIds) transport.clear(id);
+      if (this.scheduled.endEventId !== null) {
+        transport.clear(this.scheduled.endEventId);
+      }
       this.scheduled = null;
     }
     transport.stop();
     transport.cancel(0);
     transport.position = 0;
-    if (this.endTimeoutId !== null) {
-      window.clearTimeout(this.endTimeoutId);
-      this.endTimeoutId = null;
-    }
   }
 
   private handleEnded(): void {
-    this.endTimeoutId = null;
-    Tone.getTransport().stop();
+    if (this.scheduled) {
+      this.scheduled.endEventId = null;
+    }
+    getTransport().stop();
     for (const listener of this.endedListeners) listener();
   }
 

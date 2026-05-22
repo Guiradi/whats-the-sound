@@ -2,6 +2,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { MidiCategory, MidiEntry, MidiPhases } from '@wts/shared';
 import type { MidiProvider } from './midi-provider.js';
 
+const MIDI_CATALOG_COLUMNS =
+  'id,title,artist,category,difficulty,year,midi_file_url,accepted_titles,accepted_artists,phases,is_active,play_count,correct_rate';
+
 interface MidiCatalogRow {
   id: string;
   title: string;
@@ -43,7 +46,7 @@ export class SupabaseMidiProvider implements MidiProvider {
   constructor(private readonly supabase: SupabaseClient) {}
 
   async getMidis(category: MidiCategory | 'random', count: number): Promise<MidiEntry[]> {
-    let query = this.supabase.from('midi_catalog').select('*').eq('is_active', true);
+    let query = this.supabase.from('midi_catalog').select(MIDI_CATALOG_COLUMNS).eq('is_active', true);
 
     if (category !== 'random') {
       query = query.eq('category', category);
@@ -86,7 +89,7 @@ export class SupabaseMidiProvider implements MidiProvider {
   async getMidiById(id: string): Promise<MidiEntry | null> {
     const { data, error } = await this.supabase
       .from('midi_catalog')
-      .select('*')
+      .select(MIDI_CATALOG_COLUMNS)
       .eq('id', id)
       .maybeSingle();
 
@@ -106,7 +109,7 @@ export class SupabaseMidiProvider implements MidiProvider {
     category: MidiCategory | 'random',
     excludeIds: string[],
   ): Promise<MidiEntry[]> {
-    let query = this.supabase.from('midi_catalog').select('*').eq('is_active', true);
+    let query = this.supabase.from('midi_catalog').select(MIDI_CATALOG_COLUMNS).eq('is_active', true);
 
     if (category !== 'random') {
       query = query.eq('category', category);

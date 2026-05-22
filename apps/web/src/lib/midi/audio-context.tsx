@@ -9,7 +9,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import * as Tone from 'tone';
+import { getContext, start as startAudio } from 'tone';
 
 interface AudioContextValue {
   isReady: boolean;
@@ -27,20 +27,20 @@ export function AudioContextProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (Tone.getContext().state === 'running') {
+    if (getContext().state === 'running') {
       setIsReady(true);
     }
   }, []);
 
   const start = useCallback(async () => {
     if (typeof window === 'undefined') return;
-    if (Tone.getContext().state === 'running') {
+    if (getContext().state === 'running') {
       setIsReady(true);
       return;
     }
     setIsStarting(true);
     try {
-      await Tone.start();
+      await startAudio();
       setIsReady(true);
       setError(null);
     } catch (err) {
