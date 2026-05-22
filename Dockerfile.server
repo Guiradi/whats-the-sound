@@ -1,0 +1,53 @@
+# ===================================================================
+# Dockerfile.server — backend-only build for Railway.
+#
+# The main `Dockerfile` is multi-target (web + server). Railway's
+# build pipeline did not honour `dockerfileTarget` in railway.json,
+# so a dedicated server-only image avoids the ambiguity by simply
+# never declaring the web stages.
+# ===================================================================
+
+# ===================================================================
+# BASE — Node 20 (Alpine) + pnpm + bash
+# ===================================================================
+FROM node:20-alpine AS base
+RUN apk add --no-cache bash
+RUN corepack enable && corepack prepare pnpm@10.26.2 --activate
+WORKDIR /app
+
+# ===================================================================
+# DEPS — Install all workspace dependencies (cached layer)
+# ===================================================================
+FROM base AS deps
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/web/package.json ./apps/web/
+COPY apps/server/package.json ./apps/server/
+RUN pnpm install --frozen-lockfile
+
+# ===================================================================
+# SHARED BUILD
+# ===================================================================
+FROM deps AS shared-build
+COPY packages/shared ./packages/shared
+RUN pnpm --filter @wts/shared build
+
+# ===================================================================
+# SERVER BUILD — TypeScript compile + standalone deploy
+# ===================================================================
+FROM shared-build AS server-build
+COPY apps/server ./apps/server
+RUN pnpm --filter @wts/server build
+# pnpm deploy: copies package + resolves workspace:* deps + prod-only node_modules
+RUN pnpm --filter @wts/server deploy --prod /deploy/server
+
+# ===================================================================
+# RUNNER — Server (production)
+# ===================================================================
+FROM node:20-alpine AS runner
+WORKDIR /app
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nodejs
+COPY --from=server-build --chown=nodejs:nodejs /deploy/server ./
+USER nodejs
+EXPOSE 3001
+CMD ["node", "dist/index.js"]
