@@ -11,7 +11,7 @@ WORKDIR /app
 # DEPS — Install all workspace dependencies (cached layer)
 # ===================================================================
 FROM base AS deps
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/web/package.json ./apps/web/
 COPY apps/server/package.json ./apps/server/
