@@ -33,30 +33,30 @@ export const DialogContent = forwardRef<
 >(({ className, children, ...props }, ref) => {
   const t = useTranslations('common.actions');
   return (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        'fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2',
-        'rounded-xl border border-bg-border bg-bg-surface p-6 shadow-lg',
-        'data-[state=open]:animate-scale-pop',
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      <DialogPrimitive.Close
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        ref={ref}
         className={cn(
-          'absolute right-4 top-4 rounded-sm text-text-muted transition-colors',
-          'hover:text-text-primary focus-visible:outline-2 focus-visible:outline-accent-cyan',
+          'fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2',
+          'rounded-xl border border-bg-border bg-bg-surface p-6 shadow-lg',
+          'data-[state=open]:animate-scale-pop',
+          className,
         )}
+        {...props}
       >
-        <X className="h-5 w-5" />
-        <span className="sr-only">{t('close')}</span>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
+        {children}
+        <DialogPrimitive.Close
+          className={cn(
+            'absolute right-4 top-4 rounded-sm text-text-muted transition-colors',
+            'hover:text-text-primary focus-visible:outline-2 focus-visible:outline-accent-cyan',
+          )}
+        >
+          <X className="h-5 w-5" />
+          <span className="sr-only">{t('close')}</span>
+        </DialogPrimitive.Close>
+      </DialogPrimitive.Content>
+    </DialogPortal>
   );
 });
 DialogContent.displayName = 'DialogContent';

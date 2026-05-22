@@ -1,4 +1,4 @@
-import { type Locale } from '@/i18n/config';
+import type { Locale } from '@/i18n/config';
 import { APP_BASE_URL } from '@/lib/app-url';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';

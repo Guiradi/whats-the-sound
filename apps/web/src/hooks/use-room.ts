@@ -1,12 +1,12 @@
 'use client';
 
+import { useAuth } from '@/hooks/use-auth';
 import { applySocketAuth } from '@/lib/room/apply-socket-auth';
 import {
   type PhaseStartPayload,
   type RoundRevealPayload,
   registerRoomListeners,
 } from '@/lib/room/register-room-listeners';
-import { useAuth } from '@/hooks/use-auth';
 import { type TypedSocket, getSocket } from '@/lib/socket';
 import type {
   ChatMessage,
