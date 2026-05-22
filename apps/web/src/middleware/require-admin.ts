@@ -37,13 +37,9 @@ export async function requireAdmin(request: NextRequest): Promise<NextResponse |
   } = await supabase.auth.getUser();
   if (!user) return notFoundResponse(request);
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  if (!profile || profile.role !== 'admin') return notFoundResponse(request);
+  // role is server-only post-hardening; use SECURITY DEFINER RPC instead.
+  const { data: isAdmin } = await supabase.rpc('is_current_user_admin');
+  if (isAdmin !== true) return notFoundResponse(request);
 
   return null;
 }
