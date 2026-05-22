@@ -1,5 +1,6 @@
 import type { ChatMessage, MidiEntry, RoomConfig, RoomPlayer } from '@wts/shared';
 import type { GameStatus } from '@wts/shared';
+import type { PhaseClipPaths } from '../services/phase-clip-manager.js';
 
 /** Server-side player state — extends the wire type with internal fields. */
 export interface ServerPlayer extends RoomPlayer {
@@ -35,6 +36,9 @@ export interface ServerRoundState {
   artistMatchAnswers: ArtistMatchAnswer[];
   phaseTimer: ReturnType<typeof setTimeout> | null;
   tickInterval: ReturnType<typeof setInterval> | null;
+  /** Storage paths to per-phase clipped MIDI files. Populated async at round start,
+   *  used by startPhase to mint short-lived signed URLs. null until prep completes. */
+  phaseClipPaths: PhaseClipPaths | null;
 }
 
 /** Server-side room state — superset of RoomStateSnapshot. */

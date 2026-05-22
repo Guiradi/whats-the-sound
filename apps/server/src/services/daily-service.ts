@@ -48,6 +48,28 @@ function computePhaseHints(
   };
 }
 
+/**
+ * Sign a storage URL with a 60s TTL. Extracts the path from either a public or
+ * a previously-signed URL. Returns the original URL on failure (still works
+ * client-side until the bucket flips private; degrades gracefully).
+ */
+async function signMidiUrl(
+  supabase: SupabaseClient,
+  publicOrSignedUrl: string,
+): Promise<string> {
+  const marker = '/midis/';
+  const idx = publicOrSignedUrl.indexOf(marker);
+  if (idx < 0) return publicOrSignedUrl;
+  const rest = publicOrSignedUrl.slice(idx + marker.length);
+  const qIdx = rest.indexOf('?');
+  const path = qIdx >= 0 ? rest.slice(0, qIdx) : rest;
+  if (!path) return publicOrSignedUrl;
+
+  const { data, error } = await supabase.storage.from('midis').createSignedUrl(path, 60);
+  if (error || !data?.signedUrl) return publicOrSignedUrl;
+  return data.signedUrl;
+}
+
 function evaluateNextPhase(
   phase: 1 | 2 | 3 | 4,
   result: GuessResult,
@@ -261,6 +283,12 @@ export function createDailyService(
     const phaseKey = `phase${currentPhase}` as keyof typeof midi.phases;
     const phaseAudioData = completed ? null : midi.phases[phaseKey];
 
+    // Sign the storage URL (bucket is private). Per-phase clipping for daily is a
+    // follow-up — for now we sign the canonical file with a short TTL. Combined
+    // with the metadata strip in midi-analyzer, parsing the file no longer
+    // reveals the answer through track names.
+    const midiFileUrl = completed ? null : await signMidiUrl(supabase, midi.midiFileUrl);
+
     return {
       midiId: midi.id,
       date: dateISO,
@@ -272,7 +300,7 @@ export function createDailyService(
       isCorrect,
       phaseGuessed: (existingResult?.phase_guessed as 1 | 2 | 3 | 4 | null | undefined) ?? null,
       phaseAudioData,
-      midiFileUrl: completed ? null : midi.midiFileUrl,
+      midiFileUrl,
       hints: computePhaseHints(currentPhase, midi.year ?? null, midi.category),
     };
   }

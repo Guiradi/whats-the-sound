@@ -4,6 +4,7 @@ import type { ServerRoomState, ServerRoundState } from '../types/room.js';
 import type { AchievementService } from './achievement-service.js';
 import { broadcastBotEvent } from './bot-broadcaster.js';
 import type { MultiplayerXpAwarder } from './multiplayer-xp-awarder.js';
+import type { PhaseClipManager } from './phase-clip-manager.js';
 import type { ReferralService } from './referral-service.js';
 import * as roomManager from './room-manager.js';
 
@@ -45,12 +46,13 @@ export function connectedPlayerCount(room: ServerRoomState): number {
 interface RoundOrchestratorDeps {
   io: TypedServer;
   xpAwarder: MultiplayerXpAwarder;
+  phaseClipManager: PhaseClipManager;
   referralService?: ReferralService;
   achievementService?: AchievementService;
 }
 
 export function createRoundOrchestrator(deps: RoundOrchestratorDeps) {
-  const { io, xpAwarder, referralService, achievementService } = deps;
+  const { io, xpAwarder, phaseClipManager, referralService, achievementService } = deps;
 
   function startRound(roomCode: string): void {
     const room = roomManager.getRoom(roomCode);
@@ -63,7 +65,7 @@ export function createRoundOrchestrator(deps: RoundOrchestratorDeps) {
     }
 
     room.status = GameStatus.ROUND_START;
-    room.round = {
+    const newRound: ServerRoundState = {
       current: room.currentRoundIndex + 1,
       total: room.playlist.length,
       midi,
@@ -74,7 +76,9 @@ export function createRoundOrchestrator(deps: RoundOrchestratorDeps) {
       artistMatchAnswers: [],
       phaseTimer: null,
       tickInterval: null,
+      phaseClipPaths: null,
     };
+    room.round = newRound;
     room.version++;
 
     broadcastBotEvent(io, roomCode, 'roundStart', {
@@ -83,6 +87,21 @@ export function createRoundOrchestrator(deps: RoundOrchestratorDeps) {
     });
 
     broadcastRoomState(io, room);
+
+    // Pre-clip and upload all 4 phases in parallel with the countdown so phase 1
+    // sees clips ready. If prep fails, startPhase logs and aborts the round.
+    void (async () => {
+      const paths = await phaseClipManager.prepareForRound(midi);
+      const currentRoom = roomManager.getRoom(roomCode);
+      // Guard against the round being cancelled or replaced while we awaited.
+      if (currentRoom?.round !== newRound) {
+        if (paths) {
+          phaseClipManager.cleanup(paths).catch(() => {});
+        }
+        return;
+      }
+      newRound.phaseClipPaths = paths;
+    })();
 
     room.round.phaseTimer = setTimeout(() => {
       startPhase(roomCode, 1);
@@ -95,6 +114,51 @@ export function createRoundOrchestrator(deps: RoundOrchestratorDeps) {
 
     const round = room.round;
     clearRoundTimers(round);
+
+    // Per-phase signed URL takes a network round-trip; do it async without
+    // blocking, then emit phase:start once ready.
+    void emitPhaseStart(roomCode, phase, round, room);
+  }
+
+  async function emitPhaseStart(
+    roomCode: string,
+    phase: Phase,
+    round: ServerRoundState,
+    room: ServerRoomState,
+  ): Promise<void> {
+    // Wait for clip prep started by startRound. It runs in parallel with the
+    // 3-second countdown so phase 1 typically sees clips already present.
+    // Loop sleeps 200ms × 25 attempts = 5s ceiling.
+    let attempts = 0;
+    while (!round.phaseClipPaths && attempts < 25) {
+      await sleep(200);
+      const current = roomManager.getRoom(roomCode);
+      if (current?.round !== round) return; // round was replaced/aborted
+      attempts++;
+    }
+
+    const clipPath = round.phaseClipPaths?.[phase];
+    if (!clipPath) {
+      io.to(`room:${roomCode}`).emit('error:generic', {
+        code: 'PHASE_PREP_FAILED',
+        message: 'Could not prepare audio for this round.',
+      });
+      endRound(roomCode);
+      return;
+    }
+
+    const signedUrl = await phaseClipManager.getSignedUrl(clipPath);
+    if (!signedUrl) {
+      io.to(`room:${roomCode}`).emit('error:generic', {
+        code: 'PHASE_PREP_FAILED',
+        message: 'Could not sign audio URL.',
+      });
+      endRound(roomCode);
+      return;
+    }
+
+    const current = roomManager.getRoom(roomCode);
+    if (current?.round !== round) return;
 
     room.status = PHASE_STATUS[phase];
     round.phase = phase;
@@ -110,7 +174,7 @@ export function createRoundOrchestrator(deps: RoundOrchestratorDeps) {
       phase,
       endsAt: round.phaseEndAt,
       audioData: phaseConfig,
-      midiFileUrl: round.midi.midiFileUrl,
+      midiFileUrl: signedUrl,
       hints: {
         year: phase >= 2 ? (round.midi.year ?? null) : null,
         category: phase >= 3 ? round.midi.category : null,
@@ -119,18 +183,14 @@ export function createRoundOrchestrator(deps: RoundOrchestratorDeps) {
 
     broadcastRoomState(io, room);
 
-    round.tickInterval = setInterval(() => {
-      const currentRoom = roomManager.getRoom(roomCode);
-      if (!currentRoom) {
-        if (round.tickInterval) clearInterval(round.tickInterval);
-        return;
-      }
-      broadcastRoomState(io, currentRoom);
-    }, 1000);
-
+    // Timer ticks are computed client-side from phaseEndAt — no server-side rebroadcast loop.
     round.phaseTimer = setTimeout(() => {
       endPhase(roomCode);
     }, room.config.timePerPhaseSec * 1000);
+  }
+
+  function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   function endPhase(roomCode: string): void {
@@ -178,6 +238,12 @@ export function createRoundOrchestrator(deps: RoundOrchestratorDeps) {
 
     broadcastRoomState(io, room);
 
+    // Clean up the phase clips for this round (background, best-effort).
+    const finishedRoundClips = round.phaseClipPaths;
+    if (finishedRoundClips) {
+      phaseClipManager.cleanup(finishedRoundClips).catch(() => {});
+    }
+
     round.phaseTimer = setTimeout(() => {
       const currentRoom = roomManager.getRoom(roomCode);
       if (!currentRoom) return;
@@ -197,6 +263,11 @@ export function createRoundOrchestrator(deps: RoundOrchestratorDeps) {
 
     if (room.round) {
       clearRoundTimers(room.round);
+      // Clean up any leftover phase clips (e.g., if game ends mid-round).
+      const leftoverClips = room.round.phaseClipPaths;
+      if (leftoverClips) {
+        phaseClipManager.cleanup(leftoverClips).catch(() => {});
+      }
     }
 
     room.status = GameStatus.GAME_END;

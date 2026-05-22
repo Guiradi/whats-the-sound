@@ -6,6 +6,7 @@ import { getSupabaseAdmin } from '../lib/supabase.js';
 import { SocketRateLimiter } from '../middleware/rate-limiter.js';
 import type { AchievementService } from '../services/achievement-service.js';
 import { createGameLoop } from '../services/game-loop.js';
+import { PhaseClipManager } from '../services/phase-clip-manager.js';
 import type { ReferralService } from '../services/referral-service.js';
 import { SupabaseMidiProvider } from '../services/supabase-midi-provider.js';
 import type { XpService } from '../services/xp-service.js';
@@ -52,7 +53,15 @@ export function initSocketServer(
     );
   }
   const midiProvider = new SupabaseMidiProvider(supabase);
-  const gameLoop = createGameLoop(io, midiProvider, xpService, referralService, achievementService);
+  const phaseClipManager = new PhaseClipManager(supabase, server.log);
+  const gameLoop = createGameLoop(
+    io,
+    midiProvider,
+    phaseClipManager,
+    xpService,
+    referralService,
+    achievementService,
+  );
   const rateLimiter = new SocketRateLimiter();
 
   io.on('connection', (socket) => {

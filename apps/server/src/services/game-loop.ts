@@ -15,6 +15,7 @@ import type { AchievementService } from './achievement-service.js';
 import { broadcastBotEvent, broadcastPlayerMessage } from './bot-broadcaster.js';
 import type { MidiProvider } from './midi-provider.js';
 import { createMultiplayerXpAwarder } from './multiplayer-xp-awarder.js';
+import type { PhaseClipManager } from './phase-clip-manager.js';
 import type { ReferralService } from './referral-service.js';
 import * as roomManager from './room-manager.js';
 import {
@@ -34,6 +35,7 @@ export interface GameLoop {
 export function createGameLoop(
   io: TypedServer,
   midiProvider: MidiProvider,
+  phaseClipManager: PhaseClipManager,
   xpService?: XpService,
   referralService?: ReferralService,
   achievementService?: AchievementService,
@@ -42,6 +44,7 @@ export function createGameLoop(
   const orchestrator = createRoundOrchestrator({
     io,
     xpAwarder,
+    phaseClipManager,
     referralService,
     achievementService,
   });
